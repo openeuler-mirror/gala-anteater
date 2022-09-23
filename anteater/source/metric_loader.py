@@ -69,9 +69,9 @@ class MetricLoader:
     then convert them to dataframe
     """
 
-    def __init__(self, start_time, end_time) -> None:
+    def __init__(self, start_time, end_time, config) -> None:
         """The Metrics Loader initializer"""
-        self.prometheus = load_prometheus_client()
+        self.prometheus = load_prometheus_client(config)
         self.start_time = start_time
         self.end_time = end_time
 
