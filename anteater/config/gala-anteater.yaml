@@ -23,11 +23,11 @@ HybridModel:
 
 SLIModel:
   RTT:
-    name: gala_gopher_sli_rtt_nsec
+    name: "gala_gopher_sli_rtt_nsec"
     threshold: 200000
 
   TPS:
-    name: gala_gopher_sli_tps
+    name: "gala_gopher_sli_tps"
     threshold: 1.5
 
 SCHEDULE:
