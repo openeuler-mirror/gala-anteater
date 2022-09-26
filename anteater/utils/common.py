@@ -16,19 +16,39 @@ Author:
 Description: Some common functions are able to use in this project.
 """
 
+import copy
 import os
 import re
+import stat
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
 
+import yaml
+
+from anteater.config import AnteaterConfig
 from anteater.service.kafka import KafkaConsumer, KafkaProducer, EntityVariable
 from anteater.service.prometheus import Prometheus
-from anteater.utils.settings import ServiceSettings, MetricSettings, ModelSettings
 from anteater.utils.log import Log
 
 log = Log().get_logger()
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
+
+
+def load_model_conf(filename):
+    """Loads config and build objects"""
+    root_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    file_path = os.path.join(root_path, "config" + os.sep + filename)
+
+    if not os.path.isfile(file_path):
+        log.warning(f"Anteater config file was not found in the folder: {root_path}!")
+        return {}
+
+    modes = stat.S_IWUSR | stat.S_IRUSR
+    with os.fdopen(os.open(file_path, os.O_RDONLY, modes), "r") as f_out:
+        parameters = yaml.safe_load(f_out)
+
+    return parameters
 
 
 def get_file_path(file_name):
@@ -39,28 +59,25 @@ def get_file_path(file_name):
     return file_path
 
 
-def load_prometheus_client() -> Prometheus:
+def load_prometheus_client(config: AnteaterConfig) -> Prometheus:
     """Load and initialize the prometheus client"""
-    settings = ServiceSettings()
-    server = settings.prometheus_server
-    port = settings.prometheus_port
+    server = config.prometheus.server
+    port = config.prometheus.port
 
     client = Prometheus(server, port)
 
     return client
 
 
-def update_entity_variable() -> KafkaConsumer:
+def update_metadata(config: AnteaterConfig) -> KafkaConsumer:
     """Updates entity variables by querying data from Kafka under sub thread"""
     log.info("Start to try updating global configurations by querying data from Kafka!")
 
-    service_settings = ServiceSettings()
-    server = service_settings.kafka_server
-    port = service_settings.kafka_port
-    topic = service_settings.kafka_consumer_topic
+    server = config.kafka.server
+    port = config.kafka.port
+    topic = config.kafka.meta_topic
 
-    metric_settings = MetricSettings()
-    entity_name = metric_settings.entity_name
+    entity_name = config.kafka.meta_entity_name
 
     consumer = KafkaConsumer(server, port, topic, entity_name)
     consumer.start()
@@ -68,19 +85,39 @@ def update_entity_variable() -> KafkaConsumer:
     return consumer
 
 
-def update_service_settings(parser: Dict[str, Any]) -> None:
-    """Update service settings globally"""
-    settings = ServiceSettings()
-    settings.kafka_server = parser["kafka_server"]
-    settings.kafka_port = parser["kafka_port"]
-    settings.prometheus_server = parser["prometheus_server"]
-    settings.prometheus_port = parser["prometheus_port"]
+def update_config(config: AnteaterConfig, parser: Dict[str, Any]):
+    config = copy.deepcopy(config)
+
+    config.kafka.server = parser["kafka_server"]
+    config.kafka.port = parser["kafka_port"]
+    config.prometheus.server = parser["prometheus_server"]
+    config.prometheus.port = parser["prometheus_port"]
+
+    config.hybrid_model.name = parser["model"]
+    config.hybrid_model.retrain = parser["retrain"]
+    config.hybrid_model.retrain = parser["retrain"]
+    config.hybrid_model.look_back = parser["look_back"]
+    config.hybrid_model.threshold = parser["threshold"]
+
+    config.schedule.duration = parser["duration"]
+
+    return config
 
 
-def update_model_settings(parser: Dict[str, Any]) -> None:
-    """Updates model settings globally"""
-    settings = ModelSettings()
-    settings.hybrid_model_th = parser["threshold"]
+def load_metric_description():
+    """Loads metric name and it's descriptions"""
+    folder_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    metrics_file = os.path.join(folder_path, os.sep.join(["model", "observe", "description.csv"]))
+
+    log.info(f"Loads metric and descriptions from file: {metrics_file}")
+
+    descriptions = {}
+    with open(metrics_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            name, dsp = line.strip().split(",")
+            descriptions[name] = dsp
+
+    return descriptions
 
 
 def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anomalies: Tuple[str, Dict, float],
@@ -96,9 +133,9 @@ def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anom
     metric_id = key_anomalies[0]
 
     for key in variable["keys"]:
-        filtered_metric_label[key] = metric_label[key]
+        filtered_metric_label[key] = metric_label.get(key, "0")
         if key != "machine_id":
-            keys.append(metric_label[key])
+            keys.append(metric_label.get(key, "0"))
 
     entity_id = f"{machine_id}_{entity_name}_{'_'.join(keys)}"
     entity_id = PUNCTUATION_PATTERN.sub(":", entity_id)
@@ -109,9 +146,15 @@ def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anom
     else:
         anomaly_score = 0
 
-    recommend_metrics = dict()
+    recommend_metrics = list()
+    descriptions = load_metric_description()
     for name, label, score in rec_anomalies:
-        recommend_metrics[name] = {"label": label, "score": score}
+        recommend_metrics.append({
+            "metric": name,
+            "label": label,
+            "score": score,
+            "description": descriptions.get(name, "")
+        })
 
     timestamp = round(utc_now.timestamp() * 1000)
 
@@ -131,6 +174,7 @@ def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anom
             "metric_label": filtered_metric_label,
             "recommend_metrics": recommend_metrics,
             "metrics": metric_id,
+            "description": descriptions.get(metric_id, "")
         },
         "SeverityText": "WARN",
         "SeverityNumber": 13,
@@ -141,13 +185,9 @@ def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anom
     return message
 
 
-def sent_to_kafka(message: Dict[str, Any]) -> None:
+def sent_to_kafka(message: Dict[str, Any], config: AnteaterConfig) -> None:
     """Sent message to kafka"""
-    settings = ServiceSettings()
+    topic = config.kafka.model_topic
 
-    server = settings.kafka_server
-    port = settings.kafka_port
-    topic = settings.kafka_procedure_topic
-
-    kafka_producer = KafkaProducer(server, port)
+    kafka_producer = KafkaProducer(config.kafka.server, config.kafka.port)
     kafka_producer.send_message(topic, message)

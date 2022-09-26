@@ -36,9 +36,9 @@ class Log(object):
         if not os.path.exists(log_path):
             os.makedirs(log_path)
 
-        log_file_path = os.path.join(root_path, "configuration" + os.sep + "log.settings.ini")
+        log_file_path = os.path.join(root_path, "config" + os.sep + "log.settings.ini")
         if not os.path.isfile(log_file_path):
-            raise FileExistsError("log.settings.ini was not found!")
+            raise FileNotFoundError("log.settings.ini not found!") # pylint:disable=undefined-variable
 
         logging.config.fileConfig(log_file_path)
         self.logger = logging.getLogger()

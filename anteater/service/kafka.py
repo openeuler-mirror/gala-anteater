@@ -63,12 +63,12 @@ class KafkaConsumer(threading.Thread):
     def __init__(self, server, port, topic, entity_name):
         """The Kafka Consumer initializer"""
         threading.Thread.__init__(self)
-        self.topic = topic
         conf = {"bootstrap_servers": f"{server}:{port}",
                 "group_id": f"anomaly_detection_{uuid.uuid4()}",
                 "auto_offset_reset": "earliest",
                 "enable_auto_commit": False}
-        self.consumer = Consumer(self.topic, **conf)
+
+        self.consumer = Consumer(topic, **conf)
         self.entity_name = entity_name
 
     def message_process(self, metadata):
