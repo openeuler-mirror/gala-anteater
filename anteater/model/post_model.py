@@ -30,8 +30,9 @@ from anteater.source.metric_loader import MetricLoader
 class PostModel:
     """The post model which aims to recommend some key metrics for abnormal events"""
 
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
         """The post model initializer"""
+        self.config = config
         self.metric_operators = load_metric_operator()
         self.unique_metrics = set([m for m, _ in self.metric_operators])
 
@@ -60,7 +61,7 @@ class PostModel:
         tim_start = utc_now - timedelta(minutes=6)
         tim_end = utc_now
 
-        loader = MetricLoader(tim_start, tim_end)
+        loader = MetricLoader(tim_start, tim_end, self.config)
         labels, values = self.get_all_metric(loader, machine_id)
 
         point_count = loader.expected_point_length()

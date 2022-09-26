@@ -17,87 +17,147 @@ Description: The variational auto-encoder model which will be used to train offl
 and online, then predict online.
 """
 
-import json
-import os
-import stat
+import copy
+from typing import List, Callable
 
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from anteater.utils.common import get_file_path
-from anteater.utils.settings import ModelSettings
+from anteater.model.algorithms.early_stopper import EarlyStopper
+from anteater.model.base import DetectorConfig, DetectorBase
 from anteater.utils.log import Log
 
 log = Log().get_logger()
 
 
-class VAEPredict:
-    """The variational auto-encoder predict model"""
+class VAEConfig(DetectorConfig):
+    """The VAE configuration"""
 
-    def __init__(self):
-        """The variational auto-encoder model initializer"""
-        settings = ModelSettings()
-        props = settings.vae_properties
-        self.model_path = get_file_path(props["file_name"])
-        self.param_path = get_file_path(props["param_name"])
-        self.threshold = float(props["threshold"])
-        self.quantile = float(props["quantile"])
+    filename = "vae_model.json"
 
-        self.vae_model = self.load_model()
-        self.parameters = self.load_parameters()
+    def __init__(
+            self,
+            hidden_sizes=(25, 10, 5),
+            latent_size=5,
+            dropout_rate=0.25,
+            batch_size=1024,
+            num_epochs=30,
+            learning_rate=0.001,
+            **kwargs
+    ):
+        """The vae config initializer"""
+        super().__init__(**kwargs)
+        self.hidden_sizes = hidden_sizes
+        self.latent_size = latent_size
+        self.dropout_rate = dropout_rate
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.lr = learning_rate
 
-    def load_parameters(self):
-        """Loads vae model parameters"""
-        if not os.path.isfile(self.param_path):
-            log.warning("VAE model parameters was not found! Please run model training in advance!")
-            return {}
 
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        with os.fdopen(os.open(self.param_path, os.O_RDONLY, modes), "r") as f_out:
-            parameters = json.load(f_out)
-        return parameters
+class VAEDetector(DetectorBase):
+    """The vae-based multivariate time series anomaly detector for operating system"""
 
-    def dump_parameters(self, parameters):
-        """Dumps the parameters to the file"""
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        with os.fdopen(os.open(self.param_path, os.O_WRONLY | os.O_CREAT, modes), "w") as f_in:
-            f_in.truncate(0)
-            json.dump(parameters, f_in)
+    filename = "VAE.pkl"
+    config_class = VAEConfig
 
-    def load_model(self):
-        """Load variational auto-encoder model"""
-        model = None
-        if not os.path.isfile(self.model_path):
-            log.error("VAE model was not found! Please run model training in advance!")
-            return model
+    def __init__(self, config: VAEConfig, **kwargs):
+        """VAEDetector initializer"""
+        super().__init__(config)
+        self.config = copy.copy(config)
+        self.hidden_sizes = config.hidden_sizes
+        self.latent_size = config.latent_size
+        self.dropout_rate = config.dropout_rate
+        self.activation = nn.ReLU
 
-        try:
-            model = torch.load(self.model_path)
-            model.eval()
-        except ModuleNotFoundError as e:
-            log.error(f"{e.__class__.__name__}: {str(e)}. "
-                      f"VAE model loading failed, please retrain the model!")
+        self.batch_size = config.batch_size
+        self.num_epochs = config.num_epochs
+        self.lr = config.lr
 
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        self.model = None
+
+    @property
+    def post_processes(self):
+        return self.config.post_processes()
+
+    def init_model(self, x_dim):
+        """Initializing vae model based on data"""
+        model = VAE(
+            x_dim=x_dim,
+            hidden_sizes=self.hidden_sizes,
+            latent_size=self.latent_size,
+            dropout_rate=self.dropout_rate,
+            activation=self.activation
+        )
         return model
 
-    def predict(self, x):
-        """Predicts the anomaly score by variational auto-encoder model"""
+    def train(self, x, x_val):
+        """Start to train model based on training data and validate data"""
+        print(f"Using {self.device} device for vae model training")
+        self.model = self.model if self.model else self.init_model(x.shape[1])
+
+        x_loader = DataLoader(x, batch_size=self.batch_size, shuffle=True)
+        x_val_loader = DataLoader(x_val, batch_size=self.batch_size, shuffle=True)
+
+        opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        loss_func = nn.MSELoss()
+        early_stopper = EarlyStopper()
+
+        for epoch in range(self.num_epochs):
+            self.model.train()
+            train_loss = 0
+            train_batch_count = 0
+            for x_batch in x_loader:
+                x_batch = x_batch.to(self.device)
+                x_batch_hat, means, log_var, _ = self.model(x_batch)
+                loss_recon_x = loss_func(x_batch, x_batch_hat)
+                loss_kl = -0.5 * torch.mean(torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1), dim=0)
+                loss = loss_recon_x + loss_kl
+
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+                train_loss += loss.item()
+                train_batch_count += 1
+
+            self.model.eval()
+            val_loss = 0
+            val_batch_count = 0
+            for x_val_batch in x_val_loader:
+                x_val_batch_hat, means, log_var, _ = self.model(x_val_batch)
+                loss_recon_x = loss_func(x_val_batch, x_val_batch_hat)
+                loss_kl = -0.5 * torch.mean(torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1), dim=0)
+                loss = loss_recon_x + loss_kl
+
+                val_loss += loss.item()
+                val_batch_count += 1
+
+            avg_train_loss = train_loss / train_batch_count
+            avg_valid_loss = val_loss / val_batch_count
+
+            print(f"Epoch(s): {epoch}\ttrain Loss: {avg_train_loss:.5f}\t"
+                  f"validate Loss: {avg_valid_loss:.5f}")
+
+            if early_stopper.early_stop(val_loss):
+                print("Early Stopped!")
+                break
+
+    def get_anomaly_scores(self, x):
+        """Computes the anomaly scores"""
+        self.model.eval()
+
         if isinstance(x, np.ndarray):
-            x = x.astype(np.float32)
-            x = torch.from_numpy(x)
+            x = torch.Tensor(x.astype(np.float32))
 
-        output = self.vae_model(x)
-        y_score = torch.mean(torch.abs(output - x), dim=1).detach().numpy()
+        x_hat, _, _, _ = self.model(x)
+        scores = torch.sum(torch.abs(x - x_hat), dim=1).detach().numpy()
 
-        error_thresh = self.parameters["vae_error_threshold"]
-
-        y_pred = (y_score > error_thresh) * 1
-
-        return y_pred
+        return scores
 
     def fit(self, x):
         """train the variational auto-encoder model based on the latest raw data"""
@@ -105,126 +165,103 @@ class VAEPredict:
         x = x.astype(np.float32)
         x_train, x_val = train_test_split(x, test_size=0.3, random_state=1234, shuffle=True)
 
-        trainer = VAEModelTrain()
-        vae = trainer.run(x_train, x_val)
-        vae.eval()
-        torch.save(vae, self.model_path)
+        self.train(x_train, x_val)
+        self.model.eval()
 
         x_tensor = torch.Tensor(x_train)
-        output = vae(x_tensor)
-        y_score = torch.mean(torch.abs(output - x_tensor), dim=1).detach().numpy()
+        x_hat, _, _, _ = self.model(x_tensor)
 
-        self.vae_model = vae
+        scores = torch.sum(torch.abs(x_hat - x_tensor), dim=1).detach().numpy()
 
-        if not self.parameters:
-            self.parameters = {}
-        self.parameters["vae_error_threshold"] = np.quantile(y_score, self.quantile)
-        self.dump_parameters(self.parameters)
+        self.post_processes.train(scores)
+
+    def predict(self, x):
+        """Predicts the anomaly score by variational auto-encoder model"""
+        scores = self.get_anomaly_scores(x)
+        scores = self.post_processes(scores)
+
+        return (scores > 0) * 1
+
+    def need_retrain(self, look_back_hours=4, max_error_rate=0.7):
+        point_count = look_back_hours * 12
+        error_rate = self.post_processes.error_rate(point_count)
+
+        if error_rate > max_error_rate:
+            return True
+
+        else:
+            return False
 
 
 class VAE(nn.Module):
     """The variational auto-encoder model implemented by torch"""
 
-    def __init__(self, input_dim, hidden_size, latent_size):
+    def __init__(self, x_dim, hidden_sizes, latent_size, dropout_rate, activation):
         """The variational auto-encoder model initializer"""
         super().__init__()
-        self.linear1 = nn.Linear(input_dim, hidden_size)
-        self.linear2 = nn.Linear(hidden_size, latent_size)
-        self.linear3 = nn.Linear(hidden_size, latent_size)
-
-        self.de_fc1 = nn.Linear(latent_size, hidden_size)
-        self.de_fc2 = nn.Linear(hidden_size, input_dim)
-
-        self.kl = 0
-
-    def encoder(self, x):
-        """The encoder of variational auto-encoder model"""
-        x = torch.relu(self.linear1(x))
-        mu = self.linear2(x)
-        sigma = f.softplus(self.linear3(x))
-        self.kl = 0.5 * torch.sum(torch.exp(sigma) + mu ** 2 - 1. - sigma)
-        return mu, sigma
-
-    def decoder(self, z):
-        """The decoder of variational auto-encoder model"""
-        z = torch.relu(self.de_fc1(z))
-        x = self.de_fc2(z)
-        return torch.sigmoid(x)
+        self.encoder = Encoder(x_dim, hidden_sizes, latent_size, dropout_rate, activation)
+        self.decoder = Decoder(x_dim, hidden_sizes[::-1], latent_size, dropout_rate, activation)
 
     def forward(self, x):
         """The whole pipeline of variational auto-encoder model"""
-        mu, sigma = self.encoder(x)
+        means, log_var = self.encoder(x)
+        z = self.re_parameterize(means, log_var)
+        x_hat = self.decoder(z)
 
-        std = torch.exp(0.5 * sigma)
+        return x_hat, means, log_var, z
+
+    @staticmethod
+    def re_parameterize(means, log_var):
+        """Re-parameterize the means and vars"""
+        std = torch.exp(0.5 * log_var)
         eps = torch.randn_like(std)
-        z = eps * std + mu
 
-        out = self.decoder(z)
-        return out
+        return means + eps * std
 
 
-class VAEModelTrain:
-    """The variational auto-encoder model training class"""
+class Encoder(nn.Module):
+    """The vae encoder module"""
+    def __init__(self, x_dim: int, hidden_sizes: List[int], latent_size: int,
+                 dropout_rate: float, activation: Callable):
+        """The vae encoder module initializer"""
+        super().__init__()
+        self.mlp = build_hidden_layers(x_dim, hidden_sizes, dropout_rate, activation)
+        self.linear_means = nn.Linear(hidden_sizes[-1], latent_size)
+        self.linear_vars = (nn.Linear(hidden_sizes[-1], latent_size))
+        self.soft_plus = nn.Softplus()
 
-    def __init__(self, batch_size=256, learning_rate=0.001):
-        """The variational auto-encoder training class initializer"""
-        self.batch_size = batch_size
-        self.learning_rate = learning_rate
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = None
+        nn.init.uniform_(self.linear_vars.weight, -0.01, 0.01)
+        nn.init.constant_(self.linear_vars.bias, 0)
 
-    def run(self, x_train, x_test):
-        """Run variational auto-encoder model"""
-        train_dataloader = DataLoader(x_train, batch_size=self.batch_size, shuffle=True)
-        validate_dataloader = DataLoader(x_test, batch_size=self.batch_size, shuffle=True)
+    def forward(self, x):
+        """The vae encoder module pipeline"""
+        x = self.mlp(x)
+        means = self.linear_means(x)
+        log_vars = self.soft_plus(self.linear_vars(x))
+        return means, log_vars
 
-        input_dim = x_train.shape[1]
-        hidden_size = input_dim // 2
-        latent_size = input_dim // 3
 
-        vae = VAE(input_dim, hidden_size, latent_size).to(self.device)
-        vae = self.train(vae, train_dataloader, validate_dataloader)
-        self.model = vae
-        return vae
+class Decoder(nn.Module):
+    """The vae decoder module"""
+    def __init__(self, x_dim, hidden_sizes, latent_size, dropout_rate, activation):
+        super().__init__()
+        self.mlp = build_hidden_layers(latent_size, hidden_sizes, dropout_rate, activation)
+        self.output_layer = nn.Linear(hidden_sizes[-1], x_dim)
+        self.sigmoid = nn.Sigmoid()
 
-    def train(self, model, train_data, validate_data, epochs=100):
-        """Start to train model based on training data and validate data"""
-        log.info(f"Using {self.device} device")
+    def forward(self, z):
+        """The vae decoder module pipeline"""
+        x_hat = self.sigmoid(self.output_layer(self.mlp(z)))
+        return x_hat
 
-        opt = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
-        for epoch in range(epochs):
-            train_loss = 0.0
-            train_count = 0
-            for x in train_data:
-                x = x.to(self.device)
-                opt.zero_grad()
-                x_hat = model(x)
-                loss = ((x - x_hat) ** 2).sum() + model.kl
-                loss.backward()
-                opt.step()
-                train_loss += loss.item()
-                train_count += x.shape[0]
 
-            model.eval()
-            valid_loss = 0.0
-            valid_count = 0
-            for data in validate_data:
-                target = model(data)
-                loss = (torch.square(data - target)).sum() + model.kl
-                valid_loss += loss.item()
-                valid_count += data.shape[0]
+def build_hidden_layers(input_size: int, hidden_sizes: List[int], dropout_rate: float, activation: Callable):
+    """build vae model hidden layers"""
+    hidden_layers = []
+    for i in range(len(hidden_sizes)):
+        in_features = input_size if i == 0 else hidden_sizes[i - 1]
+        hidden_layers.append(nn.Linear(in_features, hidden_sizes[i]))
+        hidden_layers.append(activation())
+        hidden_layers.append(nn.Dropout(dropout_rate))
 
-            if train_count != 0:
-                avg_train_loss = train_loss / train_count
-            else:
-                avg_train_loss = 0
-                
-            if valid_count != 0:
-                avg_valid_loss = valid_loss / valid_count
-            else:
-                avg_valid_loss = 0
-
-            log.info(f"Epoch(s): {epoch}\ttrain Loss: {avg_train_loss:.2f}\t"
-                     f"validate Loss: {avg_valid_loss:.2f}")
-
-        return model
+    return nn.Sequential(*hidden_layers)

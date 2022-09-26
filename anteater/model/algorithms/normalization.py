@@ -1,10 +1,25 @@
+#!/usr/bin/python3
+# ******************************************************************************
+# Copyright (c) Huawei Technologies Co., Ltd. 2021-2022. All rights reserved.
+# licensed under the Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#     http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN 'AS IS' BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+# PURPOSE.
+# See the Mulan PSL v2 for more details.
+# ******************************************************************************/
+"""
+Time:
+Author:
+Description: The normalization method for the data processing
+"""
+
 import os
 
 import joblib
 from sklearn.preprocessing import StandardScaler
-
-from anteater.utils.common import get_file_path
-from anteater.utils.settings import ModelSettings
 
 from anteater.utils.log import Log
 
@@ -12,30 +27,37 @@ log = Log().get_logger()
 
 
 class Normalization:
-    def __init__(self):
-        settings = ModelSettings()
-        props = settings.norm_properties
-        self.model_path = get_file_path(props["file_name"])
-        self.model = self.load_model()
+    """The normalization class for the data processing"""
 
-    def load_model(self):
-        """Loads model"""
-        if not os.path.isfile(self.model_path):
-            log.warning("Normalization model was not found! Please run model training in advance!")
-            return StandardScaler()
+    filename = "normalization.pkl"
 
-        return joblib.load(self.model_path)
+    def __init__(self, **kwargs):
+        """The normalizer initializer"""
+        self.normalizer = StandardScaler()
 
-    def save(self):
-        joblib.dump(self.model, self.model_path)
+    @classmethod
+    def load(cls, folder, **kwargs):
+        """Loads model from the file"""
+        file = os.path.join(folder, cls.filename)
+
+        if not os.path.isfile(file):
+            raise FileNotFoundError("Normalization file was not found!") # pylint:disable=undefined-variable
+
+        model = cls(**kwargs)
+        model.normalizer = joblib.load(file)
+        return model
+
+    def save(self, folder):
+        """Saves the model into the file"""
+        model_path = os.path.join(folder, self.filename)
+        joblib.dump(self.normalizer, model_path)
 
     def fit_transform(self, x):
-        x_norm = self.model.fit_transform(x)
-        self.save()
-
+        """Fits and transforms the data"""
+        x_norm = self.normalizer.fit_transform(x)
         return x_norm
 
     def transform(self, x):
-        x_norm = self.model.transform(x)
+        """Transofms the data"""
+        x_norm = self.normalizer.transform(x)
         return x_norm
-
