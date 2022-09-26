@@ -3,7 +3,9 @@ kafka-python>=2.0.2
 joblib
 numpy
 pandas
+PyYAML
 requests
 scikit_learn
 scipy
+setuptools
 torch
