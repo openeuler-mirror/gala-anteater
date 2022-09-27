@@ -75,7 +75,7 @@ def arg_parser():
                         type=int, default=1, required=False)
     parser.add_argument("-r", "--retrain",
                         help="If retrain the vae model or not",
-                        type=str2bool, nargs='?', const=True, default=False, required=False)
+                        type=str2bool, nargs='?', const=True, default=True, required=False)
     parser.add_argument("-l", "--look_back",
                         help="Look back window for model training (days)",
                         type=int, default=4, required=False)

@@ -31,24 +31,17 @@ ENV prometheus_port "9090"
 
 ENV PYTHONPATH "${PYTHONPATH}:/gala-anteather/anteater"
 
-# container work directory
 WORKDIR /home/gala-anteather
 
-# Copy requirements.txt file to docker image
 COPY requirements.txt requirements.txt
-
-# Copy source code into the image
 COPY . /home/gala-anteather
+COPY anteater/config /etc/gala-anteater/config
 
-# install python3 library dependencies
+# Setting the pip3 source
+# RUN pip3 config set global.index-url http://cmc-cd-mirror.rnd.huawei.com/pypi/simple/ \
+#   &&  pip3 config set global.trusted-host cmc-cd-mirror.rnd.huawei.com
+
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# start gala-anteate service
-#CMD ["./start.sh", "${kafka_server}", "${kafka_port}", "${prometheus_server}", "${prometheus_port}"]
-
-CMD echo "kafka_server : ${kafka_server}" && \
-    echo "kafka_port : ${kafka_port}" && \
-    echo "prometheus_server : ${prometheus_server}" && \
-    echo "prometheus_port : ${prometheus_port}" && \
-    python3 ./anteater/main.py --kafka_server ${kafka_server} --kafka_port ${kafka_port} \
+CMD python3 ./anteater/main.py --kafka_server ${kafka_server} --kafka_port ${kafka_port} \
     --prometheus_server ${prometheus_server} --prometheus_port ${prometheus_port}
