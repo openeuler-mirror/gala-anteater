@@ -11,7 +11,7 @@
 """
 Time:
 Author:
-Description: The threhold class for dynamic anomaly score thredhols selection
+Description: The threshold class for dynamic anomaly score thresholds selection
 """
 
 from collections import deque
@@ -28,7 +28,7 @@ log = Log().get_logger()
 class Threshold(PostProcess):
     """The threshold post process"""
 
-    def __init__(self, alm_threshold, abs_score=True, quantile: float = None, **kwargs):
+    def __init__(self, alm_threshold, abs_score=True, quantile=0.99, **kwargs):
         """The threshold post process initializer"""
         self.alm_threshold = alm_threshold
         self.abs_score = abs_score
@@ -62,6 +62,8 @@ class Threshold(PostProcess):
 
         if self.quantile is not None and self.quantile > 0:
             self.alm_threshold = np.quantile(scores, self.quantile)
+
+        self._latest_alm_threshold = 0
 
     def error_rate(self, look_back):
         """Computes the error rate"""

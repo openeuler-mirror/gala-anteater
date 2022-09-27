@@ -93,14 +93,6 @@ def update_config(config: AnteaterConfig, parser: Dict[str, Any]):
     config.prometheus.server = parser["prometheus_server"]
     config.prometheus.port = parser["prometheus_port"]
 
-    config.hybrid_model.name = parser["model"]
-    config.hybrid_model.retrain = parser["retrain"]
-    config.hybrid_model.retrain = parser["retrain"]
-    config.hybrid_model.look_back = parser["look_back"]
-    config.hybrid_model.threshold = parser["threshold"]
-
-    config.schedule.duration = parser["duration"]
-
     return config
 
 

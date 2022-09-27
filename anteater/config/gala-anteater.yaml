@@ -14,12 +14,12 @@ Prometheus:
 
 HybridModel:
   name: "vae"
-  conf_folder: "config"
   model_folder: "models"
   latest_model_folder: "latest_models"
-  retrain: false
+  retrain: true
+  look_back: 12
   keep_model: true
-  threshold: 0.5
+  threshold: 0.8
 
 SLIModel:
   RTT:
