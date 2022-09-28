@@ -51,7 +51,7 @@ class DetectorConfig:
         self.threshold = Threshold(alm_threshold, **kwargs)
 
     def post_processes(self):
-        "The post processes of detector"
+        """The post processes of detector"""
         processes = []
         if self.enable_calibrator and self.calibrator is not None:
             processes.append(self.calibrator)

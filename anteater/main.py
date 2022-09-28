@@ -31,17 +31,16 @@ from anteater.service.kafka import EntityVariable
 from anteater.utils.common import update_metadata, sent_to_kafka, get_kafka_message, update_config
 from anteater.utils.log import Log
 
-log = Log().get_logger()
+ANTEATER_DATA_PATH = os.environ.get('ANTEATER_DATA_PATH') or "/etc/gala-anteater/"
 
-ANTEATER_DATA_PATH = "/etc/gala-anteater/"
+log = Log().get_logger()
 
 
 def init_config() -> AnteaterConfig:
-    """initial anteater config"""
-    data_path = os.environ.get('ANTEATER_DATA_PATH') or ANTEATER_DATA_PATH
-    conf = AnteaterConfig.load_from_yaml(data_path)
+    """initialize anteater config"""
+    config = AnteaterConfig.load_from_yaml(ANTEATER_DATA_PATH)
 
-    return conf
+    return config
 
 
 def str2bool(arg):
@@ -67,23 +66,6 @@ def arg_parser():
                         help="The prometheus server ip", type=str, required=True)
     parser.add_argument("-pp", "--prometheus_port",
                         help="The prometheus server port", type=str, required=True)
-    parser.add_argument("-m", "--model",
-                        help="The machine learning model - random_forest, vae",
-                        type=str, default="vae", required=False)
-    parser.add_argument("-d", "--duration",
-                        help="The time interval of scheduling anomaly detection task (minutes)",
-                        type=int, default=1, required=False)
-    parser.add_argument("-r", "--retrain",
-                        help="If retrain the vae model or not",
-                        type=str2bool, nargs='?', const=True, default=True, required=False)
-    parser.add_argument("-l", "--look_back",
-                        help="Look back window for model training (days)",
-                        type=int, default=4, required=False)
-    parser.add_argument("-t", "--threshold",
-                        help="The model threshold (0, 1), the bigger value, the more strict of anomaly",
-                        type=float, default=0.8, required=False)
-    parser.add_argument("-sli", "--sli_time",
-                        help="The sli time threshold", type=int, default=400, required=False)
     arguments = vars(parser.parse_args())
 
     return arguments
@@ -140,9 +122,9 @@ def main():
     sli_model = SLIModel(config)
     post_model = PostModel(config)
 
-    if not hybrid_model.model or parser["retrain"]:
+    if not hybrid_model.model or config.hybrid_model.retrain:
         log.info("Start to re-train the model based on last day metrics dataset!")
-        end_time = utc_now - timedelta(days=parser["look_back"])
+        end_time = utc_now - timedelta(hours=config.hybrid_model.look_back)
         x = hybrid_model.get_training_data(end_time, utc_now)
         if x.empty:
             log.error("Error")
@@ -150,10 +132,10 @@ def main():
             log.info(f"The shape of training data: {x.shape}")
             hybrid_model.training(x)
 
-    log.info(f"Schedule recurrent job with time interval {parser['duration']} minute(s).")
+    log.info(f"Schedule recurrent job with time interval {config.schedule.duration} minute(s).")
     scheduler = BlockingScheduler()
     scheduler.add_job(partial(anomaly_detection, hybrid_model, sli_model, post_model, config),
-                      trigger="interval", minutes=parser["duration"])
+                      trigger="interval", minutes=config.schedule.duration)
     scheduler.start()
 
     sub_thread.join()

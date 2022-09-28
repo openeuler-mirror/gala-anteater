@@ -54,7 +54,6 @@ class Prometheus(Service):
 class HybridModelConfig:
     """The hybrid model config"""
     name: str = None
-    conf_folder: str = None
     model_folder: str = None
     latest_model_folder: str = None
     look_back: int = None
@@ -141,7 +140,6 @@ class AnteaterConfig:
         sli_model = SLIModel(rtt=RTT(**rtt), tps=TPS(**tps))
         schedule = ScheduleConfig(**schedule_conf)
 
-        hybrid_model.conf_folder = os.path.join(data_path, hybrid_model.conf_folder)
         hybrid_model.model_folder = os.path.join(data_path, hybrid_model.model_folder)
         hybrid_model.latest_model_folder = os.path.join(data_path, hybrid_model.latest_model_folder)
 

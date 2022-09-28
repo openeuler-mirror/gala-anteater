@@ -50,7 +50,7 @@ class HybridModel:
         self.model = config.hybrid_model.name
 
         self.keep_model = config.hybrid_model.keep_model
-        self.conf_folder = config.hybrid_model.conf_folder
+        self.model_folder = config.hybrid_model.model_folder
         self.latest_model_folder = config.hybrid_model.latest_model_folder
 
         self.pipeline = self.select_pipe()
@@ -59,7 +59,7 @@ class HybridModel:
         self._min_retrain_hours = 4
 
     def select_pipe(self):
-        factory = ModelFactory(**self.config.hybrid_model.__dict__)
+        factory = ModelFactory(self.model_folder)
         if self.model == "random_forest":
             return [
                 ("classifier", RandomForest()),
