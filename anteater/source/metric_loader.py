@@ -18,10 +18,9 @@ Description: The implementation of metrics data loader.
 
 from typing import List, Tuple, Dict, Union
 
-from anteater.utils.common import load_prometheus_client
-from anteater.utils.log import Log
-
-log = Log().get_logger()
+from anteater.config import AnteaterConfig
+from anteater.service.factory import DataCollectorFactory
+from anteater.utils.log import log
 
 
 def get_query(metric: str,
@@ -69,9 +68,10 @@ class MetricLoader:
     then convert them to dataframe
     """
 
-    def __init__(self, start_time, end_time, config) -> None:
+    def __init__(self, start_time, end_time, config: AnteaterConfig) -> None:
         """The Metrics Loader initializer"""
-        self.prometheus = load_prometheus_client(config)
+        self.prometheus = DataCollectorFactory.\
+            get_instance(config.global_conf.data_source, config)
         self.start_time = start_time
         self.end_time = end_time
 

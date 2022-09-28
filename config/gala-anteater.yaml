@@ -1,5 +1,8 @@
+Global:
+    data_source: "prometheus"
+
 Kafka:
-  server: "localhost"
+  server: "9.16.143.92"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
   model_group_id: "gala_anteater_1"
@@ -8,27 +11,29 @@ Kafka:
   meta_entity_name: "sli"
 
 Prometheus:
-  server: "localhost"
-  port: "9090"
+  server: "10.137.17.122"
+  port: "29090"
   steps: 5
+
+Aom:
+  base_url: ""
+  project_id: ""
+  auth_type: "token"
+  auth_info:
+    iam_server: ""
+    iam_domain: ""
+    iam_user_name: ""
+    iam_password: ""
+    ssl_verify: 0
 
 HybridModel:
   name: "vae"
   model_folder: "models"
   latest_model_folder: "latest_models"
-  retrain: true
-  look_back: 12
+  retrain: false
+  look_back: 1
   keep_model: true
   threshold: 0.8
 
-SLIModel:
-  RTT:
-    name: "gala_gopher_sli_rtt_nsec"
-    threshold: 200000
-
-  TPS:
-    name: "gala_gopher_sli_tps"
-    threshold: 1.5
-
-SCHEDULE:
+Schedule:
   duration: 1

@@ -30,7 +30,8 @@ from anteater.config import AnteaterConfig
 from anteater.model.algorithms.random_forest import RandomForest
 from anteater.model.factory import ModelFactory
 from anteater.source.metric_loader import MetricLoader
-from anteater.utils.data_process import load_metric_operator, parse_operator, metric_value_to_df
+from anteater.utils.common import load_metric_operator
+from anteater.utils.data_process import parse_operator, metric_value_to_df
 from anteater.utils.log import Log
 
 log = Log().get_logger()

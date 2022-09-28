@@ -23,8 +23,8 @@ from typing import List, Tuple, Any
 import numpy as np
 
 from anteater.model.algorithms.spectral_residual import SpectralResidual
-from anteater.utils.data_process import load_metric_operator
 from anteater.source.metric_loader import MetricLoader
+from anteater.utils.common import load_metric_operator
 
 
 class PostModel:

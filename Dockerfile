@@ -23,25 +23,24 @@
 # base image
 FROM python:3.7-slim-buster
 
-# Define variables.
-ENV kafka_server "localhost"
-ENV kafka_port "9092"
-ENV prometheus_server "localhost"
-ENV prometheus_port "9090"
-
-ENV PYTHONPATH "${PYTHONPATH}:/gala-anteather/anteater"
+ENV PYTHONPATH "${PYTHONPATH}:/home/gala-anteather/anteater"
 
 WORKDIR /home/gala-anteather
 
 COPY requirements.txt requirements.txt
 COPY . /home/gala-anteather
-COPY anteater/config /etc/gala-anteater/config
+
+COPY config/gala-anteater.yaml ./config/
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
 # Setting the pip3 source
-# RUN pip3 config set global.index-url http://cmc-cd-mirror.rnd.huawei.com/pypi/simple/ \
-#   &&  pip3 config set global.trusted-host cmc-cd-mirror.rnd.huawei.com
+RUN pip3 config set global.index-url https://mirrors.tools.huawei.com/pypi/simple \
+    && pip3 config set install.trusted-host mirrors.tools.huawei.com
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-CMD python3 ./anteater/main.py --kafka_server ${kafka_server} --kafka_port ${kafka_port} \
-    --prometheus_server ${prometheus_server} --prometheus_port ${prometheus_port}
+ENTRYPOINT [ "/entrypoint.sh" ]
+
+CMD ["python3", "./anteater/main.py"]

@@ -16,7 +16,6 @@ Author:
 Description: The main function of gala-anteater project.
 """
 
-import argparse
 import os
 from datetime import datetime, timezone, timedelta
 from functools import partial
@@ -28,7 +27,7 @@ from anteater.model.hybrid_model import HybridModel
 from anteater.model.post_model import PostModel
 from anteater.model.sli_model import SLIModel
 from anteater.service.kafka import EntityVariable
-from anteater.utils.common import update_metadata, sent_to_kafka, get_kafka_message, update_config
+from anteater.utils.common import update_metadata, sent_to_kafka, get_kafka_message
 from anteater.utils.log import Log
 
 ANTEATER_DATA_PATH = os.environ.get('ANTEATER_DATA_PATH') or "/etc/gala-anteater/"
@@ -38,37 +37,10 @@ log = Log().get_logger()
 
 def init_config() -> AnteaterConfig:
     """initialize anteater config"""
-    config = AnteaterConfig.load_from_yaml(ANTEATER_DATA_PATH)
+    config = AnteaterConfig()
+    config.load_from_yaml(ANTEATER_DATA_PATH)
 
     return config
-
-
-def str2bool(arg):
-    if isinstance(arg, bool):
-        return arg
-    if arg.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif arg.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
-def arg_parser():
-    parser = argparse.ArgumentParser(
-        description="gala-anteater project for operation system KPI metrics anomaly detection")
-
-    parser.add_argument("-ks", "--kafka_server",
-                        help="The kafka server ip", type=str, required=True)
-    parser.add_argument("-kp", "--kafka_port",
-                        help="The kafka server port", type=str,  required=True)
-    parser.add_argument("-ps", "--prometheus_server",
-                        help="The prometheus server ip", type=str, required=True)
-    parser.add_argument("-pp", "--prometheus_port",
-                        help="The prometheus server port", type=str, required=True)
-    arguments = vars(parser.parse_args())
-
-    return arguments
 
 
 def anomaly_detection(hybrid_model: HybridModel, sli_model: SLIModel, post_model: PostModel, config: AnteaterConfig):
@@ -89,13 +61,10 @@ def anomaly_detection(hybrid_model: HybridModel, sli_model: SLIModel, post_model
 
         y_pred = hybrid_model.predict(df)
         hybrid_abnormal = hybrid_model.is_abnormal(y_pred)
-        sli_anomalies, default_anomalies = sli_model.detect(utc_now, machine_id)
+        sli_anomalies = sli_model.detect(utc_now, machine_id)
 
-        if sli_anomalies or hybrid_abnormal:
+        if sli_anomalies:
             rec_anomalies = post_model.top_n_anomalies(utc_now, machine_id, top_n=60)
-
-            if not sli_anomalies:
-                sli_anomalies = default_anomalies
 
             for anomalies in sli_anomalies:
                 msg = get_kafka_message(utc_now, y_pred.tolist(), machine_id, anomalies, rec_anomalies)
@@ -113,8 +82,6 @@ def main():
     utc_now = datetime.now(timezone.utc).astimezone()
 
     config = init_config()
-    parser = arg_parser()
-    config = update_config(config, parser)
 
     sub_thread = update_metadata(config)
 

@@ -16,7 +16,6 @@ Author:
 Description: Some common functions are able to use in this project.
 """
 
-import copy
 import os
 import re
 import stat
@@ -25,12 +24,11 @@ from typing import Dict, Any, List, Tuple
 
 import yaml
 
-from anteater.config import AnteaterConfig
-from anteater.service.kafka import KafkaConsumer, KafkaProducer, EntityVariable
-from anteater.service.prometheus import Prometheus
-from anteater.utils.log import Log
+from anteater.config import AnteaterConf
+from anteater.provider.kafka import KafkaConsumer, EntityVariable
+from anteater.utils.data_load import load_metric_description
+from anteater.utils.log import logger
 
-log = Log().get_logger()
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 
@@ -41,7 +39,7 @@ def load_model_conf(filename):
     file_path = os.path.join(root_path, "config" + os.sep + filename)
 
     if not os.path.isfile(file_path):
-        log.warning(f"Anteater config file was not found in the folder: {root_path}!")
+        logger.warning(f"Anteater config file was not found in the folder: {root_path}!")
         return {}
 
     modes = stat.S_IWUSR | stat.S_IRUSR
@@ -59,19 +57,9 @@ def get_file_path(file_name):
     return file_path
 
 
-def load_prometheus_client(config: AnteaterConfig) -> Prometheus:
-    """Load and initialize the prometheus client"""
-    server = config.prometheus.server
-    port = config.prometheus.port
-
-    client = Prometheus(server, port)
-
-    return client
-
-
-def update_metadata(config: AnteaterConfig) -> KafkaConsumer:
+def update_metadata(config: AnteaterConf) -> KafkaConsumer:
     """Updates entity variables by querying data from Kafka under sub thread"""
-    log.info("Start to try updating global configurations by querying data from Kafka!")
+    logger.info("Start to try updating global configurations by querying data from Kafka!")
 
     server = config.kafka.server
     port = config.kafka.port
@@ -83,33 +71,6 @@ def update_metadata(config: AnteaterConfig) -> KafkaConsumer:
     consumer.start()
 
     return consumer
-
-
-def update_config(config: AnteaterConfig, parser: Dict[str, Any]):
-    config = copy.deepcopy(config)
-
-    config.kafka.server = parser["kafka_server"]
-    config.kafka.port = parser["kafka_port"]
-    config.prometheus.server = parser["prometheus_server"]
-    config.prometheus.port = parser["prometheus_port"]
-
-    return config
-
-
-def load_metric_description():
-    """Loads metric name and it's descriptions"""
-    folder_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    metrics_file = os.path.join(folder_path, os.sep.join(["model", "observe", "description.csv"]))
-
-    log.info(f"Loads metric and descriptions from file: {metrics_file}")
-
-    descriptions = {}
-    with open(metrics_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            name, dsp = line.strip().split(",")
-            descriptions[name] = dsp
-
-    return descriptions
 
 
 def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anomalies: Tuple[str, Dict, float],
@@ -177,9 +138,27 @@ def get_kafka_message(utc_now: datetime, y_pred: List, machine_id: str, key_anom
     return message
 
 
-def sent_to_kafka(message: Dict[str, Any], config: AnteaterConfig) -> None:
-    """Sent message to kafka"""
-    topic = config.kafka.model_topic
+def get_sys_message(utc_now: datetime, metric_id: str, machine_id: str) -> Dict[str, Any]:
+    """Generates the Kafka sys message based the parameters"""
+    entity_id = machine_id
+    entity_id = PUNCTUATION_PATTERN.sub(":", entity_id)
 
-    kafka_producer = KafkaProducer(config.kafka.server, config.kafka.port)
-    kafka_producer.send_message(topic, message)
+    timestamp = round(utc_now.timestamp() * 1000)
+
+    message = {
+        "Timestamp": timestamp,
+        "Attributes": {
+            "entity_id": entity_id,
+            "event_id": f"{timestamp}_{entity_id}",
+            "event_type": "sys"
+        },
+        "Resource": {
+            "metrics": metric_id,
+        },
+        "SeverityText": "WARN",
+        "SeverityNumber": 13,
+        "Body": f"{utc_now.strftime('%c')}, WARN, Sys metric {entity_id} may be impacting some issues.",
+        "event_id": f"{timestamp}_{entity_id}"
+    }
+
+    return message
