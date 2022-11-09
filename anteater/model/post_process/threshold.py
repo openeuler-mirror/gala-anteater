@@ -17,12 +17,8 @@ Description: The threshold class for dynamic anomaly score thresholds selection
 from collections import deque
 
 import numpy as np
-from scipy.signal import savgol_filter
 
 from anteater.model.post_process.base import PostProcess
-from anteater.utils.log import Log
-
-log = Log().get_logger()
 
 
 class Threshold(PostProcess):

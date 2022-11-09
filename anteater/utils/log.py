@@ -19,8 +19,10 @@ Description: the implementation of logging
 import os
 import logging.config
 import logging
+from os.path import realpath, join
 
-ANTEATER_DATA_PATH = os.environ.get('ANTEATER_DATA_PATH') or "/etc/gala-anteater/"
+LOG_CONFIG_PATH = "/etc/gala-anteater/config"
+LOG_DATA_PATH = "/gala_var/log/gala-anteater/"
 
 
 class Log(object):
@@ -32,17 +34,20 @@ class Log(object):
         return cls.__flag
 
     def __init__(self):
-        root_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        log_config_file = os.path.join(root_path, "config" + os.sep + "log.settings.ini")
+        log_config_file = join(realpath(LOG_CONFIG_PATH), "log.settings.ini")
         if not os.path.isfile(log_config_file):
             raise FileNotFoundError("log.settings.ini not found!")  # pylint:disable=undefined-variable
 
-        log_path = os.path.join(ANTEATER_DATA_PATH, "logs")
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
+        log_dir = realpath(LOG_DATA_PATH)
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
 
-        logging.config.fileConfig(log_config_file, defaults={'logfilename': os.path.join(log_path, 'anteater.log')})
+        log_filename = os.path.join(log_dir, 'gala-anteater.log')
+        logging.config.fileConfig(log_config_file, defaults={'filename': log_filename})
         self.logger = logging.getLogger()
 
     def get_logger(self):
         return self.logger
+
+
+logger = Log().get_logger()

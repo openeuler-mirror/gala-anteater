@@ -1,6 +1,7 @@
 # gala-anteater 介绍
 
-gala-anteater是一款基于AI的操作系统异常检测平台。主要涵盖时序数据预处理、异常点发现、以及异常上报等功能。基于线下预训练、线上模型的增量学习与模型更新，能够很好地适应于多维多模态数据故障诊断。
+gala-anteater是一款基于AI的操作系统异常检测平台。主要涵盖时序数据预处理、异常点发现、以及异常上报等功能。
+基于线下预训练、线上模型的增量学习与模型更新，能够很好地适应于多维多模态数据故障诊断。
 
 ## 1. 安装gala-anteater
 
@@ -20,22 +21,20 @@ docker build -f Dockerfile -t gala-anteater:1.0.0 .
 
 #### 1.1.2 Docker镜像运行
 
-执行下面的命令，运行Docker镜像，请配置相应的kafka和prometheus信息
+执行下面的命令，运行Docker镜像。首次运行会将配置文件`gala-anteater.yaml`文件映射到宿主机`etc\gala-anteater\config`文件下，
+请配置`gala-anteater.yaml`里面的参数，包括`Kafka`、`PrometheusAdapter/AomAdapter`相关参数信息。
 
 ```
-docker run -d --env kafka_server={kafka_server} --env kafka_port={kafka_port} --env prometheus_server={prometheus_server} --env prometheus_port={prometheus_port} -it gala-anteater:1.0.0
+docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
 ```
-
-
 
 #### 1.1.3 日志查看
 
-日志文件路径：`./gala-anteater/logs/`
+日志文件路径：`etc/gala-anteater/logs/`
 
 #### 1.1.4 运行结果查看
 
-如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`./cnfiguration/`中修改配置
-
+如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`gala-anteater.yaml`中修改配置
 
 
 ### 1.2 方法二：从本仓库源码安装运行（适用于开发者）
@@ -67,11 +66,11 @@ python main.py --kafka_server localhost --kafka_port 9092 --prometheus_server lo
 
 #### 1.2.4 日志查看
 
-日志文件路径：`./gala-anteater/logs/`
+日志文件路径：`/etc/gala-anteater/logs/`
 
 #### 1.2.5 运行结果查看
 
-如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`./cnfiguration/`中修改配置。
+如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`gala-anteater.yaml`中修改配置。
 
 ## 2. 快速使用指南
 
@@ -80,13 +79,13 @@ python main.py --kafka_server localhost --kafka_port 9092 --prometheus_server lo
 按照1中的方式启动服务，命令如下：
 
 ```shell
-docker run -d --env kafka_server={kafka_server} --env kafka_port={kafka_port} --env prometheus_server={prometheus_server} --env prometheus_port={prometheus_port} -it gala-anteater:1.0.0
+docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
 ```
 
 或者
 
 ```shell
-python main.py --kafka_server localhost --kafka_port 9092 --prometheus_server localhost --prometheus_port 9090
+python ./anteater/main.py
 ```
 
 启动结果，可查看运行日志。

@@ -16,26 +16,29 @@ Author:
 Description: The gala-anteater global configurations.
 """
 
+import logging
 import os.path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import yaml
 
-from anteater.utils.log import Log
 
-log = Log().get_logger()
+@dataclass
+class GlobalConf:
+    """The global config"""
+    data_source: str = None
 
 
 @dataclass
-class Service:
-    """The service config"""
+class ServiceConf:
+    """The provider config"""
     server: str = None
     port: str = None
     steps: int = None
 
 
 @dataclass
-class Kafka(Service):
+class KafkaConf(ServiceConf):
     """The kafka config"""
     model_topic: str = None
     model_group_id: str = None
@@ -45,9 +48,17 @@ class Kafka(Service):
 
 
 @dataclass
-class Prometheus(Service):
+class PrometheusConf(ServiceConf):
     """The prometheus config"""
     step: int = None
+
+
+@dataclass
+class AomConfig:
+    base_url: str = None
+    project_id: str = None
+    auth_type: str = None
+    auth_info: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -64,54 +75,26 @@ class HybridModelConfig:
 
 
 @dataclass
-class RTT:
-    """The rtt config in sli-model"""
-    name: str = None
-    threshold: float = None
-
-
-@dataclass
-class TPS:
-    """The tps config in sli-model"""
-    name: str = None
-    threshold: float = None
-
-
-@dataclass
-class SLIModel:
-    """The sli model config"""
-    rtt: RTT = None
-    tps: TPS = None
-
-
-@dataclass
-class ScheduleConfig:
+class ScheduleConf:
     """The scheduling method config"""
     duration: int = None
 
 
-class AnteaterConfig:
+class AnteaterConf:
     """The gala-anteater globally configurations"""
 
     filename = "gala-anteater.yaml"
 
-    def __init__(
-        self,
-        kafka: Kafka,
-        prometheus: Prometheus,
-        hybrid_model: HybridModelConfig,
-        sli_model: SLIModel,
-        schedule: ScheduleConfig
-    ):
+    def __init__(self):
         """The gala-anteater config initializer"""
-        self.kafka: Kafka = kafka
-        self.prometheus: Prometheus = prometheus
-        self.hybrid_model = hybrid_model
-        self.sli_model = sli_model
-        self.schedule = schedule
+        self.global_conf: GlobalConf = None
+        self.kafka: KafkaConf = None
+        self.prometheus: PrometheusConf = None
+        self.aom: AomConfig = None
+        self.hybrid_model: HybridModelConfig = None
+        self.schedule: ScheduleConf = None
 
-    @classmethod
-    def load_from_yaml(cls, data_path: str):
+    def load_from_yaml(self, data_path: str):
         """Loads config from yaml file"""
         data_path = os.path.realpath(data_path)
 
@@ -119,28 +102,26 @@ class AnteaterConfig:
             os.makedirs(data_path)
 
         try:
-            with open(os.path.join(data_path, "config", cls.filename), "rb") as f:
+            with open(os.path.join(data_path, "config", self.filename), "rb") as f:
                 result = yaml.safe_load(f)
         except IOError as e:
-            log.error(f"Load gala-anteater config file failed {e}")
+            logging.error(f"Load gala-anteater config file failed {e}")
             raise e
 
+        global_conf = result.get("Global")
         kafka_conf = result.get("Kafka")
         prometheus_conf = result.get("Prometheus")
+        aom_config = result.get("Aom")
         hybrid_model_conf = result.get("HybridModel")
-        sli_model_conf = result.get("SLIModel")
-        schedule_conf = result.get("SCHEDULE")
+        schedule_conf = result.get("Schedule")
 
-        rtt = sli_model_conf.get("RTT")
-        tps = sli_model_conf.get("TPS")
+        data_source = global_conf.get("data_source")
 
-        kafka = Kafka(**kafka_conf)
-        prometheus = Prometheus(**prometheus_conf)
-        hybrid_model = HybridModelConfig(**hybrid_model_conf)
-        sli_model = SLIModel(rtt=RTT(**rtt), tps=TPS(**tps))
-        schedule = ScheduleConfig(**schedule_conf)
-
-        hybrid_model.model_folder = os.path.join(data_path, hybrid_model.model_folder)
-        hybrid_model.latest_model_folder = os.path.join(data_path, hybrid_model.latest_model_folder)
-
-        return cls(kafka, prometheus, hybrid_model, sli_model, schedule)
+        self.global_conf = GlobalConf(data_source=data_source)
+        self.kafka = KafkaConf(**kafka_conf)
+        self.prometheus = PrometheusConf(**prometheus_conf)
+        self.aom = AomConfig(**aom_config)
+        self.hybrid_model = HybridModelConfig(**hybrid_model_conf)
+        self.hybrid_model.model_folder = os.path.join(data_path, self.hybrid_model.model_folder)
+        self.hybrid_model.latest_model_folder = os.path.join(data_path, self.hybrid_model.latest_model_folder)
+        self.schedule = ScheduleConf(**schedule_conf)

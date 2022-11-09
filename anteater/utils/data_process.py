@@ -16,17 +16,11 @@ Author:
 Description: The data processors of raw metric datasets.
 """
 
-import os
 from datetime import datetime
-from os import path
 from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-
-from anteater.utils.log import Log
-
-log = Log().get_logger()
 
 
 def metric_value_to_df(value: List[List], col_name: str):
@@ -45,22 +39,6 @@ def metric_value_to_df(value: List[List], col_name: str):
     df = df[~df.index.duplicated()]
 
     return df
-
-
-def load_metric_operator():
-    """Loads metric name and corresponding operator"""
-    folder_path = path.dirname(path.dirname(path.realpath(__file__)))
-    metrics_file = path.join(folder_path, os.sep.join(["model", "observe", "metrics.csv"]))
-
-    log.info(f"Loads metric and operators from file: {metrics_file}")
-
-    metric_operators = []
-    with open(metrics_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            metric_name, operator = line.strip().split(",")
-            metric_operators.append((metric_name, operator))
-
-    return metric_operators
 
 
 def parse_operator(operator: str) -> Tuple[str, Union[float, None]]:
