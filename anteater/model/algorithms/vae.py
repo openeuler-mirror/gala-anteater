@@ -28,9 +28,7 @@ from torch.utils.data import DataLoader
 
 from anteater.model.algorithms.early_stopper import EarlyStopper
 from anteater.model.base import DetectorConfig, DetectorBase
-from anteater.utils.log import Log
-
-log = Log().get_logger()
+from anteater.utils.log import logger
 
 
 class VAEConfig(DetectorConfig):
@@ -56,10 +54,14 @@ class VAEConfig(DetectorConfig):
         self.batch_size = batch_size
         self.num_epochs = num_epochs
         self.lr = learning_rate
+        self.activation = nn.ReLU
 
 
 class VAEDetector(DetectorBase):
-    """The vae-based multivariate time series anomaly detector for operating system"""
+    """The vae-based multivariate time series anomaly
+    detector for operating system
+
+    """
 
     filename = "VAE.pkl"
     config_class = VAEConfig
@@ -71,7 +73,7 @@ class VAEDetector(DetectorBase):
         self.hidden_sizes = config.hidden_sizes
         self.latent_size = config.latent_size
         self.dropout_rate = config.dropout_rate
-        self.activation = nn.ReLU
+        self.activation = config.activation
 
         self.batch_size = config.batch_size
         self.num_epochs = config.num_epochs
@@ -89,24 +91,22 @@ class VAEDetector(DetectorBase):
         """Initializing vae model based on data"""
         model = VAE(
             x_dim=x_dim,
-            hidden_sizes=self.hidden_sizes,
-            latent_size=self.latent_size,
-            dropout_rate=self.dropout_rate,
-            activation=self.activation
+            config=self.config
         )
         return model
 
     def train(self, x, x_val):
         """Start to train model based on training data and validate data"""
-        print(f"Using {self.device} device for vae model training")
+        logger.info(f"Using {self.device} device for vae model training")
         self.model = self.model if self.model else self.init_model(x.shape[1])
 
         x_loader = DataLoader(x, batch_size=self.batch_size, shuffle=True)
-        x_val_loader = DataLoader(x_val, batch_size=self.batch_size, shuffle=True)
+        x_val_loader = DataLoader(x_val, batch_size=self.batch_size,
+                                  shuffle=True)
 
-        opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         loss_func = nn.MSELoss()
         early_stopper = EarlyStopper()
+        opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         for epoch in range(self.num_epochs):
             self.model.train()
@@ -115,9 +115,11 @@ class VAEDetector(DetectorBase):
             for x_batch in x_loader:
                 x_batch = x_batch.to(self.device)
                 x_batch_hat, means, log_var, _ = self.model(x_batch)
-                loss_recon_x = loss_func(x_batch, x_batch_hat)
-                loss_kl = -0.5 * torch.mean(torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1), dim=0)
-                loss = loss_recon_x + loss_kl
+                loss_x_batch_hat = loss_func(x_batch, x_batch_hat)
+                loss_kl = -0.5 * torch.mean(
+                    torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1),
+                    dim=0)
+                loss = loss_x_batch_hat + loss_kl
 
                 opt.zero_grad()
                 loss.backward()
@@ -131,7 +133,9 @@ class VAEDetector(DetectorBase):
             for x_val_batch in x_val_loader:
                 x_val_batch_hat, means, log_var, _ = self.model(x_val_batch)
                 loss_recon_x = loss_func(x_val_batch, x_val_batch_hat)
-                loss_kl = -0.5 * torch.mean(torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1), dim=0)
+                loss_kl = -0.5 * torch.mean(
+                    torch.sum(1 + log_var - means ** 2 - log_var.exp(), dim=1),
+                    dim=0)
                 loss = loss_recon_x + loss_kl
 
                 val_loss += loss.item()
@@ -140,11 +144,11 @@ class VAEDetector(DetectorBase):
             avg_train_loss = train_loss / train_batch_count
             avg_valid_loss = val_loss / val_batch_count
 
-            print(f"Epoch(s): {epoch}\ttrain Loss: {avg_train_loss:.5f}\t"
-                  f"validate Loss: {avg_valid_loss:.5f}")
+            logger.info(f"Epoch(s): {epoch}\ttrain Loss: {avg_train_loss:.5f}\t"
+                        f"validate Loss: {avg_valid_loss:.5f}")
 
             if early_stopper.early_stop(val_loss):
-                print("Early Stopped!")
+                logger.info("Early Stopped!")
                 break
 
     def get_anomaly_scores(self, x):
@@ -160,10 +164,13 @@ class VAEDetector(DetectorBase):
         return scores
 
     def fit(self, x):
-        """train the variational auto-encoder model based on the latest raw data"""
-        log.info("Start to execute vae model training...")
+        """train the variational auto-encoder model based on
+        the latest raw data
+        """
+        logger.info("Start to execute vae model training...")
         x = x.astype(np.float32)
-        x_train, x_val = train_test_split(x, test_size=0.3, random_state=1234, shuffle=True)
+        x_train, x_val = train_test_split(x, test_size=0.3,
+                                          random_state=1234, shuffle=True)
 
         self.train(x_train, x_val)
         self.model.eval()
@@ -196,11 +203,12 @@ class VAEDetector(DetectorBase):
 class VAE(nn.Module):
     """The variational auto-encoder model implemented by torch"""
 
-    def __init__(self, x_dim, hidden_sizes, latent_size, dropout_rate, activation):
+    def __init__(self, x_dim, config: VAEConfig):
         """The variational auto-encoder model initializer"""
         super().__init__()
-        self.encoder = Encoder(x_dim, hidden_sizes, latent_size, dropout_rate, activation)
-        self.decoder = Decoder(x_dim, hidden_sizes[::-1], latent_size, dropout_rate, activation)
+
+        self.encoder = Encoder(x_dim, config=config)
+        self.decoder = Decoder(x_dim, config=config)
 
     def forward(self, x):
         """The whole pipeline of variational auto-encoder model"""
@@ -221,13 +229,20 @@ class VAE(nn.Module):
 
 class Encoder(nn.Module):
     """The vae encoder module"""
-    def __init__(self, x_dim: int, hidden_sizes: List[int], latent_size: int,
-                 dropout_rate: float, activation: Callable):
+
+    def __init__(self, x_dim: int, config: VAEConfig):
         """The vae encoder module initializer"""
         super().__init__()
-        self.mlp = build_hidden_layers(x_dim, hidden_sizes, dropout_rate, activation)
+
+        hidden_sizes = config.hidden_sizes
+        latent_size = config.latent_size
+        dropout_rate = config.dropout_rate
+        activation = config.activation
+
+        self.mlp = build_multi_hidden_layers(x_dim, hidden_sizes,
+                                             dropout_rate, activation)
         self.linear_means = nn.Linear(hidden_sizes[-1], latent_size)
-        self.linear_vars = (nn.Linear(hidden_sizes[-1], latent_size))
+        self.linear_vars = nn.Linear(hidden_sizes[-1], latent_size)
         self.soft_plus = nn.Softplus()
 
         nn.init.uniform_(self.linear_vars.weight, -0.01, 0.01)
@@ -243,9 +258,17 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """The vae decoder module"""
-    def __init__(self, x_dim, hidden_sizes, latent_size, dropout_rate, activation):
+
+    def __init__(self, x_dim, config: VAEConfig):
         super().__init__()
-        self.mlp = build_hidden_layers(latent_size, hidden_sizes, dropout_rate, activation)
+
+        hidden_sizes = config.hidden_sizes[::-1]
+        latent_size = config.latent_size
+        dropout_rate = config.dropout_rate
+        activation = config.activation
+
+        self.mlp = build_multi_hidden_layers(latent_size, hidden_sizes,
+                                             dropout_rate, activation)
         self.output_layer = nn.Linear(hidden_sizes[-1], x_dim)
         self.sigmoid = nn.Sigmoid()
 
@@ -255,13 +278,14 @@ class Decoder(nn.Module):
         return x_hat
 
 
-def build_hidden_layers(input_size: int, hidden_sizes: List[int], dropout_rate: float, activation: Callable):
-    """build vae model hidden layers"""
-    hidden_layers = []
+def build_multi_hidden_layers(input_size: int, hidden_sizes: List[int],
+                              dropout_rate: float, activation: Callable):
+    """build vae model mutli-hidden layers"""
+    multi_hidden_layers = []
     for i in range(len(hidden_sizes)):
-        in_features = input_size if i == 0 else hidden_sizes[i - 1]
-        hidden_layers.append(nn.Linear(in_features, hidden_sizes[i]))
-        hidden_layers.append(activation())
-        hidden_layers.append(nn.Dropout(dropout_rate))
+        in_size = input_size if i == 0 else hidden_sizes[i - 1]
+        multi_hidden_layers.append(nn.Linear(in_size, hidden_sizes[i]))
+        multi_hidden_layers.append(activation())
+        multi_hidden_layers.append(nn.Dropout(dropout_rate))
 
-    return nn.Sequential(*hidden_layers)
+    return nn.Sequential(*multi_hidden_layers)

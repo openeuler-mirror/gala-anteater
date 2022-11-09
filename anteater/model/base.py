@@ -27,9 +27,6 @@ import torch
 from anteater.model.post_process.calibrate import Calibrator
 from anteater.model.post_process.pipeline import PostProcessPipe
 from anteater.model.post_process.threshold import Threshold
-from anteater.utils.log import Log
-
-log = Log().get_logger()
 
 
 class DetectorConfig:

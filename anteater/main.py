@@ -16,96 +16,63 @@ Author:
 Description: The main function of gala-anteater project.
 """
 
-import os
-from datetime import datetime, timezone, timedelta
 from functools import partial
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from anteater.config import AnteaterConfig
-from anteater.model.hybrid_model import HybridModel
-from anteater.model.post_model import PostModel
-from anteater.model.sli_model import SLIModel
-from anteater.service.kafka import EntityVariable
-from anteater.utils.common import update_metadata, sent_to_kafka, get_kafka_message
-from anteater.utils.log import Log
+from anteater.config import AnteaterConf
+from anteater.module.app_sli_detector import APPSliDetector
+from anteater.module.proc_io_latency_detector import ProcIOLatencyDetector
+from anteater.module.sys_io_latency_detector import SysIOLatencyDetector
+from anteater.module.sys_tcp_establish_detector import SysTcpEstablishDetector
+from anteater.module.sys_tcp_transmission_detector import SysTcpTransmissionDetector
+from anteater.provider.kafka import KafkaProvider
+from anteater.source.anomaly_report import AnomalyReport
+from anteater.source.metric_loader import MetricLoader
+from anteater.utils.datetime import datetime_manager
+from anteater.utils.log import logger
 
-ANTEATER_DATA_PATH = os.environ.get('ANTEATER_DATA_PATH') or "/etc/gala-anteater/"
-
-log = Log().get_logger()
+ANTEATER_DATA_PATH = '/etc/gala-anteater/'
 
 
-def init_config() -> AnteaterConfig:
+def init_config() -> AnteaterConf:
     """initialize anteater config"""
-    config = AnteaterConfig()
-    config.load_from_yaml(ANTEATER_DATA_PATH)
+    conf = AnteaterConf()
+    conf.load_from_yaml(ANTEATER_DATA_PATH)
 
-    return config
+    return conf
 
 
-def anomaly_detection(hybrid_model: HybridModel, sli_model: SLIModel, post_model: PostModel, config: AnteaterConfig):
+def anomaly_detection(loader: MetricLoader, report: AnomalyReport, conf: AnteaterConf):
     """Run anomaly detection model periodically"""
-    utc_now = datetime.now(timezone.utc).astimezone()
+    datetime_manager.update_and_freeze()
+    logger.info('START: anomaly detection!')
 
-    if not EntityVariable.variable:
-        log.info("Configuration hasn't been updated.")
-        return
+    # APP sli anomaly detection
+    APPSliDetector(loader, report).detect()
 
-    log.info(f"START: run anomaly detection model.")
+    # SYS tcp/io detection
+    SysTcpEstablishDetector(loader, report).detect()
+    SysTcpTransmissionDetector(loader, report).detect()
+    SysIOLatencyDetector(loader, report).detect()
+    ProcIOLatencyDetector(loader, report).detect()
 
-    machine_ids, dfs = hybrid_model.get_inference_data(utc_now)
-
-    for machine_id, df in zip(machine_ids, dfs):
-        if df.shape[0] == 0:
-            log.warning(f"Not data was founded for the target machine {machine_id}, please check it first!")
-
-        y_pred = hybrid_model.predict(df)
-        hybrid_abnormal = hybrid_model.is_abnormal(y_pred)
-        sli_anomalies = sli_model.detect(utc_now, machine_id)
-
-        if sli_anomalies:
-            rec_anomalies = post_model.top_n_anomalies(utc_now, machine_id, top_n=60)
-
-            for anomalies in sli_anomalies:
-                msg = get_kafka_message(utc_now, y_pred.tolist(), machine_id, anomalies, rec_anomalies)
-                sent_to_kafka(msg, config)
-
-            log.info(f"END: abnormal events were detected on machine: {machine_id}.")
-        else:
-            log.info(f"END: no abnormal events on machine {machine_id}.")
-
-    hybrid_model.online_training(utc_now)
+    logger.info('END: anomaly detection!')
 
 
 def main():
-    log.info("Load gala-anteater conf")
-    utc_now = datetime.now(timezone.utc).astimezone()
+    conf = init_config()
 
-    config = init_config()
+    kafka_provider = KafkaProvider(conf.kafka)
+    loader = MetricLoader(conf)
+    report = AnomalyReport(kafka_provider)
 
-    sub_thread = update_metadata(config)
+    logger.info(f'Schedule recurrent job with time interval {conf.schedule.duration} minute(s).')
 
-    hybrid_model = HybridModel(config)
-    sli_model = SLIModel(config)
-    post_model = PostModel(config)
-
-    if not hybrid_model.model or config.hybrid_model.retrain:
-        log.info("Start to re-train the model based on last day metrics dataset!")
-        end_time = utc_now - timedelta(hours=config.hybrid_model.look_back)
-        x = hybrid_model.get_training_data(end_time, utc_now)
-        if x.empty:
-            log.error("Error")
-        else:
-            log.info(f"The shape of training data: {x.shape}")
-            hybrid_model.training(x)
-
-    log.info(f"Schedule recurrent job with time interval {config.schedule.duration} minute(s).")
-    scheduler = BlockingScheduler()
-    scheduler.add_job(partial(anomaly_detection, hybrid_model, sli_model, post_model, config),
-                      trigger="interval", minutes=config.schedule.duration)
+    scheduler = BlockingScheduler(timezone='Asia/Shanghai')
+    scheduler.add_job(partial(anomaly_detection, loader, report, conf),
+                      trigger='interval', minutes=conf.schedule.duration)
     scheduler.start()
-
-    sub_thread.join()
 
 
 if __name__ == '__main__':

@@ -21,10 +21,6 @@ import os
 import joblib
 from sklearn.preprocessing import StandardScaler
 
-from anteater.utils.log import Log
-
-log = Log().get_logger()
-
 
 class Normalization:
     """The normalization class for the data processing"""

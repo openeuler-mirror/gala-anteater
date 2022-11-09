@@ -16,11 +16,14 @@ Author:
 Description: The implementation of metrics data loader.
 """
 
-from typing import List, Tuple, Dict, Union
+from typing import List, Union
 
-from anteater.config import AnteaterConfig
-from anteater.service.factory import DataCollectorFactory
-from anteater.utils.log import log
+from anteater.config import AnteaterConf
+from anteater.factory.factory import DataCollectorFactory
+from anteater.utils import datetime
+from anteater.utils.log import logger
+from anteater.utils.time_series import TimeSeries
+from anteater.utils.timer import timer
 
 
 def get_query(metric: str,
@@ -64,20 +67,17 @@ def get_query(metric: str,
 
 class MetricLoader:
     """
-    The metric loader that consumes raw data from Prometheus,
+    The metric loader that consumes raw data from PrometheusAdapter,
     then convert them to dataframe
     """
 
-    def __init__(self, start_time, end_time, config: AnteaterConfig) -> None:
+    def __init__(self, config: AnteaterConf) -> None:
         """The Metrics Loader initializer"""
-        self.prometheus = DataCollectorFactory.\
+        self.provider = DataCollectorFactory.\
             get_instance(config.global_conf.data_source, config)
-        self.start_time = start_time
-        self.end_time = end_time
 
-    def get_metric(self, metric: str, **kwargs)\
-            -> Tuple[List[Dict], List[List[List]]]:
-        """Get target metric values
+    def get_metric(self, start: datetime, end: datetime, metric: str, **kwargs) -> List[TimeSeries]:
+        """Get target metric time series data
 
         :kwargs
             - label_name: Union[str, List] = None,
@@ -85,35 +85,36 @@ class MetricLoader:
             - operator_name: str = None,
             - operator_value: float = None)
 
-        :return Tuple of labels and values
-            labels:
-                - [{"__name__": gala_gopher_.*, "machine_id": "12345"}, ...]
-            values:
-                - [[[1234, "1"], [1235, "2"], [1236, "2.6"], ...], ...]
+        :return List of TimeSeries
         """
-        labels = []
-        values = []
         query = get_query(metric, **kwargs)
-        data = self.prometheus.range_query(self.start_time, self.end_time, query)
-        for item in data:
-            labels.append(item["metric"])
-            values.append(item["values"])
+        time_series = self.provider.range_query(start, end, metric, query)
 
-        return labels, values
+        return time_series
 
-    def get_unique_label(self, metrics, label_name) -> List:
+    @timer
+    def get_unique_machines(self, start: datetime, end: datetime, metrics: List[str]) -> List[str]:
+        """Gets the unique machine ids based on the metrics"""
+        machine_ids = self.get_unique_label(start, end, metrics, label_name="machine_id")
+        if not machine_ids:
+            logger.warning(f"Empty unique machine ids!")
+        else:
+            logger.info(f"Got {len(machine_ids)} unique machine_ids")
+        return machine_ids
+
+    def get_unique_label(self, start: datetime, end: datetime, metrics: List[str], label_name: str) -> List[str]:
         """Gets unique labels of all metrics"""
         unique_labels = set()
         for metric in metrics:
-            labels, _ = self.get_metric(metric, label_name=label_name)
-            unique_labels.update([lbl.get(label_name, "") for lbl in labels])
+            time_series = self.get_metric(start, end, metric, label_name=label_name)
+            unique_labels.update([item.labels.get(label_name, "") for item in time_series])
 
-        return list(unique_labels)
+        return list([lbl for lbl in unique_labels if lbl])
 
-    def expected_point_length(self) -> int:
+    def expected_point_length(self, start: datetime, end: datetime) -> int:
         """Gets expected length of time series during a period"""
-        start, end = round(self.start_time.timestamp()), round(self.end_time.timestamp())
-        if self.prometheus.step >= 0:
-            return max((end - start) // self.prometheus.step, 1)
+        start, end = round(start.timestamp()), round(end.timestamp())
+        if self.provider.step >= 0:
+            return max((end - start) // self.provider.step, 1)
         else:
             return 0

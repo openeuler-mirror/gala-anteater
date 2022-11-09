@@ -18,12 +18,7 @@ Description: The implementation of spectral residual anomaly detection, please r
              - https://arxiv.org/pdf/1906.03821.pdf.
 """
 
-import math
 import numpy as np
-
-from anteater.utils.log import Log
-
-log = Log().get_logger()
 
 
 def series_filter(values, kernel_size: int):
