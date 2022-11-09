@@ -1,0 +1,19 @@
+{
+  "KPI": [
+    {
+      "metric": "gala_gopher_tcp_link_syn_srtt",
+      "kpi_type": "",
+      "entity_name": "tcp_link",
+      "enable": true,
+      "description": "RTT of syn packet(us): existing {:.0%} syn packets rtt are more than {:.0f} us",
+      "parameter": {}
+    }
+  ],
+  "Features": [
+    {
+      "metric": "gala_gopher_endpoint_retran_synacks",
+      "priority": 0,
+      "description": "TCP established performance deteriorates due to loss of SYN/ACK packets.(PID = {}, TCP Listen Port = {}})"
+    }
+  ]
+}
