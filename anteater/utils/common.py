@@ -162,3 +162,11 @@ def get_sys_message(utc_now: datetime, metric_id: str, machine_id: str) -> Dict[
     }
 
     return message
+
+
+def divide(x, y):
+    """Divide expression in case divide-by-zero problem"""
+    if y != 0:
+        return x / y
+    else:
+        return 0

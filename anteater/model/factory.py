@@ -16,15 +16,9 @@ Author:
 Description: The factory of the model initializer.
 """
 
-import json
-import os
-import stat
-
 from anteater.model.algorithms.normalization import Normalization
 from anteater.model.algorithms.vae import VAEDetector, VAEConfig
-from anteater.utils.log import Log
-
-log = Log().get_logger()
+from anteater.utils.log import logger
 
 
 class ModelFactory:
@@ -40,14 +34,14 @@ class ModelFactory:
             try:
                 model = VAEDetector.load(self.model_folder)
             except FileNotFoundError:
-                log.warning("Initializing default vae model!")
+                logger.warning("Initializing default vae model!")
                 model = VAEDetector(VAEConfig())
 
         elif name == "norm":
             try:
                 model = Normalization.load(self.model_folder)
             except FileNotFoundError:
-                log.warning("Initializing default norm model!")
+                logger.warning("Initializing default norm model!")
                 model = Normalization()
 
         else:

@@ -17,24 +17,25 @@ Description: The post process which aims to find the top n anomalies.
 """
 
 import math
-from datetime import datetime, timedelta
 from typing import List, Tuple, Any
 
-import numpy as np
-
+from anteater.config import AnteaterConf
 from anteater.model.algorithms.spectral_residual import SpectralResidual
 from anteater.source.metric_loader import MetricLoader
-from anteater.utils.common import load_metric_operator
+from anteater.utils.data_load import load_metric_operator
+from anteater.utils.datetime import datetime_manager
+from anteater.utils.time_series import TimeSeries
 
 
 class PostModel:
     """The post model which aims to recommend some key metrics for abnormal events"""
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: AnteaterConf) -> None:
         """The post model initializer"""
         self.config = config
         self.metric_operators = load_metric_operator()
         self.unique_metrics = set([m for m, _ in self.metric_operators])
+        self.data_loader = MetricLoader(self.config)
 
     @staticmethod
     def predict(sr_model: SpectralResidual, values: List) -> float:
@@ -46,42 +47,36 @@ class PostModel:
 
         return max(scores[-12: -1])
 
-    def get_all_metric(self, loader, machine_id: str):
+    def get_all_metric(self, start, end, machine_id: str) -> List[TimeSeries]:
         """Gets all metric labels and values"""
-        labels, values = [], []
+        time_series_list = []
         for metric in self.unique_metrics:
-            label, value = loader.get_metric(metric, label_name="machine_id", label_value=machine_id)
-            labels.extend(label)
-            values.extend(value)
+            time_series = self.data_loader.get_metric(start, end, metric,
+                                                      label_name="machine_id", label_value=machine_id)
+            time_series_list.extend(time_series)
 
-        return labels, values
+        return time_series_list
 
-    def top_n_anomalies(self, utc_now: datetime, machine_id: str, top_n: int) -> List[Tuple[Any, dict, Any]]:
+    def top_n_anomalies(self, machine_id: str, top_n: int) -> List[Tuple[TimeSeries, Any]]:
         """Finds top n anomalies during a period for the target machine"""
-        tim_start = utc_now - timedelta(minutes=6)
-        tim_end = utc_now
-
-        loader = MetricLoader(tim_start, tim_end, self.config)
-        labels, values = self.get_all_metric(loader, machine_id)
-
-        point_count = loader.expected_point_length()
-
+        start, end = datetime_manager.last(minutes=6)
+        time_series_list = self.get_all_metric(start, end, machine_id)
+        point_count = self.data_loader.expected_point_length(start, end)
         sr_model = SpectralResidual(12, 24, 50)
 
-        scores = []
-        for label, value in zip(labels, values):
-            if len(value) < point_count * 0.9 or\
-               len(value) > point_count * 1.5:
+        result = []
+        for time_series in time_series_list:
+            if len(time_series.values) < point_count * 0.9 or\
+               len(time_series.values) > point_count * 1.5:
                 continue
 
-            target_value = [np.float64(v[1]) for v in value]
-            score = self.predict(sr_model, target_value)
+            score = self.predict(sr_model, time_series.values)
 
             if math.isnan(score) or math.isinf(score):
                 continue
 
-            scores.append((label["__name__"], label, score))
+            result.append((time_series, score))
 
-        sorted_scores = sorted(scores, key=lambda x: x[2], reverse=True)
+        result = sorted(result, key=lambda x: x[1], reverse=True)
 
-        return sorted_scores[0: top_n]
+        return result[0: top_n]
