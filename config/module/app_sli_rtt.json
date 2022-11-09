@@ -1,0 +1,203 @@
+{
+  "KPI": [
+    {
+      "metric": "gala_gopher_sli_rtt_nsec",
+      "kpi_type": "rtt",
+      "entity_name": "sli",
+      "enable": true,
+      "description": "sli rtt 异常",
+      "parameter": {
+        "min_nsec": 200000000,
+        "threshold": 2.0
+      }
+    },
+    {
+      "metric": "gala_gopher_sli_tps",
+      "kpi_type": "tps",
+      "entity_name": "sli",
+      "enable": true,
+      "description": "sli tps 异常",
+      "parameter": {
+        "threshold": -1.5
+      }
+    }
+  ],
+  "Features": [
+    {
+      "metric": "gala_gopher_block_count_latency_req",
+      "description": "block层request操作次数异常"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_jitter",
+      "description": "block层request时延抖动异常"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_last",
+      "description": "block层request时延最近值异常"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_max",
+      "description": "block层request时延最大值异常"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_sum",
+      "description": "block层request时延总计值异常"
+    },
+    {
+      "metric": "gala_gopher_cpu_iowait_total_second",
+      "description": "等待I/O完成的时间异常"
+    },
+    {
+      "metric": "gala_gopher_cpu_user_total_second",
+      "description": "用户态cpu占用时间（不包括nice）异常"
+    },
+    {
+      "metric": "gala_gopher_cpu_total_used_per",
+      "description": "CPU总利用率异常"
+    },
+    {
+      "metric": "gala_gopher_cpu_backlog_drops",
+      "description": "softnet_data队列满而丢弃报文数量异常"
+    },
+    {
+      "metric": "gala_gopher_cpu_rps_count",
+      "description": "CPU收到的RPS次数异常"
+    },
+    {
+      "metric": "gala_gopher_fs_Free",
+      "description": "分区内空闲的Block数量异常"
+    },
+    {
+      "metric": "gala_gopher_fs_IUsed",
+      "description": "分区内已使用的inode数量异常"
+    },
+    {
+      "metric": "gala_gopher_fs_UsePer",
+      "description": "分区内已使用的Block占比异常"
+    },
+    {
+      "metric": "gala_gopher_fs_Used",
+      "description": "分区内已使用的Block数量异常"
+    },
+    {
+      "metric": "gala_gopher_disk_r_await",
+      "description": "读响应时间异常"
+    },
+    {
+      "metric": "gala_gopher_disk_rareq",
+      "description": "饱和度(rareq-sz 和 wareq-sz+响应时间)异常"
+    },
+    {
+      "metric": "gala_gopher_disk_rspeed",
+      "description": "读速率（IOPS）异常"
+    },
+    {
+      "metric": "gala_gopher_disk_rspeed_kB",
+      "description": "读吞吐量异常"
+    },
+    {
+      "metric": "gala_gopher_disk_util",
+      "description": "磁盘使用率异常"
+    },
+    {
+      "metric": "gala_gopher_disk_w_await",
+      "description": "写响应时间异常"
+    },
+    {
+      "metric": "gala_gopher_disk_wareq",
+      "description": "饱和度(rareq-sz 和 wareq-sz+响应时间)异常"
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed",
+      "description": "写速率（IOPS）异常"
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed_kB",
+      "description": "写吞吐量异常"
+    },
+    {
+      "metric": "gala_gopher_proc_read_bytes",
+      "description": "进程实际从磁盘读取的字节数异常"
+    },
+    {
+      "metric": "gala_gopher_proc_write_bytes",
+      "description": "进程实际从磁盘写入的字节数异常"
+    },
+    {
+      "metric": "gala_gopher_net_tcp_retrans_segs",
+      "description": "TCP重传的分片数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_lost_out",
+      "description": "TPC丢包数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_notack_bytes",
+      "description": "TCP未应答字节数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_notsent_bytes",
+      "description": "TCP未发送字节数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_retran_packets",
+      "description": "TCP重传数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sacked_out",
+      "description": "TCP解雇计数器异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_snd_cwnd",
+      "description": "拥塞控制窗口大小异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sk_drops",
+      "description": "TCP丢包异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_ext4_write",
+      "description": "ext4文件系统写操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_ext4_read",
+      "description": "ext4文件系统读操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_ext4_open",
+      "description": "ext4文件系统open操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_ext4_flush",
+      "description": "ext4文件系统flush操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_overlay_write",
+      "description": "overlayfs文件系统写操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_proc_ns_overlay_flush",
+      "description": "overlayfs文件系统flush操作时间(单位ns)异常"
+    },
+    {
+      "metric": "gala_gopher_nic_tx_dropped",
+      "description": "网卡发送丢弃的数据包数异常"
+    },
+    {
+      "metric": "gala_gopher_nic_tc_sent_drop",
+      "description": "TC发送丢包异常"
+    },
+    {
+      "metric": "gala_gopher_nic_rx_dropped",
+      "description": "网卡接收丢弃的数据包数异常"
+    },
+    {
+      "metric": "gala_gopher_proc_stime_jiffies",
+      "description": "进程系统态运行时间异常"
+    },
+    {
+      "metric": "gala_gopher_proc_utime_jiffies",
+      "description": "进程用户运行时间异常"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "KPI": [
+    {
+      "metric": "gala_gopher_thread_iowait_us",
+      "kpi_type": "",
+      "entity_name": "thread",
+      "enable": true,
+      "description": "Process IO_wait time (unit: us)",
+      "parameter": {
+        "threshold": 1.5
+      }
+    },
+    {
+      "metric": "gala_gopher_proc_bio_latency",
+      "kpi_type": "",
+      "entity_name": "proc",
+      "enable": true,
+      "description": "I/O operation delay at the BIO layer (unit: us)",
+      "parameter": {
+        "threshold": 1.5
+      }
+    }
+  ],
+  "Features": [
+    {
+      "metric": "gala_gopher_block_latency_req_max",
+      "priority": 4,
+      "description": "The system I/O performance deteriorates due to a drive failure.(Disk = {})"
+    },
+    {
+      "metric": "gala_gopher_block_latency_device_max",
+      "priority": 3,
+      "description": "Degraded system I/O performance due to device (disk) failure.(Disk = {})"
+    },
+    {
+      "metric": "gala_gopher_block_read_bytes",
+      "priority": 2,
+      "description": "System performance deteriorates due to frequent read I/O operations.(Disk = {})"
+    },
+    {
+      "metric": "gala_gopher_block_write_bytes",
+      "priority": 2,
+      "description": "System performance deteriorates due to frequent write I/O operations.(Disk = {})"
+    },
+    {
+      "metric": "gala_gopher_proc_less_4k_io_read",
+      "priority": 0,
+      "description": "System performance degrades due to frequent small I/O read operations.(Disk = {}, PID = {:.0f}, comm = {})"
+    },
+    {
+      "metric": "gala_gopher_proc_less_4k_io_write",
+      "priority": 0,
+      "description": "System performance degrades due to frequent small I/O write operations.(Disk = {}, PID = {:.0f}, comm = {})"
+    },
+    {
+      "metric": "gala_gopher_proc_greater_4k_io_read",
+      "priority": 1,
+      "description": "System performance degrades due to frequent big I/O read operations.(Disk = {}, PID = {:.0f}, comm = {})"
+    },
+    {
+      "metric": "gala_gopher_proc_greater_4k_io_write",
+      "priority": 1,
+      "description": "System performance degrades due to frequent big I/O write operations.(Disk = {}, PID = {:.0f}, comm = {})"
+    }
+  ]
+}
