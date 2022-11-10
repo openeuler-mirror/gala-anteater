@@ -29,7 +29,7 @@ from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.template.app_anomaly_template import AppAnomalyTemplate
 from anteater.utils.data_load import load_kpi_feature
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 
@@ -55,7 +55,7 @@ class APPSliDetector(Detector):
 
     def detect_rtt(self, kpi, machine_id: str, parameter: dict) -> List[Anomaly]:
         """Detects rtt by rule-based model"""
-        start, end = datetime_manager.last(minutes=10)
+        start, end = dt.last(minutes=10)
         time_series_list = self.data_loader.get_metric(
             start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
@@ -92,7 +92,7 @@ class APPSliDetector(Detector):
 
     def detect_tps(self, kpi, machine_id: str, parameter: dict) -> List[Anomaly]:
         """Detects tps by rule based model"""
-        start, end = datetime_manager.last(minutes=10)
+        start, end = dt.last(minutes=10)
         time_series_list = self.data_loader.get_metric(
             start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
@@ -129,7 +129,7 @@ class APPSliDetector(Detector):
         return anomalies
 
     def detect_features(self, metrics, machine_id: str, top_n):
-        start, end = datetime_manager.last(minutes=6)
+        start, end = dt.last(minutes=6)
         time_series_list = []
         for metric in metrics:
             time_series = self.data_loader.get_metric(
@@ -172,6 +172,7 @@ class APPSliDetector(Detector):
              'score': cause[1],
              'description': description.get(cause[0].metric, '')}
             for cause in cause_metrics]
-        timestamp = datetime_manager.utc_now
-        template = AppAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name, anomaly.labels)
+        timestamp = dt.utc_now()
+        template = AppAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name)
+        template.labels = anomaly.labels
         self.anomaly_report.sent_anomaly(anomaly, cause_metrics, template)

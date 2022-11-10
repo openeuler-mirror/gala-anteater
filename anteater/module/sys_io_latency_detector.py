@@ -8,7 +8,7 @@ from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.template.sys_anomaly_template import SysAnomalyTemplate
 from anteater.utils.data_load import load_kpi_feature
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 
@@ -25,7 +25,7 @@ class SysIOLatencyDetector(Detector):
         kpi = self.kpis[0]
         parameter = kpi.parameter
 
-        start, end = datetime_manager.last(minutes=10)
+        start, end = dt.last(minutes=10)
         time_series_list = self.data_loader.get_metric(
             start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
@@ -64,7 +64,7 @@ class SysIOLatencyDetector(Detector):
 
     def detect_features(self, machine_id: str, top_n: int):
         priorities = {f.metric: f.priority for f in self.features}
-        start, end = datetime_manager.last(minutes=6)
+        start, end = dt.last(minutes=6)
         time_series_list = []
         for metric in priorities.keys():
             time_series = self.data_loader.get_metric(
@@ -111,7 +111,7 @@ class SysIOLatencyDetector(Detector):
                  cause[0].labels.get('tgid', ''),
                  cause[0].labels.get('comm', ''))}
             for cause in cause_metrics]
-        timestamp = datetime_manager.utc_now
+        timestamp = dt.utc_now()
         template = SysAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name)
         template.labels = anomaly.labels
         self.anomaly_report.sent_anomaly(anomaly, cause_metrics, template)

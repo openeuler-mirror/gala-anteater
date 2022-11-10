@@ -30,7 +30,7 @@ from anteater.model.factory import ModelFactory
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.data_load import load_metric_operator
 from anteater.utils.data_process import parse_operator, metric_value_to_df
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 from anteater.utils.time_series import TimeSeries
 
@@ -119,7 +119,7 @@ class HybridModel:
 
     def online_training(self):
         """Checks online training conditions and run online model training"""
-        utc_now = datetime_manager.utc_now
+        utc_now = datetime_manager.utc_now()
         if not self._last_retrain:
             self._last_retrain = utc_now
             return

@@ -7,7 +7,7 @@ from anteater.source.metric_loader import MetricLoader
 from anteater.template.sys_anomaly_template import SysAnomalyTemplate
 from anteater.utils.common import divide
 from anteater.utils.data_load import load_kpi_feature
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 
@@ -28,8 +28,8 @@ class SysTcpEstablishDetector(Detector):
 
     def execute_detect(self, machine_id: str):
         kpi = self.kpis[0]
-        start_30_minutes, _ = datetime_manager.last(minutes=30)
-        start_3_minutes, end = datetime_manager.last(minutes=3)
+        start_30_minutes, _ = dt.last(minutes=30)
+        start_3_minutes, end = dt.last(minutes=3)
 
         pre_ts = self.data_loader.get_metric(
             start_30_minutes, start_3_minutes, kpi.metric, label_name='machine_id', label_value=machine_id)
@@ -57,7 +57,7 @@ class SysTcpEstablishDetector(Detector):
             self.report(anomaly, kpi.entity_name, machine_id)
 
     def detect_features(self, machine_id: str):
-        start, end = datetime_manager.last(minutes=3)
+        start, end = dt.last(minutes=3)
         time_series_list = []
         metrics = [f.metric for f in self.features]
         for metric in metrics:
@@ -85,7 +85,7 @@ class SysTcpEstablishDetector(Detector):
                  cause[0].labels.get('ppid', ''),
                  cause[0].labels.get('s_port', ''))}
             for cause in cause_metrics]
-        timestamp = datetime_manager.utc_now
+        timestamp = dt.utc_now()
         template = SysAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name)
         template.labels = anomaly.labels
         self.anomaly_report.sent_anomaly(anomaly, cause_metrics, template)
