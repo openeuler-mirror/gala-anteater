@@ -29,7 +29,7 @@ from anteater.module.sys_tcp_transmission_detector import SysTcpTransmissionDete
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 ANTEATER_DATA_PATH = '/etc/gala-anteater/'
@@ -45,7 +45,7 @@ def init_config() -> AnteaterConf:
 
 def anomaly_detection(loader: MetricLoader, report: AnomalyReport, conf: AnteaterConf):
     """Run anomaly detection model periodically"""
-    datetime_manager.update_and_freeze()
+    dt.update_and_freeze()
     logger.info('START: anomaly detection!')
 
     # APP sli anomaly detection

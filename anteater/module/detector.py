@@ -3,7 +3,7 @@ from abc import abstractmethod
 from anteater.core.anomaly import Anomaly
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.utils.datetime import datetime_manager
+from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 from anteater.utils.timer import timer
 
@@ -21,7 +21,7 @@ class Detector:
     @timer
     def detect(self):
         logger.info(f"Run detector: {self.__class__.__name__}!")
-        start, end = datetime_manager.last(minutes=1)
+        start, end = dt.last(minutes=1)
         metrics_kpi = [k.metric for k in self.kpis]
         metrics_feat = [f.metric for f in self.features]
         metrics = metrics_kpi + metrics_feat
