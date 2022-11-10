@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -22,7 +22,7 @@ import logging
 from os.path import realpath, join
 
 LOG_CONFIG_PATH = "/etc/gala-anteater/config"
-LOG_DATA_PATH = "/gala_var/log/gala-anteater/"
+LOG_DATA_PATH = "/var/log/gala-anteater/"
 
 
 class Log(object):

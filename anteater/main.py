@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -16,10 +16,9 @@ Author:
 Description: The main function of gala-anteater project.
 """
 
-from functools import partial
-
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from anteater.anomaly_detection import AnomalyDetection
 from anteater.config import AnteaterConf
 from anteater.module.app_sli_detector import APPSliDetector
 from anteater.module.proc_io_latency_detector import ProcIOLatencyDetector
@@ -29,7 +28,6 @@ from anteater.module.sys_tcp_transmission_detector import SysTcpTransmissionDete
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 ANTEATER_DATA_PATH = '/etc/gala-anteater/'
@@ -43,35 +41,29 @@ def init_config() -> AnteaterConf:
     return conf
 
 
-def anomaly_detection(loader: MetricLoader, report: AnomalyReport, conf: AnteaterConf):
-    """Run anomaly detection model periodically"""
-    dt.update_and_freeze()
-    logger.info('START: anomaly detection!')
-
-    # APP sli anomaly detection
-    APPSliDetector(loader, report).detect()
-
-    # SYS tcp/io detection
-    SysTcpEstablishDetector(loader, report).detect()
-    SysTcpTransmissionDetector(loader, report).detect()
-    SysIOLatencyDetector(loader, report).detect()
-    ProcIOLatencyDetector(loader, report).detect()
-
-    logger.info('END: anomaly detection!')
-
-
 def main():
     conf = init_config()
 
     kafka_provider = KafkaProvider(conf.kafka)
     loader = MetricLoader(conf)
     report = AnomalyReport(kafka_provider)
+    detectors = [
+        # APP sli anomaly detection
+        APPSliDetector(loader, report),
+
+        # SYS tcp/io detection
+        SysTcpEstablishDetector(loader, report),
+        SysTcpTransmissionDetector(loader, report),
+        SysIOLatencyDetector(loader, report),
+        ProcIOLatencyDetector(loader, report),
+    ]
+
+    anomaly_detect = AnomalyDetection(detectors, conf)
 
     logger.info(f'Schedule recurrent job with time interval {conf.schedule.duration} minute(s).')
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
-    scheduler.add_job(partial(anomaly_detection, loader, report, conf),
-                      trigger='interval', minutes=conf.schedule.duration)
+    scheduler.add_job(anomaly_detect.run, trigger='interval', minutes=conf.schedule.duration)
     scheduler.start()
 
 

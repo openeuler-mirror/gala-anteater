@@ -8,7 +8,7 @@
       "description": "sli rtt 异常",
       "parameter": {
         "min_nsec": 200000000,
-        "threshold": 2.0
+        "threshold": 0.8
       }
     },
     {
@@ -18,7 +18,7 @@
       "enable": true,
       "description": "sli tps 异常",
       "parameter": {
-        "threshold": -1.5
+        "threshold": -0.5
       }
     }
   ],
