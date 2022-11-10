@@ -7,7 +7,7 @@
       "enable": true,
       "description": "Process IO_wait time (unit: us)",
       "parameter": {
-        "threshold": 1.5
+        "threshold": 0.5
       }
     },
     {
@@ -17,7 +17,7 @@
       "enable": true,
       "description": "I/O operation delay at the BIO layer (unit: us)",
       "parameter": {
-        "threshold": 1.5
+        "threshold": 0.5
       }
     }
   ],

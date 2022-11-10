@@ -50,23 +50,20 @@ docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
 工程`./gala-anteater`目录下执行下面命令：
 
 ```bash
-pip3 install requirements.txt
+python3 setup.py install
 ```
-或者
-```bash
-pip3 install apscheduler confluent_kafka joblib numpy pandas requests scikit-learn torch
-```
+
 #### 1.2.3 程序运行
 
 ```
-python main.py --kafka_server localhost --kafka_port 9092 --prometheus_server localhost --prometheus_port 9090
+gala-anteater
 ```
 
-注：其中kafka_server、kafka_port、prometheus_server、prometheus_port换成实际配置
+注：需要完成配置文件的配置，如其中kafka_server、kafka_port、prometheus_server、prometheus_port。
 
 #### 1.2.4 日志查看
 
-日志文件路径：`/etc/gala-anteater/logs/`
+日志文件路径：`/var/gala-anteater/logs/`
 
 #### 1.2.5 运行结果查看
 

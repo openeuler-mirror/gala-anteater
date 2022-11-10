@@ -7,7 +7,7 @@
       "enable": true,
       "description": "Smoothed Round Trip Time(us)",
       "parameter": {
-        "threshold": 1.5
+        "threshold": 0.5
       }
     }
   ],

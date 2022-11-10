@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -16,16 +16,16 @@ import numpy as np
 from anteater.model.smoother import conv_smooth
 
 
-def slope(y, windows_length):
+def slope(y, win_len):
     """Calculates point slope in an array"""
-    if len(y) <= windows_length:
+    if len(y) <= win_len:
         raise ValueError('point_slope: the length of array should'
-                         f'greater than window_length : f{windows_length}.')
+                         f'greater than window_length : f{win_len}.')
 
-    return np.divide(y[windows_length:], y[: -windows_length])
+    return np.divide(np.subtract(y[win_len:], y[: -win_len]), y[: -win_len])
 
 
 def smooth_slope(time_series, windows_length):
     val = conv_smooth(time_series.to_df(), box_pts=13)
-    val = slope(val, windows_length=13)
+    val = slope(val, win_len=13)
     return val[-windows_length:]

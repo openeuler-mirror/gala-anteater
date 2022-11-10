@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -80,5 +80,8 @@ def load_kpi_feature(file_name) -> Tuple[List[KPI], List[Feature]]:
        duplicated_metric([f.metric for f in features]):
         raise ValueError(f'Existing duplicated metric name'
                          f'in config file: {os.path.basename(abs_path)}')
+
+    # filter out un-enable kpis
+    kpis = [kpi for kpi in kpis if kpi.enable]
 
     return kpis, features

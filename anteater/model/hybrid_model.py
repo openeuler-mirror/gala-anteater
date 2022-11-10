@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -29,7 +29,7 @@ from anteater.config import AnteaterConf
 from anteater.model.factory import ModelFactory
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.data_load import load_metric_operator
-from anteater.utils.data_process import parse_operator, metric_value_to_df
+from anteater.utils.data_process import parse_operator
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 from anteater.utils.time_series import TimeSeries
@@ -112,14 +112,14 @@ class HybridModel:
 
     def get_inference_data(self) -> Tuple[List[str], List[pd.DataFrame]]:
         """Get data for the model inference and prediction"""
-        start, end = datetime_manager.last(minutes=1)
+        start, end = dt.last(minutes=1)
         ids, dfs = self.__get_dataframe(start, end)
 
         return ids, dfs
 
     def online_training(self):
         """Checks online training conditions and run online model training"""
-        utc_now = datetime_manager.utc_now()
+        utc_now = dt.utc_now()
         if not self._last_retrain:
             self._last_retrain = utc_now
             return
