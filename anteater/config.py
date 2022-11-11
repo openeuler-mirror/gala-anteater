@@ -27,6 +27,7 @@ import yaml
 class GlobalConf:
     """The global config"""
     data_source: str = None
+    is_sys: bool = None
 
 
 @dataclass
@@ -115,9 +116,7 @@ class AnteaterConf:
         hybrid_model_conf = result.get("HybridModel")
         schedule_conf = result.get("Schedule")
 
-        data_source = global_conf.get("data_source")
-
-        self.global_conf = GlobalConf(data_source=data_source)
+        self.global_conf = GlobalConf(**global_conf)
         self.kafka = KafkaConf(**kafka_conf)
         self.prometheus = PrometheusConf(**prometheus_conf)
         self.aom = AomConfig(**aom_config)
