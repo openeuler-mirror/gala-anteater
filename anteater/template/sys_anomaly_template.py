@@ -27,7 +27,7 @@ class SysAnomalyTemplate(Template):
             "Attributes": {
                 "entity_id": self.entity_id,
                 "event_id": f"{timestamp}_{self.entity_id}",
-                "event_type": "app"
+                "event_type": "sys"
             },
             "Resource": {
                 "metric_id": self.metric_id,

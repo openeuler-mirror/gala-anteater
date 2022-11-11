@@ -21,6 +21,8 @@ from anteater.core.feature import Feature
 from anteater.core.kpi import KPI
 from anteater.utils.log import logger
 
+ANTEATER_MODULE_PATH = '/etc/gala-anteater/config/module'
+
 
 def load_metric_operator():
     """Loads metric name and corresponding operator"""
@@ -62,8 +64,8 @@ def duplicated_metric(metrics: List[str]):
 
 
 def load_kpi_feature(file_name) -> Tuple[List[KPI], List[Feature]]:
-    folder_path = path.dirname(path.dirname(path.dirname(path.realpath(__file__))))
-    abs_path = path.join(folder_path, 'config', 'module', file_name)
+    folder_path = path.realpath(ANTEATER_MODULE_PATH)
+    abs_path = path.join(folder_path, file_name)
 
     with open(abs_path, 'r', encoding='utf-8') as f_out:
         try:

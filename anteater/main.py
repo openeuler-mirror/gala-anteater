@@ -47,16 +47,22 @@ def main():
     kafka_provider = KafkaProvider(conf.kafka)
     loader = MetricLoader(conf)
     report = AnomalyReport(kafka_provider)
-    detectors = [
-        # APP sli anomaly detection
-        APPSliDetector(loader, report),
+    if conf.global_conf.is_sys:
+        detectors = [
+            # APP sli anomaly detection
+            APPSliDetector(loader, report),
 
-        # SYS tcp/io detection
-        SysTcpEstablishDetector(loader, report),
-        SysTcpTransmissionDetector(loader, report),
-        SysIOLatencyDetector(loader, report),
-        ProcIOLatencyDetector(loader, report),
-    ]
+            # SYS tcp/io detection
+            SysTcpEstablishDetector(loader, report),
+            SysTcpTransmissionDetector(loader, report),
+            SysIOLatencyDetector(loader, report),
+            ProcIOLatencyDetector(loader, report),
+        ]
+    else:
+        detectors = [
+            # APP sli anomaly detection
+            APPSliDetector(loader, report)
+        ]
 
     anomaly_detect = AnomalyDetection(detectors, conf)
 

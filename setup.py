@@ -27,9 +27,6 @@ setup(
     package_data={
             "anteater":
                 [
-                    # configs
-                    "config/*",
-
                     # features
                     "observe/*",
                 ],
@@ -49,7 +46,6 @@ setup(
         "scikit_learn",
         "scipy",
         "torch"
-
     ],
     entry_points={
         "console_scripts": [
