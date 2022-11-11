@@ -35,22 +35,22 @@
     {
       "metric": "gala_gopher_proc_less_4k_io_read",
       "priority": 0,
-      "description": "System performance degrades due to frequent small I/O read operations.(Disk = {}, PID = {:.0f}, comm = {})"
+      "description": "System performance degrades due to frequent small I/O read operations.(Disk = {}, PID = {}, comm = {})"
     },
     {
       "metric": "gala_gopher_proc_less_4k_io_write",
       "priority": 0,
-      "description": "System performance degrades due to frequent small I/O write operations.(Disk = {}, PID = {:.0f}, comm = {})"
+      "description": "System performance degrades due to frequent small I/O write operations.(Disk = {}, PID = {}, comm = {})"
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_read",
       "priority": 1,
-      "description": "System performance degrades due to frequent big I/O read operations.(Disk = {}, PID = {:.0f}, comm = {})"
+      "description": "System performance degrades due to frequent big I/O read operations.(Disk = {}, PID = {}, comm = {})"
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_write",
       "priority": 1,
-      "description": "System performance degrades due to frequent big I/O write operations.(Disk = {}, PID = {:.0f}, comm = {})"
+      "description": "System performance degrades due to frequent big I/O write operations.(Disk = {}, PID = {}, comm = {})"
     }
   ]
 }
