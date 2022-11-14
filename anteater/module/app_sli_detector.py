@@ -19,17 +19,15 @@ Description: The anomaly detector implementation on APP Sli
 import math
 from typing import List
 
-import numpy as np
-
 from anteater.core.anomaly import Anomaly
 from anteater.model.algorithms.spectral_residual import SpectralResidual
-from anteater.model.slope import smooth_slope
 from anteater.model.smoother import conv_smooth
+from anteater.model.three_sigma import three_sigma
 from anteater.module.detector import Detector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.template.app_anomaly_template import AppAnomalyTemplate
-from anteater.utils.data_load import load_kpi_feature
+from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
@@ -40,48 +38,52 @@ class APPSliDetector(Detector):
     """
 
     def __init__(self, data_loader: MetricLoader, anomaly_report: AnomalyReport):
-        super().__init__(data_loader, anomaly_report)
-        self.kpis, self.features = load_kpi_feature('app_sli_rtt.json')
+        file_name = 'app_sli_rtt.json'
+        super().__init__(data_loader, anomaly_report, file_name)
 
     def execute_detect(self, machine_id: str):
         for kpi in self.kpis:
-            parameter = kpi.parameter
             if kpi.kpi_type == 'rtt':
-                anomalies = self.detect_rtt(kpi, machine_id, parameter)
+                anomalies = self.detect_rtt(kpi, machine_id)
             else:
-                anomalies = self.detect_tps(kpi, machine_id, parameter)
+                anomalies = self.detect_tps(kpi, machine_id)
 
             for anomaly in anomalies:
-                self.report(anomaly, kpi.entity_name, machine_id)
+                self.report(anomaly, machine_id)
 
-    def detect_rtt(self, kpi, machine_id: str, parameter: dict) -> List[Anomaly]:
+    def detect_rtt(self, kpi, machine_id: str) -> List[Anomaly]:
         """Detects rtt by rule-based model"""
-        start, end = dt.last(minutes=10)
-        time_series_list = self.data_loader.get_metric(
+        look_back = kpi.params.get('look_back', None)
+        box_pts = kpi.params.get('box_pts', None)
+        obs_size = kpi.params.get('obs_size', None)
+        outlier_ratio_th = kpi.params.get('outlier_ratio_th', None)
+
+        start, end = dt.last(minutes=look_back)
+        ts_list = self.data_loader.get_metric(
             start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
-        if not time_series_list:
+        if not ts_list:
             logger.warning(f'Key metric {kpi.metric} is null on the target machine {machine_id}!')
             return []
 
         point_count = self.data_loader.expected_point_length(start, end)
         anomalies = []
-        threshold = parameter['threshold']
-        min_nsec = parameter['min_nsec']
-        for time_series in time_series_list:
-            if len(time_series.values) < point_count * 0.9 or len(time_series.values) > point_count * 1.5:
+        for _ts in ts_list:
+            if len(_ts.values) < point_count * 0.9 or len(_ts.values) > point_count * 1.5:
                 continue
 
-            score = max(smooth_slope(time_series, windows_length=13))
-            if math.isnan(score) or math.isinf(score):
-                continue
+            smoothed_val = conv_smooth(_ts.values, box_pts=box_pts)
+            outlier, mean, std = three_sigma(smoothed_val, obs_size=obs_size, method='min')
+            ratio = divide(len(outlier), obs_size)
 
-            avg_nsec = np.mean(time_series.values[-13:])
-            if score >= threshold and avg_nsec >= min_nsec:
+            if outlier and ratio >= outlier_ratio_th:
+                logger.info(f'Ratio: {ratio}, Outlier Ratio TH: {outlier_ratio_th}, '
+                            f'Mean: {mean}, Std: {std}')
                 anomalies.append(
-                    Anomaly(metric=time_series.metric,
-                            labels=time_series.labels,
-                            score=score,
+                    Anomaly(metric=_ts.metric,
+                            labels=_ts.labels,
+                            score=ratio,
+                            entity_name=kpi.entity_name,
                             description=kpi.description))
 
         anomalies = sorted(anomalies, key=lambda x: x.score, reverse=True)
@@ -91,9 +93,14 @@ class APPSliDetector(Detector):
 
         return anomalies
 
-    def detect_tps(self, kpi, machine_id: str, parameter: dict) -> List[Anomaly]:
+    def detect_tps(self, kpi, machine_id: str) -> List[Anomaly]:
         """Detects tps by rule based model"""
-        start, end = dt.last(minutes=10)
+        look_back = kpi.params.get('look_back', None)
+        box_pts = kpi.params.get('box_pts', None)
+        obs_size = kpi.params.get('obs_size', None)
+        outlier_ratio_th = kpi.params.get('outlier_ratio_th', None)
+
+        start, end = dt.last(minutes=look_back)
         time_series_list = self.data_loader.get_metric(
             start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
@@ -103,21 +110,21 @@ class APPSliDetector(Detector):
 
         point_count = self.data_loader.expected_point_length(start, end)
         anomalies = []
-        threshold = parameter['threshold']
-        for time_series in time_series_list:
-            if len(time_series.values) < point_count * 0.9 or len(time_series.values) > point_count * 1.5:
+        for _ts in time_series_list:
+            if len(_ts.values) < point_count * 0.9 or len(_ts.values) > point_count * 1.5:
                 continue
-            pre_values = time_series.values[:-25]
-            cur_values = time_series.values[-25:]
-            mean = np.mean(pre_values)
-            std = np.std(pre_values)
-            outlier = [val for val in cur_values if val < mean - 3 * std]
+            smoothed_val = conv_smooth(_ts.values, box_pts=box_pts)
+            outlier, mean, std = three_sigma(smoothed_val, obs_size=obs_size, method='min')
+            ratio = divide(len(outlier), obs_size)
 
-            if outlier and len(outlier) >= len(cur_values) * 0.3:
+            if outlier and ratio >= outlier_ratio_th:
+                logger.info(f'Ratio: {ratio}, Outlier Ratio TH: {outlier_ratio_th}, '
+                            f'Mean: {mean}, Std: {std}')
                 anomalies.append(
-                    Anomaly(metric=time_series.metric,
-                            labels=time_series.labels,
-                            score=1,
+                    Anomaly(metric=_ts.metric,
+                            labels=_ts.labels,
+                            score=ratio,
+                            entity_name=kpi.entity_name,
                             description=kpi.description))
 
         anomalies = sorted(anomalies, key=lambda x: x.score, reverse=True)
@@ -161,7 +168,8 @@ class APPSliDetector(Detector):
 
         return result[0: top_n]
 
-    def report(self, anomaly: Anomaly, entity_name: str, machine_id: str):
+    def report(self, anomaly: Anomaly, machine_id: str):
+        """Reports a single anomaly at each time"""
         feature_metrics = [f.metric for f in self.features]
         description = {f.metric: f.description for f in self.features}
         cause_metrics = self.detect_features(feature_metrics, machine_id, top_n=60)
@@ -172,6 +180,5 @@ class APPSliDetector(Detector):
              'description': description.get(cause[0].metric, '')}
             for cause in cause_metrics]
         timestamp = dt.utc_now()
-        template = AppAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name)
-        template.labels = anomaly.labels
+        template = AppAnomalyTemplate(timestamp, machine_id, anomaly.metric, anomaly.entity_name)
         self.anomaly_report.sent_anomaly(anomaly, cause_metrics, template)

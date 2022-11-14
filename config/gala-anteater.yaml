@@ -3,7 +3,7 @@ Global:
     is_sys: false
 
 Kafka:
-  server: "9.16.143.92"
+  server: "localhost"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
   model_group_id: "gala_anteater_1"
@@ -12,8 +12,8 @@ Kafka:
   meta_entity_name: "sli"
 
 Prometheus:
-  server: "10.137.17.122"
-  port: "29090"
+  server: "localhost"
+  port: "9090"
   steps: 5
 
 Aom:

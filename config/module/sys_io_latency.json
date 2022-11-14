@@ -5,9 +5,12 @@
       "kpi_type": "",
       "entity_name": "block",
       "enable": true,
-      "description": "Block I/O latency performance",
-      "parameter": {
-        "threshold": 0.5
+      "description": "Block I/O latency performance is deteriorating!",
+      "params": {
+        "look_back": 20,
+        "box_pts": 7,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
       }
     }
   ],

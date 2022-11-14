@@ -6,9 +6,11 @@
       "entity_name": "sli",
       "enable": true,
       "description": "sli rtt 异常",
-      "parameter": {
-        "min_nsec": 200000000,
-        "threshold": 0.8
+      "params": {
+        "look_back": 10,
+        "box_pts": 3,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
       }
     },
     {
@@ -17,8 +19,11 @@
       "entity_name": "sli",
       "enable": true,
       "description": "sli tps 异常",
-      "parameter": {
-        "threshold": -0.5
+      "params": {
+        "look_back": 10,
+        "box_pts": 3,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
       }
     }
   ],

@@ -16,11 +16,13 @@ import math
 from anteater.core.anomaly import Anomaly
 from anteater.model.algorithms.spectral_residual import SpectralResidual
 from anteater.model.slope import smooth_slope
+from anteater.model.smoother import conv_smooth
+from anteater.model.three_sigma import three_sigma
 from anteater.module.detector import Detector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.template.sys_anomaly_template import SysAnomalyTemplate
-from anteater.utils.data_load import load_kpi_feature
+from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
@@ -31,40 +33,50 @@ class ProcIOLatencyDetector(Detector):
     """
 
     def __init__(self, data_loader: MetricLoader, anomaly_report: AnomalyReport):
-        super().__init__(data_loader, anomaly_report)
-        self.kpis, self.features = load_kpi_feature('proc_io_latency.json')
+        file_name = 'proc_io_latency.json'
+        super().__init__(data_loader, anomaly_report, file_name)
 
     def execute_detect(self, machine_id):
         for kpi in self.kpis:
-            parameter = kpi.parameter
-            start, end = dt.last(minutes=10)
-            time_series_list = self.data_loader.get_metric(
+            look_back = kpi.params.get('look_back', None)
+            box_pts = kpi.params.get('box_pts', None)
+            obs_size = kpi.params.get('obs_size', None)
+            outlier_ratio_th = kpi.params.get('outlier_ratio_th', None)
+
+            start, end = dt.last(minutes=look_back)
+            ts_list = self.data_loader.get_metric(
                 start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
 
-            if not time_series_list:
+            if not ts_list:
                 logger.warning(f'Key metric {kpi.metric} is null on the target machine {machine_id}!')
                 return
 
             point_count = self.data_loader.expected_point_length(start, end)
             anomalies = []
-            threshold = parameter['threshold']
-            for time_series in time_series_list:
-                if len(time_series.values) < point_count * 0.9 or len(time_series.values) > point_count * 1.5:
+            for _ts in ts_list:
+                if len(_ts.values) < point_count * 0.9 or len(_ts.values) > point_count * 1.5:
                     continue
 
-                if sum(time_series.values) == 0:
+                if sum(_ts.values) == 0:
                     continue
 
-                score = max(smooth_slope(time_series, windows_length=13))
+                score = max(smooth_slope(_ts, windows_length=13))
 
                 if math.isnan(score) or math.isinf(score):
                     continue
 
-                if score > threshold:
+                smoothed_val = conv_smooth(_ts.values, box_pts=box_pts)
+                outlier, mean, std = three_sigma(smoothed_val, obs_size=obs_size, method='min')
+                ratio = divide(len(outlier), obs_size)
+
+                if outlier and ratio >= outlier_ratio_th:
+                    logger.info(f'Ratio: {ratio}, Outlier Ratio TH: {outlier_ratio_th}, '
+                                f'Mean: {mean}, Std: {std}')
                     anomalies.append(
-                        Anomaly(metric=time_series.metric,
-                                labels=time_series.labels,
+                        Anomaly(metric=_ts.metric,
+                                labels=_ts.labels,
                                 score=score,
+                                entity_name=kpi.entity_name,
                                 description=kpi.description))
 
             anomalies = sorted(anomalies, key=lambda x: x.score, reverse=True)
@@ -72,7 +84,7 @@ class ProcIOLatencyDetector(Detector):
             if anomalies:
                 logger.info('Sys io latency anomalies was detected.')
                 for anomaly in anomalies:
-                    self.report(anomaly, kpi.entity_name, machine_id)
+                    self.report(anomaly, machine_id)
 
     def detect_features(self, machine_id: str, top_n=3):
         priorities = {f.metric: f.priority for f in self.features}
@@ -110,7 +122,7 @@ class ProcIOLatencyDetector(Detector):
 
         return result
 
-    def report(self, anomaly: Anomaly, entity_name: str, machine_id: str):
+    def report(self, anomaly: Anomaly, machine_id: str):
         description = {f.metric: f.description for f in self.features}
         cause_metrics = self.detect_features(machine_id, top_n=3)
         cause_metrics = [
@@ -123,6 +135,5 @@ class ProcIOLatencyDetector(Detector):
                  cause[0].labels.get('comm', ''))}
             for cause in cause_metrics]
         timestamp = dt.utc_now()
-        template = SysAnomalyTemplate(timestamp, machine_id, anomaly.metric, entity_name)
-        template.labels = anomaly.labels
+        template = SysAnomalyTemplate(timestamp, machine_id, anomaly.metric, anomaly.entity_name)
         self.anomaly_report.sent_anomaly(anomaly, cause_metrics, template)

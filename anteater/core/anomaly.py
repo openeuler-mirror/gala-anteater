@@ -13,6 +13,8 @@
 
 from dataclasses import dataclass
 
+from anteater.utils.time_series import TimeSeries
+
 
 @dataclass
 class Anomaly:
@@ -21,3 +23,9 @@ class Anomaly:
     score: float = None
     entity_name: str = None
     description: str = None
+
+
+@dataclass
+class CauseMetric:
+    ts: TimeSeries
+    score: float
