@@ -24,6 +24,7 @@ import numpy as np
 from anteater.core.anomaly import Anomaly
 from anteater.model.algorithms.spectral_residual import SpectralResidual
 from anteater.model.slope import smooth_slope
+from anteater.model.smoother import conv_smooth
 from anteater.module.detector import Detector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
@@ -104,21 +105,19 @@ class APPSliDetector(Detector):
         anomalies = []
         threshold = parameter['threshold']
         for time_series in time_series_list:
-            if time_series.labels.get('datname', '') != 'postgres':
-                continue
-
             if len(time_series.values) < point_count * 0.9 or len(time_series.values) > point_count * 1.5:
                 continue
+            pre_values = time_series.values[:-25]
+            cur_values = time_series.values[-25:]
+            mean = np.mean(pre_values)
+            std = np.std(pre_values)
+            outlier = [val for val in cur_values if val < mean - 3 * std]
 
-            score = min(smooth_slope(time_series, windows_length=13))
-            if math.isnan(score) or math.isinf(score):
-                continue
-
-            if score <= threshold:
+            if outlier and len(outlier) >= len(cur_values) * 0.3:
                 anomalies.append(
                     Anomaly(metric=time_series.metric,
                             labels=time_series.labels,
-                            score=score,
+                            score=1,
                             description=kpi.description))
 
         anomalies = sorted(anomalies, key=lambda x: x.score, reverse=True)

@@ -31,6 +31,7 @@ COPY requirements.txt requirements.txt
 COPY . /home/gala-anteather
 
 COPY config/gala-anteater.yaml ./config/
+COPY config/module/ ./config/module/
 
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh

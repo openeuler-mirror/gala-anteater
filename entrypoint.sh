@@ -9,7 +9,7 @@ fi
 
 for conf_file in `ls config/`; do
     if [ ! -f "${TARGET_CONF_PATH}${conf_file}" ]; then
-        cp config/${conf_file} ${TARGET_CONF_PATH}
+        cp -r config/${conf_file} ${TARGET_CONF_PATH}
     fi
 done
 
