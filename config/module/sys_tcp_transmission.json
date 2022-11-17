@@ -6,8 +6,37 @@
       "entity_name": "tcp_link",
       "enable": true,
       "description": "Smoothed Round Trip Time(us)",
-      "parameter": {
-        "threshold": 0.5
+      "params": {
+        "look_back": 10,
+        "box_pts": 3,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
+      }
+    },
+    {
+      "metric": "gala_gopher_net_tcp_in_segs",
+      "kpi_type": "in_segs",
+      "entity_name": "tcp_link",
+      "enable": true,
+      "description": "Total number of segments received",
+      "params": {
+        "look_back": 10,
+        "box_pts": 3,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
+      }
+    },
+    {
+      "metric": "gala_gopher_net_tcp_out_segs",
+      "kpi_type": "out_segs",
+      "entity_name": "tcp_link",
+      "enable": true,
+      "description": "Total number of segments sent",
+      "params": {
+        "look_back": 10,
+        "box_pts": 3,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3
       }
     }
   ],

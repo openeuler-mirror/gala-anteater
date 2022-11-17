@@ -170,3 +170,15 @@ def divide(x, y):
         return x / y
     else:
         return 0
+
+
+def same_intersection_key_value(first: dict, second: dict):
+    """Checks there are same key value pairs between two dictionaries
+    intersections by the key
+    """
+    same_keys = set(first.keys()) & set(second.keys())
+    for key in same_keys:
+        if first[key] != second[key]:
+            return False
+
+    return True

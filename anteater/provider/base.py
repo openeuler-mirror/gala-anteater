@@ -56,16 +56,16 @@ class TimeSeriesProvider:
     def fetch(url, params: Dict, **args) -> List:
         """Fetches data from prometheus server by http request"""
         try:
-            response = requests.get(url, params, timeout=30, **args).json()
+            response = requests.get(url, params, timeout=30, **args)
         except requests.RequestException as e:
             logger.error(f"RequestException: {e}!")
             return []
-
+        response = response.json()
         result = []
         if response and response.get("status") == 'success':
             result = response.get('data', {}).get('result', [])
         else:
-            logger.error(f"PrometheusAdapter get data failed, "
+            logger.error(f"Prometheus get data failed, "
                          f"error: {response.get('error')}, query_url: {url}, params: {params}.")
 
         return result
@@ -87,17 +87,19 @@ class TimeSeriesProvider:
             data = self.fetch(self.url, params, headers=headers)
 
             for item in data:
-                zipped_values = list(zip(*item.get("values")))
+                zipped_values = list(zip(*item.get('values')))
                 time_stamps = list(zipped_values[0])
                 values = [float(v) for v in zipped_values[1]]
 
-                key = tuple(sorted(item.get("metric").items()))
+                key = tuple(sorted(item.get('metric').items()))
                 if key in tmp_index:
                     result[tmp_index.get(key)].extend(time_stamps, values)
                 else:
+                    labels = item.get('metric')
+                    labels.pop('__name__', None)
                     time_series = TimeSeries(
                         metric,
-                        item.get("metric"),
+                        labels,
                         time_stamps,
                         values)
                     tmp_index[key] = len(result)

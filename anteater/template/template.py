@@ -21,8 +21,8 @@ class Template:
         self.machine_id = machine_id
         self.metric_id = metric_id
         self.entity_name = entity_name
-        self.labels = {}
 
+        self.labels = {}
         self.entity_id = ""
         self.description = ""
         self.cause_metrics = {}

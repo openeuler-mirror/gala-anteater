@@ -21,5 +21,5 @@ class KPI:
     entity_name: str = None
     enable: bool = False
     description: str = ""
-    parameter: dict = field(default=dict)
+    params: dict = field(default=dict)
 

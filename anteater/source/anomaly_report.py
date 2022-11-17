@@ -48,6 +48,7 @@ class AnomalyReport:
         entity_name = template.entity_name
         labels = anomaly.labels
 
+        template.labels = labels
         template.entity_id = self.get_entity_id(machine_id, entity_name, labels, keys)
         template.keys = keys
         template.description = anomaly.description
