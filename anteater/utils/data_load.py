@@ -17,7 +17,7 @@ from os import path, sep
 from json import JSONDecodeError
 from typing import List, Tuple
 
-from anteater.core.feature import Feature
+from anteater.core.feature import AnomalyTrend, Feature
 from anteater.core.kpi import KPI
 from anteater.utils.log import logger
 
@@ -76,7 +76,21 @@ def load_kpi_feature(file_name) -> Tuple[List[KPI], List[Feature]]:
             raise e
 
     kpis = [KPI(**param) for param in params.get('KPI')]
-    features = [Feature(**param) for param in params.get('Features')]
+
+    features = []
+    for param in params.get('Features'):
+        parsed_param = {}
+        for key, value in param.items():
+            if key == 'atrend':
+                if value.lower() == 'rise':
+                    value = AnomalyTrend.RISE
+                elif value.lower() == 'fall':
+                    value = AnomalyTrend.FALL
+                else:
+                    value = AnomalyTrend.DEFAULT
+            parsed_param[key] = value
+
+        features.append(Feature(**parsed_param))
 
     if duplicated_metric([kpi.metric for kpi in kpis]) or \
        duplicated_metric([f.metric for f in features]):

@@ -29,3 +29,18 @@ def smooth_slope(time_series, windows_length):
     val = conv_smooth(time_series.to_df(), box_pts=13)
     val = slope(val, win_len=13)
     return val[-windows_length:]
+
+
+def trend(y, win_len=None):
+    """Gets the trend for the y"""
+    if not win_len:
+        win_len = len(y) // 2
+
+    if np.mean(y[:win_len]) < np.mean(y[-win_len:]):
+        return 1
+    
+    elif np.mean(y[:win_len]) > np.mean(y[-win_len:]):
+        return -1
+    
+    else:
+        return 0

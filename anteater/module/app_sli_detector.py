@@ -20,7 +20,9 @@ import math
 from typing import List
 
 from anteater.core.anomaly import Anomaly
+from anteater.core.feature import AnomalyTrend
 from anteater.model.algorithms.spectral_residual import SpectralResidual
+from anteater.model.slope import trend
 from anteater.model.smoother import conv_smooth
 from anteater.model.three_sigma import three_sigma
 from anteater.module.detector import Detector
@@ -134,10 +136,11 @@ class APPSliDetector(Detector):
 
         return anomalies
 
-    def detect_features(self, metrics, machine_id: str, top_n):
+    def detect_features(self, machine_id: str, top_n):
+        metric_atrend = {f.metric: f.atrend for f in self.features}
         start, end = dt.last(minutes=6)
         time_series_list = []
-        for metric in metrics:
+        for metric in metric_atrend.keys():
             time_series = self.data_loader.get_metric(
                 start, end, metric, label_name='machine_id', label_value=machine_id)
             time_series_list.extend(time_series)
@@ -156,8 +159,16 @@ class APPSliDetector(Detector):
             if all(x == values[0] for x in values):
                 continue
 
+            if trend(time_series.values) < 0 and \
+               metric_atrend[time_series.metric] == AnomalyTrend.RISE:
+                continue
+
+            if trend(time_series.values) > 0 and \
+               metric_atrend[time_series.metric] == AnomalyTrend.FALL:
+                continue
+
             scores = sr_model.compute_score(values)
-            score = max(scores[-13:])
+            score = max(scores[-25:])
 
             if math.isnan(score) or math.isinf(score):
                 continue
@@ -170,9 +181,8 @@ class APPSliDetector(Detector):
 
     def report(self, anomaly: Anomaly, machine_id: str):
         """Reports a single anomaly at each time"""
-        feature_metrics = [f.metric for f in self.features]
         description = {f.metric: f.description for f in self.features}
-        cause_metrics = self.detect_features(feature_metrics, machine_id, top_n=60)
+        cause_metrics = self.detect_features(machine_id, top_n=60)
         cause_metrics = [
             {'metric': cause[0].metric,
              'label': cause[0].labels,

@@ -34,19 +34,23 @@
     },
     {
       "metric": "gala_gopher_block_latency_req_jitter",
-      "description": "block层request时延抖动异常"
+      "description": "block层request时延抖动异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_block_latency_req_last",
-      "description": "block层request时延最近值异常"
+      "description": "block层request时延最近值异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_block_latency_req_max",
-      "description": "block层request时延最大值异常"
+      "description": "block层request时延最大值异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_block_latency_req_sum",
-      "description": "block层request时延总计值异常"
+      "description": "block层request时延总计值异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_cpu_iowait_total_second",
@@ -54,11 +58,13 @@
     },
     {
       "metric": "gala_gopher_cpu_user_total_second",
-      "description": "用户态cpu占用时间（不包括nice）异常"
+      "description": "用户态cpu占用时间（不包括nice）异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_cpu_total_used_per",
-      "description": "CPU总利用率异常"
+      "description": "CPU总利用率异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_cpu_backlog_drops",
@@ -86,7 +92,8 @@
     },
     {
       "metric": "gala_gopher_disk_r_await",
-      "description": "读响应时间异常"
+      "description": "读响应时间异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_rareq",
@@ -94,19 +101,23 @@
     },
     {
       "metric": "gala_gopher_disk_rspeed",
-      "description": "读速率（IOPS）异常"
+      "description": "读速率（IOPS）异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_rspeed_kB",
-      "description": "读吞吐量异常"
+      "description": "读吞吐量异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_util",
-      "description": "磁盘使用率异常"
+      "description": "磁盘使用率异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_w_await",
-      "description": "写响应时间异常"
+      "description": "写响应时间异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_wareq",
@@ -114,19 +125,23 @@
     },
     {
       "metric": "gala_gopher_disk_wspeed",
-      "description": "写速率（IOPS）异常"
+      "description": "写速率（IOPS）异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_wspeed_kB",
-      "description": "写吞吐量异常"
+      "description": "写吞吐量异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_proc_read_bytes",
-      "description": "进程实际从磁盘读取的字节数异常"
+      "description": "进程实际从磁盘读取的字节数异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_proc_write_bytes",
-      "description": "进程实际从磁盘写入的字节数异常"
+      "description": "进程实际从磁盘写入的字节数异常",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_net_tcp_retrans_segs",
@@ -134,7 +149,12 @@
     },
     {
       "metric": "gala_gopher_tcp_link_lost_out",
-      "description": "TPC丢包数异常"
+      "description": "TCP丢包数异常"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_srtt",
+      "description": "TCP超时",
+      "atrend": "rise"
     },
     {
       "metric": "gala_gopher_tcp_link_notack_bytes",

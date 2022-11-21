@@ -12,6 +12,13 @@
 # ******************************************************************************/
 
 from dataclasses import dataclass
+from enum import Enum
+
+
+class AnomalyTrend(Enum):
+    DEFAULT = 0
+    RISE = 1
+    FALL = 2
 
 
 @dataclass
@@ -19,3 +26,4 @@ class Feature:
     metric: str
     description: str
     priority: int = 0
+    atrend: AnomalyTrend = AnomalyTrend.DEFAULT
