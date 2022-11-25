@@ -16,20 +16,25 @@ Author:
 Description: The calibrator which normalizes the anomaly score to the normal distribution
 """
 
+import copy
+import json
+import os
+import stat
 from typing import List
 
 import numpy as np
 from scipy.interpolate import PchipInterpolator
 from scipy.stats import norm
 
-from anteater.model.post_process.base import PostProcess
 from anteater.utils.log import logger
 
 
-class Calibrator(PostProcess):
+class Calibrator:
     """The calibrator which mapping the values to normal distribution"""
 
-    def __init__(self, max_score: float, anchors=None, **kwargs):
+    filename = "calibrator.json"
+
+    def __init__(self, max_score: float = 1000, anchors=None, **kwargs):
         """The calibrator initializer"""
         self.max_score = max_score
         self.anchors = anchors
@@ -54,6 +59,28 @@ class Calibrator(PostProcess):
 
         return y
 
+    @classmethod
+    def from_dict(cls, config_dict):
+        """Loads the object from the dict"""
+        config_dict = copy.copy(config_dict)
+
+        return cls(**config_dict)
+
+    @classmethod
+    def load(cls, folder: str, **kwargs):
+        """Loads the model from the file"""
+        config_file = os.path.join(folder, cls.filename)
+
+        if not os.path.isfile(config_file):
+            logger.warning("Unknown model file, load default calibrator model!")
+            return Calibrator(**kwargs)
+
+        modes = stat.S_IWUSR | stat.S_IRUSR
+        with os.fdopen(os.open(config_file, os.O_RDONLY, modes), "r") as f:
+            config_dict = json.load(f)
+
+        return cls.from_dict(config_dict)
+
     def update_interpolator(self, anchors):
         """Updates interpolator and anchors"""
         if anchors is None or len(anchors) < 2:
@@ -63,7 +90,7 @@ class Calibrator(PostProcess):
             self.anchors = anchors
             self._interpolator = PchipInterpolator(*zip(*anchors))
 
-    def train(self, values: List[float], retrain=False):
+    def fit_transform(self, values: List[float], retrain=False):
         """Train the calibration parameters"""
         if self._interpolator is not None and not retrain:
             return self(values)
@@ -96,3 +123,21 @@ class Calibrator(PostProcess):
         self.update_interpolator(list(zip(inputs[valid], targets[valid])))
 
         return self(values)
+
+    def to_dict(self):
+        """Dumps the object to the dict"""
+        state_dict = {}
+        for key, val in self.__dict__.items():
+            if not key.startswith('_'):
+                state_dict[key] = val
+
+        return state_dict
+
+    def save(self, folder):
+        """Saves the model into the file"""
+        config_dict = self.to_dict()
+        modes = stat.S_IWUSR | stat.S_IRUSR
+        config_file = os.path.join(folder, self.filename)
+        with os.fdopen(os.open(config_file, os.O_WRONLY | os.O_CREAT, modes), "w") as f:
+            f.truncate(0)
+            json.dump(config_dict, f, indent=2)

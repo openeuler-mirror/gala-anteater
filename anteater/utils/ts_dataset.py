@@ -11,19 +11,24 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from dataclasses import dataclass
-from enum import Enum
+from torch.utils.data import Dataset
 
 
-class AnomalyTrend(Enum):
-    DEFAULT = 0
-    RISE = 1
-    FALL = 2
+class TSDataset(Dataset):
+    """The override of torch dataset class"""
+    def __init__(self, x, win_size, step_size):
+        self.x = x
 
+        if win_size < step_size:
+            raise ValueError("The win_size should great or equal than the step_size!")
 
-@dataclass
-class Feature:
-    metric: str
-    description: str
-    priority: int = 0
-    atrend: AnomalyTrend = AnomalyTrend.DEFAULT
+        self.win_size = win_size
+        self.step_size = step_size
+        self.num_samples = (x.shape[0] - win_size) // step_size + 1
+
+    def __len__(self):
+        return self.num_samples
+
+    def __getitem__(self, idx):
+        i = idx * self.step_size
+        return self.x[i: i+self.win_size, :]

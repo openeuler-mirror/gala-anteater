@@ -23,7 +23,7 @@ from typing import Dict, List
 import requests
 
 from anteater.utils.log import logger
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeries
 
 
 class TimeSeriesProvider:
@@ -52,29 +52,40 @@ class TimeSeriesProvider:
             yield _start, _end
             _start = _end
 
-    @staticmethod
-    def fetch(url, params: Dict, **args) -> List:
+    @abstractmethod
+    def get_headers(self):
+        """Gets the headers of requests"""
+
+    def fetch(self, url, params: Dict, **args) -> List:
         """Fetches data from prometheus server by http request"""
         try:
             response = requests.get(url, params, timeout=30, **args)
         except requests.RequestException as e:
             logger.error(f"RequestException: {e}!")
             return []
+
+        if response.status_code != 200:
+            logger.error(f"{self.__class__.__name__}: "
+                         f"requrests GET method response, "
+                         f"status_code: {response.status_code}, "
+                         f"reason: {response.reason}, "
+                         f"url: {response.url}, ")
+            return []
+
         response = response.json()
         result = []
         if response and response.get("status") == 'success':
             result = response.get('data', {}).get('result', [])
         else:
-            logger.error(f"Prometheus get data failed, "
-                         f"error: {response.get('error')}, query_url: {url}, params: {params}.")
+            logger.error(f"{self.__class__.__name__} get data failed, "
+                         f"error: {response.get('error')}, "
+                         f"query_url: {url}, "
+                         f"params: {params}.")
 
         return result
 
-    @abstractmethod
-    def get_headers(self):
-        """Gets the headers of requests"""
-
-    def range_query(self, start_time: datetime, end_time: datetime, metric, query: str) -> List[TimeSeries]:
+    def range_query(self, start_time: datetime, end_time: datetime,
+                    metric: str, query: str) -> List[TimeSeries]:
         """Range query time series data from PrometheusAdapter"""
         headers = self.get_headers()
 

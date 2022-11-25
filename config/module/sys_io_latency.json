@@ -1,4 +1,7 @@
 {
+  "name": "sys_io_latency",
+  "job_type": "sys",
+  "root_cause_number": 3,
   "KPI": [
     {
       "metric": "gala_gopher_block_latency_req_max",
@@ -8,12 +11,39 @@
       "description": "Block I/O latency performance is deteriorating!",
       "params": {
         "look_back": 20,
-        "box_pts": 7,
         "obs_size": 25,
-        "outlier_ratio_th": 0.3
+        "outlier_ratio_th": 0.3,
+        "smooth_params": {
+          "method": "conv_smooth",
+          "box_pts": 3
+        }
       }
     }
   ],
+  "OnlineModel": {
+    "name": "online_vae_model",
+    "enable": false,
+    "params": {
+      "th": 0.5,
+      "max_error_rate": 0.7,
+      "min_retrain_hours": 24,
+      "min_predict_minutes": 20,
+      "norm": {},
+      "vae": {
+        "hidden_sizes": [25, 10, 5],
+        "latent_size": 5,
+        "dropout_rate": 0.25,
+        "batch_size": 1024,
+        "num_epochs": 30,
+        "learning_rate": 0.001,
+        "k": 120,
+        "step_size": 60,
+        "num_eval_samples": 10
+      },
+      "calibrate": {},
+      "threshold": {}
+    }
+  },
   "Features": [
     {
       "metric": "gala_gopher_block_latency_driver_max",

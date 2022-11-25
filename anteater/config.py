@@ -27,7 +27,7 @@ import yaml
 class GlobalConf:
     """The global config"""
     data_source: str = None
-    is_sys: bool = None
+    sys_level: bool = None
 
 
 @dataclass

@@ -24,7 +24,7 @@ from anteater.model.algorithms.spectral_residual import SpectralResidual
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.data_load import load_metric_operator
 from anteater.utils.datetime import DateTimeManager as dt
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeries
 
 
 class PostModel:

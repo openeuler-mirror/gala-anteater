@@ -16,29 +16,34 @@ from anteater.template.template import Template
 
 class AppAnomalyTemplate(Template):
     """The app anomaly template"""
+
     def __init__(self, timestamp, machine_id, metric_id, entity_name):
+        """The app anomaly template initializer"""
         super().__init__(timestamp, machine_id, metric_id, entity_name)
 
     def get_template(self):
+        """Gets the template for app level anomaly events"""
         timestamp = round(self.timestamp.timestamp() * 1000)
 
         result = {
-            "Timestamp": timestamp,
-            "Attributes": {
-                "entity_id": self.entity_id,
-                "event_id": f"{timestamp}_{self.entity_id}",
-                "event_type": "app"
+            'Timestamp': timestamp,
+            'Attributes': {
+                'entity_id': self.entity_id,
+                'event_id': f'{timestamp}_{self.entity_id}',
+                'event_type': 'app',
+                'event_source': 'gala-anteater'
             },
-            "Resource": {
-                "metrics": self.metric_id,
-                "metric_label": self.labels,
-                "recommend_metrics": self.cause_metrics,
-                "description": self.description
+            'Resource': {
+                'metric_id': self.metric_id,
+                'labels': self.labels,
+                'score': self.score,
+                'cause_metrics': self.cause_metrics,
+                'description': self.description
             },
-            "SeverityText": "WARN",
-            "SeverityNumber": 13,
-            "Body": f"{self.timestamp.strftime('%c')} WARN, APP may be impacting sli performance issues.",
-            "event_id": f"{timestamp}_{self.entity_id}",
+            'SeverityText': 'WARN',
+            'SeverityNumber': 13,
+            'Body': f'{self.timestamp.strftime("%c")} WARN, APP may be impacting sli performance issues.',
+            'event_id': f'{timestamp}_{self.entity_id}',
         }
 
         return result
