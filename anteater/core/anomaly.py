@@ -12,20 +12,43 @@
 # ******************************************************************************/
 
 from dataclasses import dataclass
+from enum import Enum
+from typing import List
 
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeriesScore
 
 
 @dataclass
 class Anomaly:
-    metric: str = None
-    labels: dict = None
-    score: float = None
-    entity_name: str = None
-    description: str = None
-
-
-@dataclass
-class CauseMetric:
-    ts: TimeSeries
+    machine_id: str
+    metric: str
+    labels: dict
     score: float
+    entity_name: str
+    description: str
+
+    root_causes: List[TimeSeriesScore] = None
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, Anomaly):
+            return False
+
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
+
+    @property
+    def id(self):
+        return self.metric + str(tuple(sorted(self.labels.items())))
+
+
+class AnomalyTrend(Enum):
+    """The anomaly trend of the kpi,
+    - such as: a larger TCP link srtt probably would be thought
+              as an anomaly event, usually, a smaller one should be
+              thought as a normal event.
+    """
+    DEFAULT = 0
+    RISE = 1
+    FALL = 2

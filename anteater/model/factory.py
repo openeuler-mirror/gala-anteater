@@ -17,34 +17,28 @@ Description: The factory of the model initializer.
 """
 
 from anteater.model.algorithms.normalization import Normalization
-from anteater.model.algorithms.vae import VAEDetector, VAEConfig
-from anteater.utils.log import logger
+from anteater.model.algorithms.vae import VAEModel
+from anteater.model.post_process.calibrate import Calibrator
+from anteater.model.post_process.threshold import Threshold
 
 
 class ModelFactory:
     """The model factory"""
 
-    def __init__(self, model_folder, **kwargs):
-        """The model factory initializer"""
-        self.model_folder = model_folder
+    @staticmethod
+    def create_model(name, folder, **kwargs):
+        """Create model based on the specific name"""
+        if name == 'vae':
+            return VAEModel.load(folder, **kwargs.get('vae', {}))
 
-    def create(self, name, **kwargs):
-        """Creates the model based on model name"""
-        if name == "vae":
-            try:
-                model = VAEDetector.load(self.model_folder)
-            except FileNotFoundError:
-                logger.warning("Initializing default vae model!")
-                model = VAEDetector(VAEConfig())
+        elif name == 'norm':
+            return Normalization.load(folder, **kwargs.get('norm', {}))
 
-        elif name == "norm":
-            try:
-                model = Normalization.load(self.model_folder)
-            except FileNotFoundError:
-                logger.warning("Initializing default norm model!")
-                model = Normalization()
+        elif name == 'calibrate':
+            return Calibrator.load(folder, **kwargs.get('calibrate', {}))
+
+        elif name == 'threshold':
+            return Threshold.load(folder, **kwargs.get('threshold', {}))
 
         else:
             raise ValueError(f"Unknown model name {name} when model factorization.")
-
-        return model

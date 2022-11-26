@@ -37,8 +37,8 @@ COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
 # Setting the pip3 source
-RUN pip3 config set global.index-url https://mirrors.tools.huawei.com/pypi/simple \
-    && pip3 config set install.trusted-host mirrors.tools.huawei.com
+# RUN pip3 config set global.index-url https://mirrors.tools.huawei.com/pypi/simple \
+#     && pip3 config set install.trusted-host mirrors.tools.huawei.com
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 

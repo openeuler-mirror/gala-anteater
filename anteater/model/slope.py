@@ -11,8 +11,11 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+from typing import List
+
 import numpy as np
 
+from anteater.core.anomaly import AnomalyTrend
 from anteater.model.smoother import conv_smooth
 
 
@@ -38,9 +41,20 @@ def trend(y, win_len=None):
 
     if np.mean(y[:win_len]) < np.mean(y[-win_len:]):
         return 1
-    
+
     elif np.mean(y[:win_len]) > np.mean(y[-win_len:]):
         return -1
-    
+
     else:
         return 0
+
+
+def check_trend(values: List[float], atrend: AnomalyTrend):
+    """Checks the values with an 'atrend' trend"""
+    if atrend == AnomalyTrend.RISE and trend(values) < 0:
+        return False
+
+    if atrend == AnomalyTrend.FALL and trend(values) > 0:
+        return False
+
+    return True

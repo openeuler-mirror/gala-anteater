@@ -1,0 +1,105 @@
+{
+  "name": "sys_tcp_transmission_latency",
+  "job_type": "sys",
+  "root_cause_number": 3,
+  "KPI": [
+    {
+      "metric": "gala_gopher_tcp_link_srtt",
+      "kpi_type": "",
+      "entity_name": "tcp_link",
+      "enable": true,
+      "description": "Smoothed Round Trip Time(us)",
+      "params": {
+        "look_back": 20,
+        "obs_size": 25,
+        "n": 4,
+        "outlier_ratio_th": 0.4,
+        "smooth_params": {
+          "method": "conv_smooth",
+          "box_pts": 3
+        }
+      }
+    }
+  ],
+  "OnlineModel": {
+    "name": "online_vae_model",
+    "enable": false,
+    "params": {
+      "th": 0.5,
+      "max_error_rate": 0.7,
+      "min_retrain_hours": 24,
+      "min_predict_minutes": 20,
+      "norm": {},
+      "vae": {
+        "hidden_sizes": [25, 10, 5],
+        "latent_size": 5,
+        "dropout_rate": 0.25,
+        "batch_size": 1024,
+        "num_epochs": 30,
+        "learning_rate": 0.001,
+        "k": 120,
+        "step_size": 60,
+        "num_eval_samples": 10
+      },
+      "calibrate": {},
+      "threshold": {}
+    }
+  },
+  "Features": [
+    {
+      "metric": "gala_gopher_tcp_link_notsent_bytes",
+      "priority": 4,
+      "description": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_notack_bytes",
+      "priority": 4,
+      "description": "Due to network delay or peer application performance, too many NO ACK packets are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_snd_wnd",
+      "priority": 4,
+      "description": "The TCP send window is abnormal due to peer application performance or network congestion. As a result, the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_rcv_wnd",
+      "priority": 4,
+      "description": "The TCP receive window becomes abnormal due to the local application performance. As a result, the performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_avl_snd_wnd",
+      "priority": 4,
+      "description": "The available TCP send window may be abnormal due to network congestion and the performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_lost_out",
+      "priority": 3,
+      "description": "The network may be congested, causing abnormal TCP packet loss and performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sk_drops",
+      "priority": 3,
+      "description": "Packets are lost in the host protocol stack due to unknown causes, and the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_retran_packets",
+      "priority": 1,
+      "description": "TCP retransmission is triggered due to network faults, resulting in TCP performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_backlog_drops",
+      "priority": 0,
+      "description": "TCP backlog overflows due to local application performance. As a result, TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sacked_out",
+      "priority": 2,
+      "description": "TCP performance deteriorates due to network out-of-order. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sk_backlog_size",
+      "priority": 0,
+      "description": "The TCP backlog queue length is abnormal due to the local application performance. As a result, the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    }
+  ]
+}

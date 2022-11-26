@@ -11,8 +11,8 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import uuid
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -32,7 +32,7 @@ class TimeSeries:
         self.time_stamps = time_stamps.copy()
         self.values = values.copy()
 
-        self.__id = f'{metric}_{uuid.uuid4()}'
+        self.__id = f'{metric}'
 
     @property
     def id(self) -> str:
@@ -55,4 +55,13 @@ class TimeSeries:
         series = pd.Series(np_values, index=index, name=self.id)
         series = series[~series.index.duplicated()]
 
-        return series
+        df = series.to_frame()
+
+        return df
+
+
+@dataclass
+class TimeSeriesScore:
+    ts: TimeSeries
+    score: float
+    description: str

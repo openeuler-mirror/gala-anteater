@@ -20,11 +20,12 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from anteater.anomaly_detection import AnomalyDetection
 from anteater.config import AnteaterConf
-from anteater.module.app_sli_detector import APPSliDetector
-from anteater.module.proc_io_latency_detector import ProcIOLatencyDetector
-from anteater.module.sys_io_latency_detector import SysIOLatencyDetector
-from anteater.module.sys_tcp_establish_detector import SysTcpEstablishDetector
-from anteater.module.sys_tcp_transmission_detector import SysTcpTransmissionDetector
+from anteater.module.app.app_sli_detector import APPSliDetector
+from anteater.module.sys.proc_io_latency import ProcIOLatencyDetector
+from anteater.module.sys.sys_io_latency import SysIOLatencyDetector
+from anteater.module.sys.tcp_establish import SysTcpEstablishDetector
+from anteater.module.sys.tcp_transmission_throughput import SysTcpTransmissionThroughputDetector
+from anteater.module.sys.tcp_transmission_latency import SysTcpTransmissionLatencyDetector
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
@@ -43,18 +44,17 @@ def init_config() -> AnteaterConf:
 
 def main():
     conf = init_config()
-
     kafka_provider = KafkaProvider(conf.kafka)
     loader = MetricLoader(conf)
     report = AnomalyReport(kafka_provider)
-    if conf.global_conf.is_sys:
+    if conf.global_conf.sys_level:
         detectors = [
             # APP sli anomaly detection
             APPSliDetector(loader, report),
 
             # SYS tcp/io detection
             SysTcpEstablishDetector(loader, report),
-            SysTcpTransmissionDetector(loader, report),
+            SysTcpTransmissionLatencyDetector(loader, report),
             SysIOLatencyDetector(loader, report),
             ProcIOLatencyDetector(loader, report),
         ]
@@ -67,7 +67,6 @@ def main():
     anomaly_detect = AnomalyDetection(detectors, conf)
 
     logger.info(f'Schedule recurrent job with time interval {conf.schedule.duration} minute(s).')
-
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
     scheduler.add_job(anomaly_detect.run, trigger='interval', minutes=conf.schedule.duration)
     scheduler.start()

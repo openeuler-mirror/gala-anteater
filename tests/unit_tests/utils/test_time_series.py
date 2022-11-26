@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeries
 
 
 class TestTimeSeries(unittest.TestCase):

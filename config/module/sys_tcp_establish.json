@@ -1,14 +1,18 @@
 {
+  "name": "sys_tcp_establish",
+  "job_type": "sys",
+  "root_cause_number": 3,
   "KPI": [
     {
       "metric": "gala_gopher_tcp_link_syn_srtt",
       "kpi_type": "",
       "entity_name": "tcp_link",
       "enable": true,
-      "description": "RTT of syn packet(us): existing {:.0%} syn packets rtt are more than {:.0f} us",
+      "description": "RTT of syn packet(us): the max syn packets rtt is {:.0f} us",
       "params": {
         "look_back": 30,
-        "outlier_ratio_th": 0.3
+        "outlier_ratio_th": 0.5,
+        "obs_size": 3
       }
     }
   ],

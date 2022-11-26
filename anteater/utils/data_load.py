@@ -13,15 +13,25 @@
 
 import json
 import os
-from os import path, sep
+from os import makedirs, path, sep
 from json import JSONDecodeError
-from typing import List, Tuple
+from typing import List
 
-from anteater.core.feature import AnomalyTrend, Feature
-from anteater.core.kpi import KPI
+from anteater.core.kpi import KPI, ModelConfig, Feature, JobConfig
 from anteater.utils.log import logger
 
 ANTEATER_MODULE_PATH = '/etc/gala-anteater/config/module'
+ANTEATER_MODEL_PATH = '/etc/gala-anteater/models'
+
+
+def anteater_model_path():
+    """Gets the model folder for model serialization"""
+    root_path = os.path.realpath(ANTEATER_MODEL_PATH)
+
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    return root_path
 
 
 def load_metric_operator():
@@ -63,41 +73,51 @@ def duplicated_metric(metrics: List[str]):
     return False
 
 
-def load_kpi_feature(file_name) -> Tuple[List[KPI], List[Feature]]:
+def load_job_config(file_name) -> JobConfig:
     folder_path = path.realpath(ANTEATER_MODULE_PATH)
     abs_path = path.join(folder_path, file_name)
 
     with open(abs_path, 'r', encoding='utf-8') as f_out:
         try:
-            params = json.load(f_out)
+            config = json.load(f_out)
         except JSONDecodeError as e:
             logger.error(f'JSONDecodeError when parse job'
                          f'file {os.path.basename(abs_path)}')
             raise e
 
-    kpis = [KPI(**param) for param in params.get('KPI')]
+    name = config['name']
+    job_type = config['job_type']
+    root_cause_number = config['root_cause_number']
+    kpis = [KPI(**_conf) for _conf in config['KPI']]
+    features = [Feature(**_conf) for _conf in config['Features']]
 
-    features = []
-    for param in params.get('Features'):
-        parsed_param = {}
-        for key, value in param.items():
-            if key == 'atrend':
-                if value.lower() == 'rise':
-                    value = AnomalyTrend.RISE
-                elif value.lower() == 'fall':
-                    value = AnomalyTrend.FALL
-                else:
-                    value = AnomalyTrend.DEFAULT
-            parsed_param[key] = value
+    model_config = None
+    if 'OnlineModel' in config:
+        name = config['OnlineModel']['name']
+        enable = config['OnlineModel']['enable']
+        params = config['OnlineModel']['params']
+        root_model_path = path.realpath(ANTEATER_MODEL_PATH)
+        model_path = path.join(root_model_path, path.splitext(file_name)[0])
 
-        features.append(Feature(**parsed_param))
+        if not path.exists(model_path):
+            makedirs(model_path)
+
+        model_config = ModelConfig(name=name, enable=enable,
+                                   params=params, model_path=model_path)
 
     if duplicated_metric([kpi.metric for kpi in kpis]) or \
        duplicated_metric([f.metric for f in features]):
         raise ValueError(f'Existing duplicated metric name'
-                         f'in config file: {os.path.basename(abs_path)}')
+                         f'in config file: {path.basename(abs_path)}')
 
     # filter out un-enable kpis
     kpis = [kpi for kpi in kpis if kpi.enable]
 
-    return kpis, features
+    return JobConfig(
+        name=name,
+        job_type=job_type,
+        root_cause_number=root_cause_number,
+        kpis=kpis,
+        features=features,
+        model_config=model_config
+    )

@@ -23,13 +23,11 @@ import numpy as np
 
 def series_filter(values, kernel_size: int):
     """Filtering the time series values"""
-    result = np.cumsum(values, dtype=np.float32)
-
-    result[kernel_size:] = result[kernel_size:] - result[:-kernel_size]
-
     if kernel_size <= 0:
         raise ValueError("The kernal size less than or equal to zero.")
 
+    result = np.cumsum(values, dtype=np.float32)
+    result[kernel_size:] = result[kernel_size:] - result[:-kernel_size]
     result[kernel_size:] = np.divide(result[kernel_size:], kernel_size)
 
     for i in range(1, kernel_size):
@@ -92,6 +90,7 @@ class SpectralResidual:
         return s_amp
 
     def compute_score(self, values):
+        np.seterr(divide='ignore')
         """Computes **average** anomaly score by spectral residual"""
         merged_vales = merge_series(values, self.series_size, self.series_size)
 

@@ -32,7 +32,7 @@ from anteater.utils.data_load import load_metric_operator
 from anteater.utils.data_process import parse_operator
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeries
 
 
 class HybridModel:

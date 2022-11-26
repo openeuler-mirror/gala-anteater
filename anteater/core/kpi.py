@@ -12,14 +12,43 @@
 # ******************************************************************************/
 
 from dataclasses import dataclass, field
+from typing import List
+
+from anteater.core.anomaly import AnomalyTrend
 
 
 @dataclass
 class KPI:
-    metric: str = None
-    kpi_type: str = None
-    entity_name: str = None
-    enable: bool = False
+    metric: str
+    kpi_type: str
+    entity_name: str
+    enable: bool
     description: str = ""
     params: dict = field(default=dict)
+    atrend: AnomalyTrend = AnomalyTrend.DEFAULT
 
+
+@dataclass
+class Feature:
+    metric: str
+    description: str
+    priority: int = 0
+    atrend: AnomalyTrend = AnomalyTrend.DEFAULT
+
+
+@dataclass
+class ModelConfig:
+    name: str
+    enable: bool
+    model_path: str
+    params: dict = field(default=dict)
+
+
+@dataclass
+class JobConfig:
+    name: str
+    job_type: str
+    root_cause_number: int
+    kpis: List[KPI]
+    features: List[Feature]
+    model_config: ModelConfig

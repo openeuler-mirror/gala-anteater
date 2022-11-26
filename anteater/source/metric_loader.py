@@ -22,7 +22,7 @@ from anteater.config import AnteaterConf
 from anteater.factory.factory import DataCollectorFactory
 from anteater.utils import datetime
 from anteater.utils.log import logger
-from anteater.utils.time_series import TimeSeries
+from anteater.core.time_series import TimeSeries
 from anteater.utils.timer import timer
 
 

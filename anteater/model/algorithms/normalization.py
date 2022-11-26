@@ -21,6 +21,8 @@ import os
 import joblib
 from sklearn.preprocessing import StandardScaler
 
+from anteater.utils.log import logger
+
 
 class Normalization:
     """The normalization class for the data processing"""
@@ -29,7 +31,7 @@ class Normalization:
 
     def __init__(self, **kwargs):
         """The normalizer initializer"""
-        self.normalizer = StandardScaler()
+        self.normalizer = StandardScaler(**kwargs)
 
     @classmethod
     def load(cls, folder, **kwargs):
@@ -37,7 +39,8 @@ class Normalization:
         file = os.path.join(folder, cls.filename)
 
         if not os.path.isfile(file):
-            raise FileNotFoundError("Normalization file was not found!") # pylint:disable=undefined-variable
+            logger.warning("Unknown model file, load default norm model!")
+            return Normalization(**kwargs)
 
         model = cls(**kwargs)
         model.normalizer = joblib.load(file)
@@ -54,6 +57,6 @@ class Normalization:
         return x_norm
 
     def transform(self, x):
-        """Transofms the data"""
+        """Transform the data"""
         x_norm = self.normalizer.transform(x)
         return x_norm

@@ -16,29 +16,34 @@ from anteater.template.template import Template
 
 class SysAnomalyTemplate(Template):
     """The sys anomaly report template"""
+
     def __init__(self, timestamp, machine_id, metric_id, entity_name):
+        """The sys anomaly template initializer"""
         super().__init__(timestamp, machine_id, metric_id, entity_name)
 
     def get_template(self):
+        """Gets the template for sys level anomaly events"""
         timestamp = round(self.timestamp.timestamp() * 1000)
 
         result = {
-            "Timestamp": timestamp,
-            "Attributes": {
-                "entity_id": self.entity_id,
-                "event_id": f"{timestamp}_{self.entity_id}",
-                "event_type": "sys"
+            'Timestamp': timestamp,
+            'Attributes': {
+                'entity_id': self.entity_id,
+                'event_id': f'{timestamp}_{self.entity_id}',
+                'event_type': 'sys',
+                'event_source': 'gala-anteater'
             },
-            "Resource": {
-                "metric_id": self.metric_id,
-                "labels": self.labels,
-                "cause_metrics": self.cause_metrics,
-                "description": self.description
+            'Resource': {
+                'metric_id': self.metric_id,
+                'labels': self.labels,
+                'score': self.score,
+                'cause_metrics': self.cause_metrics,
+                'description': self.description
             },
-            "SeverityText": "WARN",
-            "SeverityNumber": 13,
-            "Body": f"{self.timestamp.strftime('%c')} WARN, SYS may be impacting performance issues.",
-            "event_id": f"{timestamp}_{self.entity_id}",
+            'SeverityText': 'WARN',
+            'SeverityNumber': 13,
+            'Body': f'{self.timestamp.strftime("%c")} WARN, SYS may be impacting performance issues.',
+            'event_id': f'{timestamp}_{self.entity_id}',
         }
 
         return result

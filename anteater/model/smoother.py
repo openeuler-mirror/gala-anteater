@@ -22,6 +22,16 @@ def conv_smooth(y, box_pts):
     return y_smooth
 
 
-def savgol_smooth(y, *args, **kwargs):
+def savgol_smooth(y, window_length, polyorder, *args, **kwargs):
     """Apply a Savitzky-Golay filter to an array"""
-    return savgol_filter(y, *args, *kwargs)
+    return savgol_filter(y, window_length, polyorder, *args, *kwargs)
+
+
+def smoothing(y, method='conv_smooth', *args, **kwargs):
+    if method == 'conv_smooth':
+        return conv_smooth(y, *args, **kwargs)
+    elif method == 'savgol_smooth':
+        return savgol_filter(y, *args, **kwargs)
+    else:
+        raise ValueError(f'Unknown smoothing method {method}!')
+

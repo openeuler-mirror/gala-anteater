@@ -22,6 +22,7 @@ class Template:
         self.metric_id = metric_id
         self.entity_name = entity_name
 
+        self.score = 0
         self.labels = {}
         self.entity_id = ""
         self.description = ""
