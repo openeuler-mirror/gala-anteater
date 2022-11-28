@@ -26,59 +26,42 @@ import yaml
 @dataclass
 class GlobalConf:
     """The global config"""
-    data_source: str = None
-    sys_level: bool = None
+    data_source: str
+    sys_level: bool
 
 
 @dataclass
 class ServiceConf:
     """The provider config"""
-    server: str = None
-    port: str = None
-    steps: int = None
+    server: str
+    port: str
 
 
 @dataclass
 class KafkaConf(ServiceConf):
     """The kafka config"""
-    model_topic: str = None
-    model_group_id: str = None
-    meta_topic: str = None
-    meta_group_id: str = None
-    meta_entity_name: str = None
+    model_topic: str
+    meta_topic: str
 
 
 @dataclass
 class PrometheusConf(ServiceConf):
     """The prometheus config"""
-    step: int = None
+    steps: int = None
 
 
 @dataclass
 class AomConfig:
-    base_url: str = None
-    project_id: str = None
-    auth_type: str = None
+    base_url: str
+    project_id: str
+    auth_type: str
     auth_info: dict = field(default_factory=dict)
-
-
-@dataclass
-class HybridModelConfig:
-    """The hybrid model config"""
-    name: str = None
-    model_folder: str = None
-    latest_model_folder: str = None
-    look_back: int = None
-    threshold: float = None
-    retrain: bool = False
-    keep_model: bool = True
-    use_latest_model: bool = True
 
 
 @dataclass
 class ScheduleConf:
     """The scheduling method config"""
-    duration: int = None
+    duration: int
 
 
 class AnteaterConf:
@@ -92,7 +75,6 @@ class AnteaterConf:
         self.kafka: KafkaConf = None
         self.prometheus: PrometheusConf = None
         self.aom: AomConfig = None
-        self.hybrid_model: HybridModelConfig = None
         self.schedule: ScheduleConf = None
 
     def load_from_yaml(self, data_path: str):
@@ -113,14 +95,10 @@ class AnteaterConf:
         kafka_conf = result.get("Kafka")
         prometheus_conf = result.get("Prometheus")
         aom_config = result.get("Aom")
-        hybrid_model_conf = result.get("HybridModel")
         schedule_conf = result.get("Schedule")
 
         self.global_conf = GlobalConf(**global_conf)
         self.kafka = KafkaConf(**kafka_conf)
         self.prometheus = PrometheusConf(**prometheus_conf)
         self.aom = AomConfig(**aom_config)
-        self.hybrid_model = HybridModelConfig(**hybrid_model_conf)
-        self.hybrid_model.model_folder = os.path.join(data_path, self.hybrid_model.model_folder)
-        self.hybrid_model.latest_model_folder = os.path.join(data_path, self.hybrid_model.latest_model_folder)
         self.schedule = ScheduleConf(**schedule_conf)
