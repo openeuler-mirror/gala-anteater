@@ -6,10 +6,7 @@ Kafka:
   server: "localhost"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
-  model_group_id: "gala_anteater_1"
   meta_topic: "gala_gopher_metadata"
-  meta_group_id: "gala_anteater_1"
-  meta_entity_name: "sli"
 
 Prometheus:
   server: "localhost"
@@ -26,15 +23,6 @@ Aom:
     iam_user_name: ""
     iam_password: ""
     ssl_verify: 0
-
-HybridModel:
-  name: "vae"
-  model_folder: "models"
-  latest_model_folder: "latest_models"
-  retrain: false
-  look_back: 1
-  keep_model: true
-  threshold: 0.8
 
 Schedule:
   duration: 1
