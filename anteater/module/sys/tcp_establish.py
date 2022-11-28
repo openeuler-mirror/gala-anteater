@@ -48,7 +48,7 @@ class SysTcpEstablishDetector(E2EDetector):
         cause_metrics = [
             {
                 'metric': cause.ts.metric,
-                'label': cause.ts.labels,
+                'labels': cause.ts.labels,
                 'score': cause.score,
                 'description': cause.description.format(
                     cause.ts.labels.get('ppid', ''),

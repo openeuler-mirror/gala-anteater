@@ -17,9 +17,9 @@ from anteater.template.template import Template
 class SysAnomalyTemplate(Template):
     """The sys anomaly report template"""
 
-    def __init__(self, timestamp, machine_id, metric_id, entity_name):
+    def __init__(self, timestamp, machine_id, metric, entity_name):
         """The sys anomaly template initializer"""
-        super().__init__(timestamp, machine_id, metric_id, entity_name)
+        super().__init__(timestamp, machine_id, metric, entity_name)
 
     def get_template(self):
         """Gets the template for sys level anomaly events"""
@@ -34,7 +34,7 @@ class SysAnomalyTemplate(Template):
                 'event_source': 'gala-anteater'
             },
             'Resource': {
-                'metric_id': self.metric_id,
+                'metric': self.metric,
                 'labels': self.labels,
                 'score': self.score,
                 'cause_metrics': self.cause_metrics,

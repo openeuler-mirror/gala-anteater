@@ -16,10 +16,10 @@ from abc import abstractmethod
 
 class Template:
     """The app anomaly template"""
-    def __init__(self, timestamp, machine_id, metric_id, entity_name):
+    def __init__(self, timestamp, machine_id, metric, entity_name):
         self.timestamp = timestamp
         self.machine_id = machine_id
-        self.metric_id = metric_id
+        self.metric = metric
         self.entity_name = entity_name
 
         self.score = 0
