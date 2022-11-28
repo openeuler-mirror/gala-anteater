@@ -12,11 +12,12 @@
 # ******************************************************************************/
 
 from abc import abstractmethod
-from typing import Callable, Dict, List
+from typing import Dict, List, Type
 
 from anteater.core.anomaly import Anomaly
 from anteater.model.detector.base import Detector
 from anteater.source.anomaly_report import AnomalyReport
+from anteater.template.template import Template
 from anteater.utils.data_load import load_job_config
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
@@ -29,7 +30,7 @@ class E2EDetector:
 
     config_file = None
 
-    def __init__(self, reporter: AnomalyReport, template: Callable):
+    def __init__(self, reporter: AnomalyReport, template: Type[Template]):
         """The E2E anomaly detection base class initializer"""
         self.reporter = reporter
         self.template = template
