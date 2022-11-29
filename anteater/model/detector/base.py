@@ -19,7 +19,7 @@ from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI, Feature, JobConfig
 from anteater.core.time_series import TimeSeriesScore
 from anteater.model.algorithms.spectral_residual import SpectralResidual
-from anteater.model.slope import check_trend
+from anteater.model.algorithms.slope import check_trend
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import same_intersection_key_value
 from anteater.utils.datetime import DateTimeManager as dt

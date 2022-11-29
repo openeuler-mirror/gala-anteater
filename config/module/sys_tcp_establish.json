@@ -20,7 +20,7 @@
     {
       "metric": "gala_gopher_endpoint_retran_synacks",
       "priority": 0,
-      "description": "TCP established performance deteriorates due to loss of SYN/ACK packets.(PID = {}, TCP Listen Port = {}})"
+      "description": "TCP established performance deteriorates due to loss of SYN/ACK packets.(PID = {}, TCP Listen Port = {})"
     }
   ]
 }

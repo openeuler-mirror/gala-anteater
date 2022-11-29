@@ -15,6 +15,10 @@ from datetime import datetime, timezone, timedelta
 
 
 class DateTimeManager:
+    """The datetime manager which could freeze or unfreeze datetime
+    for getting a consistency time on the model.
+    """
+
     __freeze = False
     __freeze_utc_now = None
 
@@ -28,15 +32,18 @@ class DateTimeManager:
 
     @classmethod
     def update_and_freeze(cls):
+        """Updates and freezes current datetime"""
         cls.__freeze = True
         cls.__freeze_utc_now = datetime.now(timezone.utc).astimezone()
 
     @classmethod
     def unfreeze(cls):
+        """Unfreezes the datetime"""
         cls.__freeze = False
 
     @classmethod
     def last(cls, seconds=0, minutes=0, hours=0):
-        return (cls.utc_now() -
-                timedelta(seconds=seconds, minutes=minutes, hours=hours)),\
-               cls.utc_now()
+        """Gets the latest datetime range based on current date"""
+        return ((cls.utc_now() -
+                timedelta(seconds=seconds, minutes=minutes, hours=hours)),
+                cls.utc_now())
