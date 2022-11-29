@@ -90,8 +90,8 @@ class SpectralResidual:
         return s_amp
 
     def compute_score(self, values):
-        np.seterr(divide='ignore')
         """Computes **average** anomaly score by spectral residual"""
+        np.seterr(all='ignore')
         merged_vales = merge_series(values, self.series_size, self.series_size)
 
         amp = self.amplitude(merged_vales)

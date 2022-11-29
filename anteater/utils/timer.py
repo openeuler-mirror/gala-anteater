@@ -18,10 +18,14 @@ from anteater.utils.log import logger
 
 
 def timer(func):
+    """The timer decorator which records the time
+    consumptions of wrapped fuction.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         clock = time.time()
         result = func(*args, **kwargs)
-        logger.info(f"{args[0].__class__.__name__}.{func.__name__} spends {time.time() - clock} seconds!")
+        logger.info(f"{args[0].__class__.__name__}.{func.__name__} "
+                    f"spends {time.time() - clock} seconds!")
         return result
     return wrapper

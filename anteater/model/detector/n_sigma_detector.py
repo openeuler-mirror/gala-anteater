@@ -18,8 +18,8 @@ from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI
 from anteater.core.time_series import TimeSeriesScore
 from anteater.model.detector.base import Detector
-from anteater.model.smoother import smoothing
-from anteater.model.three_sigma import three_sigma
+from anteater.model.algorithms.smooth import smoothing
+from anteater.model.algorithms.three_sigma import three_sigma
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt

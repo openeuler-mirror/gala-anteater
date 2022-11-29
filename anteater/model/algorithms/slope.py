@@ -16,7 +16,7 @@ from typing import List
 import numpy as np
 
 from anteater.core.anomaly import AnomalyTrend
-from anteater.model.smoother import conv_smooth
+from anteater.model.algorithms.smooth import conv_smooth
 
 
 def slope(y, win_len):

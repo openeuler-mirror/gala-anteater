@@ -18,8 +18,8 @@ Description: The factory of the model initializer.
 
 from anteater.model.algorithms.normalization import Normalization
 from anteater.model.algorithms.vae import VAEModel
-from anteater.model.post_process.calibrate import Calibrator
-from anteater.model.post_process.threshold import Threshold
+from anteater.model.algorithms.calibrate import Calibrator
+from anteater.model.algorithms.threshold import Threshold
 
 
 class ModelFactory:

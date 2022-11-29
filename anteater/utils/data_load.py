@@ -24,48 +24,6 @@ ANTEATER_MODULE_PATH = '/etc/gala-anteater/config/module'
 ANTEATER_MODEL_PATH = '/etc/gala-anteater/models'
 
 
-def anteater_model_path():
-    """Gets the model folder for model serialization"""
-    root_path = os.path.realpath(ANTEATER_MODEL_PATH)
-
-    if not os.path.exists(root_path):
-        os.makedirs(root_path)
-
-    return root_path
-
-
-def load_metric_operator():
-    """Loads metric name and corresponding operator"""
-    folder_path = path.dirname(path.dirname(path.realpath(__file__)))
-    metrics_file = path.join(folder_path, sep.join(["observe", "metrics.csv"]))
-
-    logger.info(f"Loads metric and operators from file: {metrics_file}")
-
-    metric_operators = []
-    with open(metrics_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            metric_name, operator = line.strip().split(",")
-            metric_operators.append((metric_name, operator))
-
-    return metric_operators
-
-
-def load_metric_description():
-    """Loads metric name and it's descriptions"""
-    folder_path = path.dirname(path.dirname(path.realpath(__file__)))
-    metrics_file = path.join(folder_path, sep.join(["observe", "description.csv"]))
-
-    logger.info(f"Loads metric and descriptions from file: {metrics_file}")
-
-    descriptions = {}
-    with open(metrics_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            name, dsp = line.strip().split(",")
-            descriptions[name] = dsp
-
-    return descriptions
-
-
 def duplicated_metric(metrics: List[str]):
     if len(metrics) != len(set(metrics)):
         return True

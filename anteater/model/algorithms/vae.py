@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
 
-from anteater.model.algorithms.early_stopper import EarlyStopper
+from anteater.model.algorithms.early_stop import EarlyStopper
 from anteater.utils.common import divide
 from anteater.utils.log import logger
 from anteater.utils.ts_dataset import TSDataset
