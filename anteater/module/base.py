@@ -48,14 +48,14 @@ class E2EDetector:
         for detector in self.detectors:
             anomalies = detector.execute(self.job_config)
             for anomaly in anomalies:
-                self.report(anomaly)
+                self.report(anomaly, self.job_config.keywords)
 
     @abstractmethod
     def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
         """Parses the cause metrics into the specific formats"""
         pass
 
-    def report(self, anomaly: Anomaly):
+    def report(self, anomaly: Anomaly, keywords):
         """Parses the anomaly into a specific formats
         based on the template and reports parsed results
         """
@@ -63,4 +63,4 @@ class E2EDetector:
         timestamp = dt.utc_now()
         template = self.template(timestamp, anomaly.machine_id,
                                  anomaly.metric, anomaly.entity_name)
-        self.reporter.sent_anomaly(anomaly, cause_metrics, template)
+        self.reporter.sent_anomaly(anomaly, cause_metrics, keywords, template)

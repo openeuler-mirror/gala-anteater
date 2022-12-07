@@ -26,7 +26,8 @@ class Template:
         self.labels = {}
         self.entity_id = ""
         self.description = ""
-        self.cause_metrics = {}
+        self.cause_metrics = []
+        self.keywords = []
 
     @abstractmethod
     def get_template(self):

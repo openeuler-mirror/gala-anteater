@@ -1,6 +1,9 @@
 {
   "name": "proc_io_latency",
   "job_type": "sys",
+  "keywords": [
+    "process"
+  ],
   "root_cause_number": 3,
   "KPI": [
     {

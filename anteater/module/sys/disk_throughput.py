@@ -22,15 +22,15 @@ from anteater.source.metric_loader import MetricLoader
 from anteater.template.sys_anomaly_template import SysAnomalyTemplate
 
 
-class ProcIOLatencyDetector(E2EDetector):
-    """Proc io latency e2e detector which detects the process
-    io performance deteriorates
+class DiskThroughputDetector(E2EDetector):
+    """Disk throughput e2e detector which detects the disk read or write
+    await time performance deteriorates
     """
 
-    config_file = 'proc_io_latency.json'
+    config_file = 'disk_throughput.json'
 
     def __init__(self, data_loader: MetricLoader, reporter: AnomalyReport):
-        """The proc io latency e2e detector initializer"""
+        """The disk throughput e2e detector initializer"""
         super().__init__(reporter, SysAnomalyTemplate)
 
         self.detectors = self.init_detectors(data_loader)
@@ -38,12 +38,12 @@ class ProcIOLatencyDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                NSigmaDetector(data_loader, method='abs'),
+                NSigmaDetector(data_loader, method='max'),
                 OnlineVAEDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
-                NSigmaDetector(data_loader, method='abs')
+                NSigmaDetector(data_loader, method='max')
             ]
 
         return detectors
@@ -56,9 +56,7 @@ class ProcIOLatencyDetector(E2EDetector):
                 'labels': cause.ts.labels,
                 'score': cause.score,
                 'description': cause.description.format(
-                    cause.ts.labels.get('disk_name', ''),
-                    cause.ts.labels.get('tgid', ''),
-                    cause.ts.labels.get('comm', ''))}
+                    cause.ts.labels.get('disk_name', ''))}
             for cause in anomaly.root_causes]
 
         return cause_metrics

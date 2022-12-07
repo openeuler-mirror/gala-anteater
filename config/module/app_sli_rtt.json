@@ -1,6 +1,9 @@
 {
   "name": "app_sli_rtt",
   "job_type": "app",
+  "keywords": [
+    "app"
+  ],
   "root_cause_number": 20,
   "KPI": [
     {

@@ -31,7 +31,7 @@ def three_sigma(values, obs_size, n=3, method="abs"):
     elif method == 'min':
         outlier = [val for val in obs_val if val < mean - n * std]
     elif method == 'max':
-        outlier = [val for val in obs_val if val > mean + 3 * std]
+        outlier = [val for val in obs_val if val > mean + n * std]
     else:
         raise ValueError(f'Unknown method {method}')
 

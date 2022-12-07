@@ -21,6 +21,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from anteater.anomaly_detection import AnomalyDetection
 from anteater.config import AnteaterConf
 from anteater.module.app.app_sli_detector import APPSliDetector
+from anteater.module.sys.disk_throughput import DiskThroughputDetector
 from anteater.module.sys.proc_io_latency import ProcIOLatencyDetector
 from anteater.module.sys.sys_io_latency import SysIOLatencyDetector
 from anteater.module.sys.tcp_establish import SysTcpEstablishDetector
@@ -57,6 +58,7 @@ def main():
             SysTcpTransmissionLatencyDetector(loader, report),
             SysIOLatencyDetector(loader, report),
             ProcIOLatencyDetector(loader, report),
+            DiskThroughputDetector(loader, report),
         ]
     else:
         detectors = [
