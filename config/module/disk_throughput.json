@@ -1,0 +1,92 @@
+{
+  "name": "disk_throughput",
+  "job_type": "sys",
+  "keywords": [
+    "disk"
+  ],
+  "root_cause_number": 1,
+  "KPI": [
+    {
+      "metric": "gala_gopher_disk_r_await",
+      "kpi_type": "",
+      "entity_name": "disk",
+      "enable": true,
+      "description": "Disk read await time is increasing!",
+      "params": {
+        "look_back": 20,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3,
+        "smooth_params": {
+          "method": "conv_smooth",
+          "box_pts": 3
+        }
+      }
+    },
+    {
+      "metric": "gala_gopher_disk_w_await",
+      "kpi_type": "",
+      "entity_name": "disk",
+      "enable": true,
+      "description": "Disk write await time is increasing!",
+      "params": {
+        "look_back": 20,
+        "obs_size": 25,
+        "outlier_ratio_th": 0.3,
+        "smooth_params": {
+          "method": "conv_smooth",
+          "box_pts": 3
+        }
+      }
+    }
+  ],
+  "OnlineModel": {
+    "name": "online_vae_model",
+    "enable": false,
+    "params": {
+      "th": 0.5,
+      "max_error_rate": 0.7,
+      "min_retrain_hours": 24,
+      "min_predict_minutes": 20,
+      "norm": {},
+      "vae": {
+        "hidden_sizes": [25, 10, 5],
+        "latent_size": 5,
+        "dropout_rate": 0.25,
+        "batch_size": 1024,
+        "num_epochs": 30,
+        "learning_rate": 0.001,
+        "k": 120,
+        "step_size": 60,
+        "num_eval_samples": 10
+      },
+      "calibrate": {},
+      "threshold": {}
+    }
+  },
+  "Features": [
+    {
+      "metric": "gala_gopher_disk_rspeed_kB",
+      "priority": 0,
+      "description": "The disk I/O await time performance deteriorates due to read throughput rise (read kbytes/second).(Disk = {})",
+      "atrend": "rise"
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed_kB",
+      "priority": 0,
+      "description": "The disk I/O await time performance deteriorates due to write throughput rise (write kbytes/second).(Disk = {})",
+      "atrend": "rise"
+    },
+    {
+      "metric": "gala_gopher_disk_rareq",
+      "priority": 0,
+      "description": "The disk I/O await time performance deteriorates due to read saturation rise.(Disk = {})",
+      "atrend": "rise"
+    },
+    {
+      "metric": "gala_gopher_disk_wareq",
+      "priority": 0,
+      "description": "The disk I/O await time performance deteriorates due to write saturation rise.(Disk = {})",
+      "atrend": "rise"
+    }
+  ]
+}

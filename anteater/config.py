@@ -81,9 +81,6 @@ class AnteaterConf:
         """Loads config from yaml file"""
         data_path = os.path.realpath(data_path)
 
-        if not os.path.exists(data_path):
-            os.makedirs(data_path)
-
         try:
             with open(os.path.join(data_path, "config", self.filename), "rb") as f:
                 result = yaml.safe_load(f)

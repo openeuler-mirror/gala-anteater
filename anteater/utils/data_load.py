@@ -45,6 +45,7 @@ def load_job_config(file_name) -> JobConfig:
 
     name = config['name']
     job_type = config['job_type']
+    keywords = config['keywords']
     root_cause_number = config['root_cause_number']
     kpis = [KPI(**_conf) for _conf in config['KPI']]
     features = [Feature(**_conf) for _conf in config['Features']]
@@ -74,6 +75,7 @@ def load_job_config(file_name) -> JobConfig:
     return JobConfig(
         name=name,
         job_type=job_type,
+        keywords=keywords,
         root_cause_number=root_cause_number,
         kpis=kpis,
         features=features,

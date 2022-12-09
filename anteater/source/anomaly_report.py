@@ -42,7 +42,7 @@ class AnomalyReport:
 
         return keys
 
-    def sent_anomaly(self, anomaly: Anomaly, cause_metrics: List, template: Template):
+    def sent_anomaly(self, anomaly: Anomaly, cause_metrics: List, keywords: List[str], template: Template):
         keys = self.get_keys(template.entity_name)
         machine_id = template.machine_id
         entity_name = template.entity_name
@@ -54,6 +54,7 @@ class AnomalyReport:
         template.keys = keys
         template.description = anomaly.description
         template.cause_metrics = cause_metrics
+        template.keywords = keywords
 
         msg = template.get_template()
         self.provider.send_message(msg)

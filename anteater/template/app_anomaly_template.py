@@ -31,7 +31,9 @@ class AppAnomalyTemplate(Template):
                 'entity_id': self.entity_id,
                 'event_id': f'{timestamp}_{self.entity_id}',
                 'event_type': 'app',
-                'event_source': 'gala-anteater'
+                'event_source': 'gala-anteater',
+                'keywords': self.keywords,
+                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': 'Unknown'}
             },
             'Resource': {
                 'metric': self.metric,

@@ -48,6 +48,7 @@ class ModelConfig:
 class JobConfig:
     name: str
     job_type: str
+    keywords: List[str]
     root_cause_number: int
     kpis: List[KPI]
     features: List[Feature]
