@@ -14,51 +14,46 @@
 from typing import List, Dict
 
 from anteater.core.anomaly import Anomaly
+from anteater.model.detector.th_base_detector import ThBaseDetector
 from anteater.module.base import E2EDetector
-from anteater.model.detector.online_vae_detector import OnlineVAEDetector
-from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.template.sys_anomaly_template import SysAnomalyTemplate
 
 
-class ProcIOLatencyDetector(E2EDetector):
-    """Proc io latency e2e detector which detects the process
-    io performance deteriorates
+class NICLossDetector(E2EDetector):
+    """SYS nic loss e2e detector which detects the network loss.
     """
 
-    config_file = 'proc_io_latency.json'
+    config_file = 'sys_nic_loss.json'
 
     def __init__(self, data_loader: MetricLoader, reporter: AnomalyReport):
-        """The proc io latency e2e detector initializer"""
+        """The system tcp transmission latency e2e detector initializer"""
         super().__init__(reporter, SysAnomalyTemplate)
 
-        self.detectors = self.init_detectors(data_loader)
-
-    def init_detectors(self, data_loader):
-        if self.job_config.model_config.enable:
-            detectors = [
-                NSigmaDetector(data_loader, method='max'),
-                OnlineVAEDetector(data_loader, self.job_config.model_config)
-            ]
-        else:
-            detectors = [
-                NSigmaDetector(data_loader, method='max')
-            ]
-
-        return detectors
+        self.detectors = [
+            ThBaseDetector(data_loader)
+        ]
 
     def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
         """Parses the cause metrics into the specific formats"""
-        cause_metrics = [
-            {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description.format(
-                    cause.ts.labels.get('disk_name', ''),
-                    cause.ts.labels.get('tgid', ''),
-                    cause.ts.labels.get('comm', ''))}
-            for cause in anomaly.root_causes]
+        cause_metrics = []
+        for _cs in anomaly.root_causes:
+            tmp = {
+                'metric': _cs.ts.metric,
+                'labels': _cs.ts.labels,
+                'score': _cs.score,
+            }
+            if 'tcp' in _cs.ts.metric:
+                tmp['description'] = _cs.description.format(
+                    _cs.ts.labels.get('tgid', ''),
+                    _cs.ts.labels.get('client_port', ''),
+                    _cs.ts.labels.get('server_ip', ''),
+                    _cs.ts.labels.get('server_port', ''))
+            else:
+                tmp['description'] = _cs.description.format(
+                    _cs.ts.labels.get('dev_name', ''))
+
+            cause_metrics.append(tmp)
 
         return cause_metrics

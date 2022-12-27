@@ -46,6 +46,7 @@ class SysAnomalyTemplate(Template):
             'SeverityNumber': 13,
             'Body': f'{self.timestamp.strftime("%c")} WARN, SYS may be impacting performance issues.',
             'event_id': f'{timestamp}_{self.entity_id}',
+            "keywords": self.keywords
         }
 
         return result

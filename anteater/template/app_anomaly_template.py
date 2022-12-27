@@ -46,6 +46,8 @@ class AppAnomalyTemplate(Template):
             'SeverityNumber': 13,
             'Body': f'{self.timestamp.strftime("%c")} WARN, APP may be impacting sli performance issues.',
             'event_id': f'{timestamp}_{self.entity_id}',
+            "keywords": self.keywords,
+            'cause_metrics': self.cause_metrics[0] if self.cause_metrics else {'description': 'Unknown'}
         }
 
         return result
