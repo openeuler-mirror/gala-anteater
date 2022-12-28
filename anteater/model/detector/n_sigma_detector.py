@@ -19,7 +19,7 @@ from anteater.core.kpi import KPI
 from anteater.core.time_series import TimeSeriesScore
 from anteater.model.detector.base import Detector
 from anteater.model.algorithms.smooth import smoothing
-from anteater.model.algorithms.three_sigma import three_sigma
+from anteater.model.algorithms.three_sigma import n_sigma
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
@@ -91,7 +91,7 @@ class NSigmaDetector(Detector):
                 ratio = 0
             else:
                 smoothed_val = smoothing(_ts.values, **smooth_params)
-                outlier, mean, std = three_sigma(
+                outlier, mean, std = n_sigma(
                     smoothed_val, obs_size=obs_size, n=n, method=self.method)
                 ratio = divide(len(outlier), obs_size)
 

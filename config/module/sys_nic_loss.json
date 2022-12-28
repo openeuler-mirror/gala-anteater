@@ -1,0 +1,53 @@
+{
+  "name": "sys_tcp_transmission_latency",
+  "job_type": "sys",
+  "keywords": [
+    "net"
+  ],
+  "root_cause_number": 3,
+  "KPI": [
+    {
+      "metric": "gala_gopher_nic_tc_sent_drop",
+      "kpi_type": "",
+      "entity_name": "nic",
+      "enable": true,
+      "description": "TC发送丢包数异常",
+      "params": {
+        "look_back": 2,
+        "th": 1
+      }
+    }
+  ],
+  "Features": [
+    {
+      "metric": "gala_gopher_nic_tx_dropped",
+      "priority": 0,
+      "description": "网卡发送丢弃的数据包数异常。(dev_name = {})"
+    },
+    {
+      "metric": "gala_gopher_nic_rx_dropped",
+      "priority": 0,
+      "description": "网卡接收丢弃的数据包数异常。(dev_name = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sk_drops",
+      "priority": 3,
+      "description": "Packets are lost in the host protocol stack due to unknown causes, and the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_retran_packets",
+      "priority": 1,
+      "description": "TCP retransmission is triggered due to network faults, resulting in TCP performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_lost_out",
+      "priority": 3,
+      "description": "The network may be congested, causing abnormal TCP packet loss and performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_notsent_bytes",
+      "priority": 4,
+      "description": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+    }
+  ]
+}

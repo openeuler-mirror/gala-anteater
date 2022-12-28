@@ -42,8 +42,13 @@ class TcpEstablishNSigmaDetector(Detector):
         start, _ = dt.last(minutes=look_back)
         mid, _ = dt.last(minutes=3)
 
+        filtered_ts_list = []
         ts_list = self.data_loader.get_metric(start, mid, kpi.metric)
-        establish_time = reduce(lambda x, y: x + y, [list(set(_ts.values)) for _ts in ts_list])
+        for _ts in ts_list:
+            if sum(_ts.values) > 0:
+                filtered_ts_list.append(_ts)
+
+        establish_time = reduce(lambda x, y: x + y, [list(set(_ts.values)) for _ts in filtered_ts_list])
 
         self.mean = np.mean(establish_time)
         self.std = np.std(establish_time)
@@ -65,6 +70,7 @@ class TcpEstablishNSigmaDetector(Detector):
         """Detects kpi based on signal time series anomaly detection model"""
         outlier_ratio_th = kpi.params.get('outlier_ratio_th')
         look_back = kpi.params.get('obs_size')
+        min_rtt = kpi.params.get('min_rtt')
 
         start, end = dt.last(minutes=look_back)
         ts_list = self.data_loader.\
@@ -72,9 +78,9 @@ class TcpEstablishNSigmaDetector(Detector):
 
         anomalies = []
         for _ts in ts_list:
-            outlier = [val for val in _ts.values if abs(val - self.mean) > 3 * self.std]
+            outlier = [val for val in _ts.values if val > self.mean + 5 * self.std]
             ratio = divide(len(outlier), len(_ts.values))
-            if outlier and ratio > outlier_ratio_th:
+            if outlier and ratio > outlier_ratio_th and np.average(outlier) >= min_rtt:
                 anomalies.append(
                     Anomaly(
                         machine_id=machine_id,

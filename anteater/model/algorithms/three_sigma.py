@@ -14,8 +14,8 @@
 import numpy as np
 
 
-def three_sigma(values, obs_size, n=3, method="abs"):
-    """The '3-sigma rule' outlier detect function"""
+def n_sigma(values, obs_size, n=3, method="abs"):
+    """The 'N-sigma rule' outlier detect function"""
     if obs_size <= 0:
         raise ValueError("The obs_size should great than zero!")
     if len(values) <= obs_size:
