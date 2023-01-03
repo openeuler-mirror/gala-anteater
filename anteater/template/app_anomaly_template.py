@@ -33,7 +33,7 @@ class AppAnomalyTemplate(Template):
                 'event_type': 'app',
                 'event_source': 'gala-anteater',
                 'keywords': self.keywords,
-                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': 'Unknown'}
+                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': self.description}
             },
             'Resource': {
                 'metric': self.metric,
@@ -46,8 +46,7 @@ class AppAnomalyTemplate(Template):
             'SeverityNumber': 13,
             'Body': f'{self.timestamp.strftime("%c")} WARN, APP may be impacting sli performance issues.',
             'event_id': f'{timestamp}_{self.entity_id}',
-            "keywords": self.keywords,
-            'cause_metrics': self.cause_metrics[0] if self.cause_metrics else {'description': 'Unknown'}
+            "keywords": self.keywords
         }
 
         return result

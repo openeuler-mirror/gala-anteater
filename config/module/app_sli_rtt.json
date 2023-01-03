@@ -12,6 +12,7 @@
       "entity_name": "sli",
       "enable": false,
       "description": "sli rtt 异常",
+      "description-zh": "应用级请求往返时延（RTT）异常",
       "params": {
         "look_back": 10,
         "obs_size": 25,
@@ -28,6 +29,7 @@
       "entity_name": "sli",
       "enable": true,
       "description": "sli tps 异常",
+      "description-zh": "应用级请求吞吐量（TPS）异常",
       "params": {
         "look_back": 10,
         "obs_size": 25,

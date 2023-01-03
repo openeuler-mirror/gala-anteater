@@ -33,7 +33,7 @@ class SysAnomalyTemplate(Template):
                 'event_type': 'sys',
                 'event_source': 'gala-anteater',
                 'keywords': self.keywords,
-                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': 'Unknown'}
+                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': self.description}
             },
             'Resource': {
                 'metric': self.metric,

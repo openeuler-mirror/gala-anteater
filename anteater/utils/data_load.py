@@ -47,8 +47,9 @@ def load_job_config(file_name) -> JobConfig:
     job_type = config['job_type']
     keywords = config['keywords']
     root_cause_number = config['root_cause_number']
-    kpis = [KPI(**_conf) for _conf in config['KPI']]
-    features = [Feature(**_conf) for _conf in config['Features']]
+
+    kpis = [KPI(**update_description(_conf)) for _conf in config['KPI']]
+    features = [Feature(**update_description(_conf)) for _conf in config['Features']]
 
     model_config = None
     if 'OnlineModel' in config:
@@ -81,3 +82,12 @@ def load_job_config(file_name) -> JobConfig:
         features=features,
         model_config=model_config
     )
+
+
+def update_description(conf: dict):
+    """Changes description to zh"""
+    if 'description-zh' in conf:
+        conf['description'] = conf['description-zh']
+        del conf['description-zh']
+
+    return conf

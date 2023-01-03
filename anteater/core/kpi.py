@@ -23,7 +23,7 @@ class KPI:
     kpi_type: str
     entity_name: str
     enable: bool
-    description: str = ""
+    description: str
     params: dict = field(default=dict)
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
 
