@@ -12,6 +12,7 @@
       "entity_name": "tcp_link",
       "enable": true,
       "description": "RTT of syn packet(us): the max syn packets rtt is {:.0f} us",
+      "description-zh": "SYN数据包时延异常：最大SYN数据包时延为：{:.0f}us。",
       "params": {
         "look_back": 30,
         "outlier_ratio_th": 0.5,
@@ -24,7 +25,8 @@
     {
       "metric": "gala_gopher_endpoint_retran_synacks",
       "priority": 0,
-      "description": "TCP established performance deteriorates due to loss of SYN/ACK packets.(PID = {}, TCP Listen Port = {})"
+      "description": "TCP established performance deteriorates due to loss of SYN/ACK packets.(PID = {}, TCP Listen Port = {})",
+      "description-zh": "由于SYN/ACK数据包丢失，TCP建链性能劣化（PID={}，TCP Listen Port={}）"
     }
   ]
 }

@@ -11,7 +11,8 @@
       "kpi_type": "",
       "entity_name": "nic",
       "enable": true,
-      "description": "TC发送丢包数异常",
+      "description": "TC sent dropped packets",
+      "description-zh": "TC发送丢包数异常",
       "params": {
         "look_back": 2,
         "th": 1
@@ -22,32 +23,38 @@
     {
       "metric": "gala_gopher_nic_tx_dropped",
       "priority": 0,
-      "description": "网卡发送丢弃的数据包数异常。(dev_name = {})"
+      "description": "The number of lost packets sent by the nic card are increasing and the NIC performance deteriorates.(dev_name = {})",
+      "description-zh": "网卡发送丢弃的数据包数增加，导致网卡性能劣化（dev_name={}）"
     },
     {
       "metric": "gala_gopher_nic_rx_dropped",
       "priority": 0,
-      "description": "网卡接收丢弃的数据包数异常。(dev_name = {})"
+      "description": "The number of lost packets received by the nic card are increasing and the NIC performance deteriorates.(dev_name = {})",
+      "description-zh": "网卡接收丢弃的数据包数增加，导致网卡性能劣化（dev_name={}）"
     },
     {
       "metric": "gala_gopher_tcp_link_sk_drops",
       "priority": 3,
-      "description": "Packets are lost in the host protocol stack due to unknown causes, and the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "description": "Packets are lost in the host protocol stack due to unknown causes, and the NIC performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})",
+      "description-zh": "由于未知原因，数据包在主机协议栈中丢失，导致网卡性能劣化（PID={}，client IP={}，Server IP={}，Port={}）"
     },
     {
       "metric": "gala_gopher_tcp_link_retran_packets",
       "priority": 1,
-      "description": "TCP retransmission is triggered due to network faults, resulting in TCP performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "description": "TCP retransmission is triggered due to network faults, resulting in the NIC performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})",
+      "description-zh": "网络故障触发TCP重传，导致网卡性能下降（PID={}，client IP={}，Server IP={}，Port={}）"
     },
     {
       "metric": "gala_gopher_tcp_link_lost_out",
       "priority": 3,
-      "description": "The network may be congested, causing abnormal TCP packet loss and performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "description": "The network may be congested, causing abnormal NIC packet loss and performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})",
+      "description-zh": "网络拥塞，导致网卡异常丢包，性能劣化（PID={}，client IP={}，Server IP={}，Port={}）"
     },
     {
       "metric": "gala_gopher_tcp_link_notsent_bytes",
       "priority": 4,
-      "description": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+      "description": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})",
+      "description-zh": "由于网络延迟或对端应用程序性能，滑动窗口中累积了太多要发送的数据包，导致网卡性能劣化（PID={}，client IP={}，Server IP={}，Port={}）"
     }
   ]
 }
