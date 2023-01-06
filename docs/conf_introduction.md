@@ -16,7 +16,6 @@ gala-anteater               # gala-anteater 主目录
 在文件`gala-anteater.yaml`中，配置`gala-anteater`启动时所需的参数。该配置项中，主要包含：
 - Global: 配置启动时的全局变量
   - data_source: 时序数据的来源，目前支持`"prometheus"`（Prometheus）和`"aom"`（AOM）两种数据来源；
-  - sys_level: 是否支持`系统级`异常检测，可选：`true`、`false`。
 
 - Kafka: 配置中间件Kafka所需的参数
   - server: Kafak对应的`server ip`，如："10.xxx.xxx.xxx"；

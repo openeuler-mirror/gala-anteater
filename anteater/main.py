@@ -26,7 +26,6 @@ from anteater.module.sys.nic_loss import NICLossDetector
 from anteater.module.sys.proc_io_latency import ProcIOLatencyDetector
 from anteater.module.sys.sys_io_latency import SysIOLatencyDetector
 from anteater.module.sys.tcp_establish import SysTcpEstablishDetector
-from anteater.module.sys.tcp_transmission_throughput import SysTcpTransmissionThroughputDetector
 from anteater.module.sys.tcp_transmission_latency import SysTcpTransmissionLatencyDetector
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
@@ -49,24 +48,18 @@ def main():
     kafka_provider = KafkaProvider(conf.kafka)
     loader = MetricLoader(conf)
     report = AnomalyReport(kafka_provider)
-    if conf.global_conf.sys_level:
-        detectors = [
-            # APP sli anomaly detection
-            APPSliDetector(loader, report),
+    detectors = [
+        # APP sli anomaly detection
+        APPSliDetector(loader, report),
 
-            # SYS tcp/io detection
-            SysTcpEstablishDetector(loader, report),
-            SysTcpTransmissionLatencyDetector(loader, report),
-            SysIOLatencyDetector(loader, report),
-            ProcIOLatencyDetector(loader, report),
-            DiskThroughputDetector(loader, report),
-            NICLossDetector(loader, report),
-        ]
-    else:
-        detectors = [
-            # APP sli anomaly detection
-            APPSliDetector(loader, report)
-        ]
+        # SYS tcp/io detection
+        SysTcpEstablishDetector(loader, report),
+        SysTcpTransmissionLatencyDetector(loader, report),
+        SysIOLatencyDetector(loader, report),
+        ProcIOLatencyDetector(loader, report),
+        DiskThroughputDetector(loader, report),
+        NICLossDetector(loader, report),
+    ]
 
     anomaly_detect = AnomalyDetection(detectors, conf)
 
