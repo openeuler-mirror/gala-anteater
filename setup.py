@@ -23,11 +23,12 @@ setup(
     description="Times Series Anomaly Detection Platform on Operating System",
     url="https://gitee.com/openeuler/A-Ops/tree/master/gala-anteater",
     keywords=["Anomaly Detection", "Time Series Analysis", "Operating System"],
-    packages=find_packages(where="."),
+    packages=find_packages(where=".", exclude=("tests",)),
     data_files=[
         ('/etc/gala-anteater/config/', glob('config/gala-anteater.yaml')),
         ('/etc/gala-anteater/config/', glob('config/log.settings.ini')),
         ('/etc/gala-anteater/config/module/', glob('config/module/*')),
+        ('/usr/lib/systemd/system/', glob('service/*')),
     ],
     install_requires=[
         "APScheduler",
@@ -42,7 +43,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "gala-anteater = anteater.main:main",
+            "gala-anteater=anteater.main:main",
         ]
     }
 )
