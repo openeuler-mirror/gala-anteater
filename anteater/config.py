@@ -27,7 +27,6 @@ import yaml
 class GlobalConf:
     """The global config"""
     data_source: str
-    sys_level: bool
 
 
 @dataclass

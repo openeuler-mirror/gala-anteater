@@ -1,6 +1,5 @@
 Global:
     data_source: "prometheus"
-    sys_level: false
 
 Kafka:
   server: "localhost"
