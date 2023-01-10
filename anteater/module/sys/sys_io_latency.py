@@ -38,12 +38,12 @@ class SysIOLatencyDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                NSigmaDetector(data_loader, method='abs'),
+                NSigmaDetector(data_loader),
                 OnlineVAEDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
-                NSigmaDetector(data_loader, method='abs')
+                NSigmaDetector(data_loader)
             ]
 
         return detectors

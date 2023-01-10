@@ -65,6 +65,43 @@ def get_query(metric: str,
     return query
 
 
+def get_query2(
+        metric: str, operator: str = None, value: float = None, keys: Union[str, List] = None, **labels):
+    """Gets aggregated query patterns
+
+    Format: [operator]([value,] metric{[**labels]}) by (keys)
+
+        Such as:
+            - 1. gala_gopher_bind_sends{machine_id="1234"}
+            - 2. sum(gala_gopher_bind_sends) by (machine_id)
+            - 2. sum(gala_gopher_bind_sends) by (machine_id)
+            - 3. sum(gala_gopher_bind_sends{machine_id="1234"}) by (machine_id)
+            - 4. quantile(0.7, gala_gopher_bind_sends{machine_id="1234"}) by (machine_id)
+    """
+    if operator and not keys:
+        raise ValueError("Please provide param 'keys' when specified 'operator'!")
+
+    rule = ""
+    if labels:
+        pairs = ",".join([f"{n}='{v}'" for n, v in labels.items()])
+        rule = f"{{{pairs}}}"
+
+    group = ""
+    if isinstance(keys, list):
+        group = ",".join([k for k in keys])
+    elif isinstance(keys, str):
+        group = keys
+
+    if operator and value:
+        query = f"{operator}({value}, {metric}{rule}) by ({group})"
+    elif operator:
+        query = f"{operator}({metric}{rule}) by ({group})"
+    else:
+        query = f"{metric}{rule}"
+
+    return query
+
+
 class MetricLoader:
     """
     The metric loader that consumes raw data from PrometheusAdapter,
@@ -87,7 +124,7 @@ class MetricLoader:
 
         :return List of TimeSeries
         """
-        query = get_query(metric, **kwargs)
+        query = get_query2(metric, **kwargs)
         time_series = self.provider.range_query(start, end, metric, query)
 
         return time_series
@@ -109,7 +146,7 @@ class MetricLoader:
         """Gets unique labels of all metrics"""
         unique_labels = set()
         for metric in metrics:
-            time_series = self.get_metric(start, end, metric, label_name=label_name)
+            time_series = self.get_metric(start, end, metric)
             unique_labels.update([item.labels.get(label_name, "") for item in time_series])
 
         return list([lbl for lbl in unique_labels if lbl])

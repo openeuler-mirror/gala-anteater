@@ -48,8 +48,8 @@ def load_job_config(file_name) -> JobConfig:
     keywords = config['keywords']
     root_cause_number = config['root_cause_number']
 
-    kpis = [KPI(**update_description(_conf)) for _conf in config['KPI']]
-    features = [Feature(**update_description(_conf)) for _conf in config['Features']]
+    kpis = [KPI.from_dict(**update_description(_conf)) for _conf in config['KPI']]
+    features = [Feature.from_dict(**update_description(_conf)) for _conf in config['Features']]
 
     model_config = None
     if 'OnlineModel' in config:
