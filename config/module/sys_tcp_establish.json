@@ -17,7 +17,7 @@
         "look_back": 30,
         "outlier_ratio_th": 0.5,
         "obs_size": 3,
-        "min_rtt": 500000
+        "min_rtt": 100000
       }
     }
   ],

@@ -52,3 +52,13 @@ class AnomalyTrend(Enum):
     DEFAULT = 0
     RISE = 1
     FALL = 2
+
+    @staticmethod
+    def from_str(label: str):
+        """Trans str to Enum type"""
+        if label.upper() == 'RISE':
+            return AnomalyTrend.RISE
+        elif label.upper() == 'FALL':
+            return AnomalyTrend.FALL
+        else:
+            return AnomalyTrend.DEFAULT

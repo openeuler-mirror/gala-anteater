@@ -44,8 +44,7 @@ class ThBaseDetector(Detector):
         look_back = kpi.params.get('look_back')
         th = kpi.params.get('th')
         start, end = dt.last(minutes=look_back)
-        ts_list = self.data_loader.\
-            get_metric(start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
+        ts_list = self.data_loader.get_metric(start, end, kpi.metric, machine_id=machine_id)
 
         if not ts_list:
             logger.warning(f'Key metric {kpi.metric} is null on the target machine {machine_id}!')

@@ -73,8 +73,7 @@ class TcpEstablishNSigmaDetector(Detector):
         min_rtt = kpi.params.get('min_rtt')
 
         start, end = dt.last(minutes=look_back)
-        ts_list = self.data_loader.\
-            get_metric(start, end, kpi.metric, label_name='machine_id', label_value=machine_id)
+        ts_list = self.data_loader.get_metric(start, end, kpi.metric, machine_id=machine_id)
 
         anomalies = []
         for _ts in ts_list:

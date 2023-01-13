@@ -11,6 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+import logging
 import math
 from abc import abstractmethod
 from typing import List
@@ -39,12 +40,6 @@ class Detector:
         """Executes anomaly detection on kpis"""
         pass
 
-    def get_unique_machine_id(self, start, end, kpis: List[KPI]) -> List[str]:
-        """Gets unique machine ids during past minutes"""
-        metrics = [_kpi.metric for _kpi in kpis]
-        machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
-        return machine_ids
-
     def execute(self, job_config: JobConfig) -> List[Anomaly]:
         """The main function of the detector"""
         kpis = job_config.kpis
@@ -55,6 +50,12 @@ class Detector:
             return []
 
         return self._execute(kpis, features, top_n=n)
+
+    def get_unique_machine_id(self, start, end, kpis: List[KPI]) -> List[str]:
+        """Gets unique machine ids during past minutes"""
+        metrics = [_kpi.metric for _kpi in kpis]
+        machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
+        return machine_ids
 
     def find_root_causes(self, anomalies: List[Anomaly], features: List[Feature], top_n=3)\
             -> List[Anomaly]:
@@ -82,6 +83,7 @@ class Detector:
             tmp_ts_scores = self.cal_anomaly_score(f.metric, f.description, machine_id=machine_id)
             for _ts_score in tmp_ts_scores:
                 if not check_trend(_ts_score.ts.values, f.atrend):
+                    logging.info(f"Trends Filtered: {f.metric}")
                     _ts_score.score = 0
                 if same_intersection_key_value(_ts_score.ts.labels, filters):
                     ts_scores.append(_ts_score)
@@ -101,6 +103,7 @@ class Detector:
             for _ts_s in ts_scores:
                 if same_intersection_key_value(_ts_s.ts.labels, anomaly.labels):
                     if not check_trend(_ts_s.ts.values, kpi_atrends[anomaly.metric]):
+                        logging.info(f"Trends Filtered: {anomaly.metric}")
                         anomaly.score = 0
                     else:
                         anomaly.score = _ts_s.score
@@ -115,12 +118,11 @@ class Detector:
             machine_id: str)\
             -> List[TimeSeriesScore]:
         """Calculates metric anomaly scores based on sr model"""
-        start, end = dt.last(minutes=6)
+        start, end = dt.last(minutes=10)
         point_count = self.data_loader.expected_point_length(start, end)
         model = SpectralResidual(12, 24, 50)
         ts_scores = []
-        ts_list = self.data_loader.\
-            get_metric(start, end, metric, label_name='machine_id', label_value=machine_id)
+        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
         for _ts in ts_list:
             if sum(_ts.values) == 0 or \
                len(_ts.values) < point_count * 0.9 or\

@@ -14,10 +14,12 @@
       "description": "Smoothed Round Trip Time(us)",
       "description-zh": "TCP链接往返时延异常，性能劣化",
       "params": {
+        "method": "max",
         "look_back": 20,
         "obs_size": 25,
         "n": 3,
-        "outlier_ratio_th": 0.4,
+        "min_srtt": 20000,
+        "outlier_ratio_th": 0.6,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3

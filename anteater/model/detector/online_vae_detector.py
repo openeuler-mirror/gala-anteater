@@ -110,8 +110,7 @@ class OnlineVAEDetector(Detector):
             metric_dfs = []
             for metric in metrics:
                 _ts_list = self.data_loader.\
-                    get_metric(start, end, metric, label_name="machine_id",
-                               label_value=machine_id, operator_name='avg')
+                    get_metric(start, end, metric, operator='avg', keys="machine_id", machine_id=machine_id)
 
                 if len(_ts_list) > 1:
                     raise ValueError(f'Got multiple time_series based on machine id: {len(_ts_list)}')

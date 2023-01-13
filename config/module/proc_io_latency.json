@@ -14,9 +14,10 @@
       "description": "I/O operation delay at the BIO layer (unit: us)",
       "description-zh": "BIO层I/O操作延时高(单位：us)",
       "params": {
+        "method":"max",
         "look_back": 20,
         "obs_size": 37,
-        "outlier_ratio_th": 0.4,
+        "outlier_ratio_th": 0.5,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3
@@ -31,9 +32,10 @@
       "description": "Number of small I/O (less than 4 KB) read operations at the BIO layer.",
       "description-zh": "BIO层小数据I/O读操作数量异常（小于4KB）",
       "params": {
+        "method":"max",
         "look_back": 20,
         "obs_size": 25,
-        "outlier_ratio_th": 0.3,
+        "outlier_ratio_th": 0.4,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3
@@ -48,9 +50,10 @@
       "description": "Number of small I/O (less than 4 KB) write operations at the BIO layer.",
       "description-zh": "BIO层小数据I/O写操作数量异常（小于4KB）",
       "params": {
+        "method":"max",
         "look_back": 20,
         "obs_size": 25,
-        "outlier_ratio_th": 0.3,
+        "outlier_ratio_th": 0.4,
         "smooth_params": {
           "method": "savgol_smooth",
           "window_length": 13,
@@ -66,9 +69,10 @@
       "description": "Number of big I/O (greater than 4 KB) read operations at the BIO layer.",
       "description-zh": "BIO层大数据I/O读操作数量异常（大于4KB）",
       "params": {
+        "method":"max",
         "look_back": 20,
         "obs_size": 25,
-        "outlier_ratio_th": 0.3,
+        "outlier_ratio_th": 0.4,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3
@@ -83,9 +87,10 @@
       "description": "Number of big I/O (greater than 4 KB) write operations at the BIO layer.",
       "description-zh": "BIO层大数据写操作数量异常（大于4KB）",
       "params": {
+        "method":"max",
         "look_back": 20,
         "obs_size": 25,
-        "outlier_ratio_th": 0.3,
+        "outlier_ratio_th": 0.4,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3

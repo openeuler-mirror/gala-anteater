@@ -27,6 +27,13 @@ class KPI:
     params: dict = field(default=dict)
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
 
+    @classmethod
+    def from_dict(cls, **data):
+        if 'atrend' in data:
+            data['atrend'] = AnomalyTrend.from_str(data.get('atrend'))
+
+        return cls(**data)
+
 
 @dataclass
 class Feature:
@@ -34,6 +41,13 @@ class Feature:
     description: str
     priority: int = 0
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
+
+    @classmethod
+    def from_dict(cls, **data):
+        if 'atrend' in data:
+            data['atrend'] = AnomalyTrend.from_str(data.get('atrend'))
+
+        return cls(**data)
 
 
 @dataclass

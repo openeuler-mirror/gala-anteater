@@ -11,20 +11,61 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+from itertools import groupby
 from typing import List
 
+import numpy as np
+
 from anteater.core.time_series import TimeSeriesScore
+from anteater.model.algorithms.smooth import smoothing
+from anteater.model.algorithms.three_sigma import n_sigma
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.metric_loader import MetricLoader
+from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
 
 
 class TcpTransLatencyNSigmaDetector(NSigmaDetector):
     """The three sigma anomaly detector"""
 
-    def __init__(self, data_loader: MetricLoader, method: str):
+    def __init__(self, data_loader: MetricLoader):
         """The detector base class initializer"""
-        super().__init__(data_loader, method)
+        super().__init__(data_loader)
+
+    def calculate_n_sigma_score(self, metric, description, machine_id: str, **kwargs)\
+            -> List[TimeSeriesScore]:
+        """Calculates anomaly scores based on n sigma scores"""
+        method = kwargs.get('method', 'abs')
+        look_back = kwargs.get('look_back')
+        smooth_params = kwargs.get('smooth_params')
+        obs_size = kwargs.get('obs_size')
+        min_srtt = kwargs.get("min_srtt")
+        n = kwargs.get('n', 3)
+        start, end = dt.last(minutes=look_back)
+        point_count = self.data_loader.expected_point_length(start, end)
+        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
+        ts_scores = []
+        for _ts in ts_list:
+            dedup_values = [k for k, g in groupby(_ts.values)]
+            if sum(_ts.values) == 0 or \
+               len(_ts.values) < point_count * 0.6 or \
+               len(_ts.values) > point_count * 1.5 or \
+               all(x == _ts.values[0] for x in _ts.values):
+                ratio = 0
+            elif len(dedup_values) < point_count * 0.6:
+                ratio = 0
+            else:
+                smoothed_val = smoothing(_ts.values, **smooth_params)
+                outlier, mean, std = n_sigma(
+                    smoothed_val, obs_size=obs_size, n=n, method=method)
+                if outlier and np.average(outlier) <= min_srtt:
+                    ratio = 0
+                else:
+                    ratio = divide(len(outlier), obs_size)
+
+            ts_scores.append(TimeSeriesScore(ts=_ts, score=ratio, description=description))
+
+        return ts_scores
 
     def cal_anomaly_score(self, metric, description, machine_id: str) \
             -> List[TimeSeriesScore]:
@@ -32,8 +73,7 @@ class TcpTransLatencyNSigmaDetector(NSigmaDetector):
         start, end = dt.last(minutes=2)
         point_count = self.data_loader.expected_point_length(start, end)
         ts_scores = []
-        ts_list = self.data_loader. \
-            get_metric(start, end, metric, label_name='machine_id', label_value=machine_id)
+        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
         for _ts in ts_list:
             if sum(_ts.values) == 0 or \
                     len(_ts.values) < point_count * 0.5 or \

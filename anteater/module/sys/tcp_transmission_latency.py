@@ -39,12 +39,12 @@ class SysTcpTransmissionLatencyDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                TcpTransLatencyNSigmaDetector(data_loader, method='max'),
+                TcpTransLatencyNSigmaDetector(data_loader),
                 OnlineVAEDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
-                TcpTransLatencyNSigmaDetector(data_loader, method='max')
+                TcpTransLatencyNSigmaDetector(data_loader)
             ]
 
         return detectors
