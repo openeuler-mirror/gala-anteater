@@ -21,6 +21,7 @@ from pandas import DataFrame
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.core.time_series import TimeSeries
+from anteater.model.algorithms.slope import check_trend
 from anteater.model.online_vae_model import OnlineVAEModel
 from anteater.model.detector.base import Detector
 from anteater.source.metric_loader import MetricLoader
@@ -48,17 +49,20 @@ class OnlineVAEDetector(Detector):
         for machine_id, x_df in self.get_inference_data(start, end, kpis):
             y_pred = self.online_model.predict(x_df)
             if self.online_model.is_abnormal(y_pred):
-                anomalies.extend(self.find_abnormal_kpis(machine_id, kpis, top_n=3))
+                anomalies.extend(self.find_abnormal_kpis(machine_id, kpis, top_n=1))
 
         return anomalies
 
-    def find_abnormal_kpis(self, machine_id: str, kpis: List[KPI], top_n=3):
+    def find_abnormal_kpis(self, machine_id: str, kpis: List[KPI], top_n=1):
         """Find abnormal kpis when detected anomaly events"""
         metric_kpi = {kpi.metric: kpi for kpi in kpis}
         ts_scores = []
         for kpi in kpis:
-            _ts_scores = self.cal_anomaly_score(kpi.metric, kpi.description, machine_id)
-            ts_scores.extend(_ts_scores)
+            tmp_ts_scores = self.cal_anomaly_score(kpi.metric, kpi.description, machine_id)
+            for _ts_score in tmp_ts_scores:
+                if not check_trend(_ts_score.ts.values, kpi.atrend):
+                    _ts_score.score = 0
+            ts_scores.extend(tmp_ts_scores)
 
         ts_scores = [v for v in ts_scores if v.score > 0]
         ts_scores = sorted(ts_scores, key=lambda x: x.score, reverse=True)

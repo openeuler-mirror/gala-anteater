@@ -17,6 +17,7 @@ import numpy as np
 
 from anteater.core.kpi import ModelConfig
 from anteater.model.factory import ModelFactory as factory
+from anteater.utils.constants import POINTS_MINUTE
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
@@ -34,8 +35,8 @@ class OnlineVAEModel:
         self.folder = config.model_path
         self.norm = factory.create_model('norm', self.folder, **params)
         self.vae = factory.create_model('vae', self.folder, **params)
-        self.calibrate = factory.create_model('calibrate', self.folder, **params)
-        self.threshold = factory.create_model('threshold', self.folder, **params)
+        self.calibrate = factory.create_model('error_calibrate', self.folder, **params)
+        self.threshold = factory.create_model('dy_threshold', self.folder, **params)
 
         self.__last_retrain = None
 
@@ -69,7 +70,10 @@ class OnlineVAEModel:
         if isinstance(y_pred, np.ndarray):
             y_pred = y_pred.tolist()
 
-        abnormal = sum(y_pred) >= len(y_pred) * self.th
+        if len(y_pred) > POINTS_MINUTE:
+            y_pred = y_pred[-POINTS_MINUTE:]
+
+        abnormal = sum([1 for y in y_pred if y > 0]) >= len(y_pred) * self.th
 
         if abnormal:
             logger.info("Detected abnormal events by online vae model!")
@@ -88,12 +92,6 @@ class OnlineVAEModel:
             return False
 
         if self.__last_retrain + timedelta(hours=self.min_retrain_hours) >= utc_now:
-            return False
-
-        point_count = look_back_hours * 12
-        error_rate = self.threshold.error_rate(point_count)
-
-        if error_rate < self.max_error_rate:
             return False
 
         return True

@@ -16,10 +16,10 @@ Author:
 Description: The factory of the model initializer.
 """
 
+from anteater.model.algorithms.calibrate import Calibrator, ErrorCalibrator
 from anteater.model.algorithms.normalization import Normalization
+from anteater.model.algorithms.threshold import Threshold, DynamicThreshold
 from anteater.model.algorithms.vae import VAEModel
-from anteater.model.algorithms.calibrate import Calibrator
-from anteater.model.algorithms.threshold import Threshold
 
 
 class ModelFactory:
@@ -39,6 +39,12 @@ class ModelFactory:
 
         elif name == 'threshold':
             return Threshold.load(folder, **kwargs.get('threshold', {}))
+
+        elif name == 'dy_threshold':
+            return DynamicThreshold.load(folder, **kwargs.get('dy_threshold', {}))
+
+        elif name == 'error_calibrate':
+            return ErrorCalibrator.load(folder, **kwargs.get('error_calibrate', {}))
 
         else:
             raise ValueError(f"Unknown model name {name} when model factorization.")

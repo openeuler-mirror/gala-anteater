@@ -19,7 +19,7 @@ Description: The normalization method for the data processing
 import os
 
 import joblib
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from anteater.utils.log import logger
 
@@ -31,7 +31,8 @@ class Normalization:
 
     def __init__(self, **kwargs):
         """The normalizer initializer"""
-        self.normalizer = StandardScaler(**kwargs)
+        self.normalizer = MinMaxScaler(**kwargs)
+
 
     @classmethod
     def load(cls, folder, **kwargs):

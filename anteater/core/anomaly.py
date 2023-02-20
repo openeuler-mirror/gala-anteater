@@ -60,5 +60,7 @@ class AnomalyTrend(Enum):
             return AnomalyTrend.RISE
         elif label.upper() == 'FALL':
             return AnomalyTrend.FALL
-        else:
+        elif label.upper() == "DEFAULT":
             return AnomalyTrend.DEFAULT
+        else:
+            raise ValueError(f'Unknown anomaly trend type: {label}')

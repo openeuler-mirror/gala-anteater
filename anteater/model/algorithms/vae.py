@@ -169,8 +169,8 @@ class VAEModel:
         x_val_loader = DataLoader(x_val, batch_size=self.batch_size,
                                   shuffle=True)
 
-        loss_func = nn.MSELoss()
-        early_stopper = EarlyStopper()
+        loss_func = nn.MSELoss(reduction='sum')
+        early_stopper = EarlyStopper(patience=10)
         opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         for epoch in range(self.num_epochs):
@@ -179,6 +179,7 @@ class VAEModel:
             train_batch_count = 0
             for x_batch in x_loader:
                 x_batch = x_batch.to(self.device)
+                x_batch = torch.transpose(x_batch, 1, 2)
                 x_batch = torch.flatten(x_batch, start_dim=1)
                 x_batch_hat, means, log_var = self.model(x_batch)
                 loss_x_batch_hat = loss_func(x_batch, x_batch_hat)
@@ -197,6 +198,7 @@ class VAEModel:
             val_loss = 0
             val_batch_count = 0
             for x_val_batch in x_val_loader:
+                x_val_batch = torch.transpose(x_val_batch, 1, 2)
                 x_val_batch = torch.flatten(x_val_batch, start_dim=1)
                 x_val_batch_hat, means, log_var = self.model(x_val_batch)
                 loss_recon_x = loss_func(x_val_batch, x_val_batch_hat)
@@ -224,6 +226,7 @@ class VAEModel:
         y = TSDataset(x, self.k, 1)
         y = np.array([y[i] for i in range(len(y))])
         y = torch.FloatTensor(y).to(self.device)
+        y = torch.transpose(y, 1, 2)
         y = torch.flatten(y, start_dim=1)
 
         avg_recon_y = np.zeros(y.shape)
@@ -232,10 +235,14 @@ class VAEModel:
             avg_recon_y += z_hat.cpu().data.numpy()
         avg_recon_y /= self.num_eval_samples
 
+        test_scores = np.abs(avg_recon_y - y.cpu().data.numpy())
+        test_scores = test_scores.reshape(-1, x.shape[1], self.k)
+        test_scores = np.sum(test_scores, axis=1)
+
         scores = np.zeros((x.shape[0],), dtype=float)
-        test_scores = np.sum(np.abs(avg_recon_y - y.cpu().data.numpy()), axis=1)
-        scores[self.k - 1:] = test_scores
-        scores[: self.k - 1] = test_scores[0]
+
+        scores[:-self.k] = test_scores[:-1, 0].flatten()
+        scores[-self.k:] = test_scores[-1]
 
         return scores
 
@@ -343,6 +350,7 @@ class Decoder(nn.Module):
     def forward(self, z):
         """The vae decoder module pipeline"""
         x_hat = self.sigmoid(self.output_layer(self.mlp(z)))
+        # remove x_hat = self.output_layer(self.mlp(z))
         return x_hat
 
 

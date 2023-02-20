@@ -30,5 +30,8 @@ class TSDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx):
+        if idx < 0:
+            idx = self.num_samples + idx
+
         i = idx * self.step_size
         return self.x[i: i+self.win_size, :]

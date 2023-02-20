@@ -16,21 +16,26 @@ Author:
 Description: The calibrator which normalizes the anomaly score to the normal distribution
 """
 
-import copy
-import json
-import os
-import stat
 from typing import List
 
 import numpy as np
+import pandas as pd
 from scipy.interpolate import PchipInterpolator
+from scipy.optimize import fmin
 from scipy.stats import norm
 
+from anteater.model.algorithms.base import Serializer
+from anteater.model.algorithms.n_sigma import n_sigma
+from anteater.utils.common import divide
 from anteater.utils.log import logger
 
 
-class Calibrator:
-    """The calibrator which mapping the values to normal distribution"""
+class Calibrator(Serializer):
+    """The base calibrator for mapping the values to normal distribution
+
+    - implement calibrator referring to:
+      https://github.com/salesforce/Merlion/blob/main/merlion/post_process/calibrate.py
+    """
 
     filename = "calibrator.json"
 
@@ -58,28 +63,6 @@ class Calibrator:
                 ((np.abs(sub) - b) * m + self._interpolator(b))
 
         return y
-
-    @classmethod
-    def from_dict(cls, config_dict):
-        """Loads the object from the dict"""
-        config_dict = copy.copy(config_dict)
-
-        return cls(**config_dict)
-
-    @classmethod
-    def load(cls, folder: str, **kwargs):
-        """Loads the model from the file"""
-        config_file = os.path.join(folder, cls.filename)
-
-        if not os.path.isfile(config_file):
-            logger.warning("Unknown model file, load default calibrator model!")
-            return Calibrator(**kwargs)
-
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        with os.fdopen(os.open(config_file, os.O_RDONLY, modes), "r") as f:
-            config_dict = json.load(f)
-
-        return cls.from_dict(config_dict)
 
     def update_interpolator(self, anchors):
         """Updates interpolator and anchors"""
@@ -124,20 +107,104 @@ class Calibrator:
 
         return self(values)
 
-    def to_dict(self):
-        """Dumps the object to the dict"""
-        state_dict = {}
-        for key, val in self.__dict__.items():
-            if not key.startswith('_'):
-                state_dict[key] = val
 
-        return state_dict
+class ErrorCalibrator(Serializer):
+    """Predict- or reconstruction- errors calibrator which smooths
+    the errors those are below a static or dynamic threshold
+    """
 
-    def save(self, folder):
-        """Saves the model into the file"""
-        config_dict = self.to_dict()
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        config_file = os.path.join(folder, self.filename)
-        with os.fdopen(os.open(config_file, os.O_WRONLY | os.O_CREAT, modes), "w") as f:
-            f.truncate(0)
-            json.dump(config_dict, f, indent=2)
+    filename = "error_calibrator.json"
+
+    def __init__(self, fixed_threshold=False, **kwargs):
+        """The error calibrator initializer"""
+        self.fixed_threshold = fixed_threshold
+        self.n = kwargs.get('n', 3)
+        self.quantile = kwargs.get('quantile', 0.99)
+        self.min_threshold = kwargs.get('min_threshold', 0)
+        self.alpha = kwargs.get('alpha', 0.02)
+
+        self._z_range = (2, 10)
+        self._min_z = 1.5
+
+    def __call__(self, errors, *args, **kwargs):
+        """The callable object smooths the errors below a threshold"""
+        threshold = self._get_threshold(errors)
+        below_error = np.max(errors[errors < threshold])
+
+        return np.where(errors < threshold, 0, errors)
+
+    def fit_transform(self, scores, *args, **kwargs):
+        """Fit and transform data source"""
+        if self.quantile is not None and self.quantile > 0:
+            self.min_threshold = np.quantile(scores, self.quantile)
+
+    def _get_threshold(self, errors):
+        """Gets the threshold based on the errors"""
+        if self.fixed_threshold:
+            threshold = self._static_threshold(errors)
+        else:
+            threshold = self._dynamic_threshold(errors)
+
+        return max(threshold, self.min_threshold)
+
+    def _static_threshold(self, errors):
+        """Computes the static threshold by n-sigma method"""
+        _, mean, std = n_sigma(
+            errors, obs_size=25, n=self.n, method='max')
+
+        return mean + self.n * std
+
+    def _dynamic_threshold(self, errors):
+        """Computes the dynamic threshold based on unsupervised method"""
+        mean = np.mean(errors)
+        std = np.std(errors)
+
+        best_z = self._z_range[0]
+        best_score = np.inf
+        for z in range(*self._z_range):
+            best = fmin(self._z_score, z, args=(errors, mean, std), full_output=True, disp=False)
+            z, cost = best[0:2]
+            if cost < best_score:
+                best_score = cost
+                best_z = z[0]
+
+        best_z = max(self._min_z, best_z)
+        return mean + best_z * std
+
+    def _z_score(self, z, errors, mean, std):
+        """Cost function computes a z score which represents
+        how best of current split errors
+        """
+        threshold = mean + z * std
+
+        delta_mean, delta_std = self._deltas(errors, threshold, mean, std)
+        above, consecutive = self._num_above_sequence(errors, threshold)
+
+        numerator = -(divide(delta_mean, mean) + divide(delta_std, std))
+        denominator = above  # + consecutive ** 2
+
+        if denominator == 0:
+            return np.inf
+
+        return numerator + self.alpha * denominator
+
+    def _deltas(self, errors, threshold, mean, std):
+        """Computes the delta values between mean and below mean, std and below std"""
+        below = errors[errors <= threshold]
+        if not below.any():
+            return 0, 0
+
+        return mean - below.mean(), std - below.std()
+
+    def _num_above_sequence(self, errors, threshold):
+        """Computes the number of sequence above the threshold"""
+        above = errors > threshold
+        total_above = len(errors[above])
+
+        above = pd.Series(above)
+        shift = above.shift(1)
+        change = above != shift
+
+        total_consecutive = sum(above & change)
+
+        return total_above, total_consecutive

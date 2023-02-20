@@ -18,7 +18,7 @@ import numpy as np
 
 from anteater.core.time_series import TimeSeriesScore
 from anteater.model.algorithms.smooth import smoothing
-from anteater.model.algorithms.three_sigma import n_sigma
+from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
