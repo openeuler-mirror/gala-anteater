@@ -28,7 +28,7 @@ from anteater.template.app_anomaly_template import AppAnomalyTemplate
 
 
 class APPSliDetector(E2EDetector):
-    """APP sli detector while detects the abnormal
+    """APP sli detector which detects the abnormal
     on the sli metrics including rtt, tps, etc.
     """
 
@@ -44,7 +44,6 @@ class APPSliDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                NSigmaDetector(data_loader),
                 OnlineVAEDetector(data_loader, self.job_config.model_config)
             ]
         else:

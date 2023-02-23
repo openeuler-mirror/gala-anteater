@@ -11,8 +11,9 @@
       "kpi_type": "rtt",
       "entity_name": "sli",
       "enable": true,
+      "atrend": "rise",
       "description": "sli rtt 异常",
-      "description-zh": "应用级请求往返时延（RTT）异常",
+      "description-zh": "应用级请求性能（SLI）异常",
       "params": {
         "method": "max",
         "look_back": 10,
@@ -29,6 +30,7 @@
       "kpi_type": "tps",
       "entity_name": "sli",
       "enable": true,
+      "atrend": "fall",
       "description": "sli tps 异常",
       "description-zh": "应用级请求吞吐量（TPS）异常",
       "params": {
@@ -49,7 +51,7 @@
     "params": {
       "th": 0.5,
       "max_error_rate": 0.7,
-      "min_retrain_hours": 12,
+      "min_retrain_hours": 24,
       "min_predict_minutes": 20,
       "norm": {},
       "vae": {
@@ -60,11 +62,20 @@
         "num_epochs": 30,
         "learning_rate": 0.001,
         "k": 120,
-        "step_size": 60,
+        "step_size": 30,
         "num_eval_samples": 10
       },
+      "threshold": {},
+      "dy_threshold": {
+        "min_percent": -1
+      },
       "calibrate": {},
-      "threshold": {}
+      "error_calibrate":{
+        "fixed_threshold": false,
+        "n": 3,
+        "quantile": 0.99,
+        "alpha": 0.002
+      }
     }
   },
   "Features": [
@@ -94,7 +105,7 @@
     },
     {
       "metric": "gala_gopher_cpu_iowait_total_second",
-      "description": "等待I/O完成的时间异常"
+      "description": "CPU等待I/O完成的时间异常"
     },
     {
       "metric": "gala_gopher_cpu_user_total_second",
@@ -156,7 +167,7 @@
     },
     {
       "metric": "gala_gopher_disk_w_await",
-      "description": "写响应时间异常",
+      "description": "磁盘写响应时间异常",
       "atrend": "rise"
     },
     {
@@ -165,12 +176,12 @@
     },
     {
       "metric": "gala_gopher_disk_wspeed",
-      "description": "写速率（IOPS）异常",
+      "description": "磁盘写速率（IOPS）异常",
       "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_wspeed_kB",
-      "description": "写吞吐量异常",
+      "description": "磁盘写吞吐量异常",
       "atrend": "rise"
     },
     {
@@ -262,7 +273,7 @@
     },
     {
       "metric": "gala_gopher_proc_utime_jiffies",
-      "description": "进程用户运行时间异常"
+      "description": "进程用户态运行时间异常"
     }
   ]
 }

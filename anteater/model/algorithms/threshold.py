@@ -16,19 +16,15 @@ Author:
 Description: The threshold class for dynamic anomaly score thresholds selection
 """
 
-import copy
-import json
-import os
-import stat
 from collections import deque
 
 import numpy as np
 
+from anteater.model.algorithms.base import Serializer
 from anteater.utils.common import divide
-from anteater.utils.log import logger
 
 
-class Threshold:
+class Threshold(Serializer):
     """The threshold post process"""
 
     filename = "threshold.json"
@@ -54,28 +50,6 @@ class Threshold:
         self.update_alm_th(scores)
 
         return updated_scores
-
-    @classmethod
-    def from_dict(cls, config_dict):
-        """Loads the object from the dict"""
-        config_dict = copy.copy(config_dict)
-
-        return cls(**config_dict)
-
-    @classmethod
-    def load(cls, folder: str, **kwargs):
-        """Loads the model from the file"""
-        config_file = os.path.join(folder, cls.filename)
-
-        if not os.path.isfile(config_file):
-            logger.warning("Unknown model file, load default threshold model!")
-            return Threshold(**kwargs)
-
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        with os.fdopen(os.open(config_file, os.O_RDONLY, modes), "r") as f:
-            config_dict = json.load(f)
-
-        return cls.from_dict(config_dict)
 
     def update_alm_th(self, scores):
         """Calculates new threshold for alarms"""
@@ -103,20 +77,36 @@ class Threshold:
 
         return 0
 
-    def to_dict(self):
-        """Dumps the object to the dict"""
-        state_dict = {}
-        for key, val in self.__dict__.items():
-            if not key.startswith('_'):
-                state_dict[key] = val
 
-        return state_dict
+class DynamicThreshold(Serializer):
+    """The dynamic threshold post process
 
-    def save(self, folder):
-        """Saves the model into the file"""
-        config_dict = self.to_dict()
-        modes = stat.S_IWUSR | stat.S_IRUSR
-        config_file = os.path.join(folder, self.filename)
-        with os.fdopen(os.open(config_file, os.O_WRONLY | os.O_CREAT, modes), "w") as f:
-            f.truncate(0)
-            json.dump(config_dict, f, indent=2)
+    Compare the adjacent scores increasing rate with min_percent, then
+    pruning the scores by removing those have a lower increasing rate.
+    """
+
+    filename = "dy_threshold.json"
+
+    def __init__(self, min_percent=-1, **kwargs):
+        """The dynamic threshold post process initializer"""
+        self.min_percent = min_percent
+
+    def __call__(self, scores):
+        """The callable object"""
+        np.seterr(all='ignore')
+        size = len(scores)
+        left = scores[:size - 1]
+        right = scores[-(size - 1):]
+        rate = np.divide(right - left, left)
+        rate = np.nan_to_num(rate)
+        indices = np.argwhere(rate > self.min_percent) + 1
+
+        pruned_scores = np.zeros(size)
+        for _idx in indices.flatten():
+            pruned_scores[_idx] = scores[_idx]
+
+        return pruned_scores
+
+    def fit(self, *args, **kwargs):
+        """Train the threshold of post process"""
+        pass

@@ -100,16 +100,27 @@ class Detector:
         kpi_atrends = {k.metric: k.atrend for k in kpis}
         for anomaly in anomalies:
             ts_scores = self.cal_anomaly_score(anomaly.metric, description="", machine_id=anomaly.machine_id)
-            for _ts_s in ts_scores:
-                if same_intersection_key_value(_ts_s.ts.labels, anomaly.labels):
-                    if not check_trend(_ts_s.ts.values, kpi_atrends[anomaly.metric]):
+            for _ts_score in ts_scores:
+                if same_intersection_key_value(_ts_score.ts.labels, anomaly.labels):
+                    if not check_trend(_ts_score.ts.values, kpi_atrends[anomaly.metric]):
                         logging.info(f"Trends Filtered: {anomaly.metric}")
                         anomaly.score = 0
                     else:
-                        anomaly.score = _ts_s.score
+                        anomaly.score = _ts_score.score
                 break
 
         return anomalies
+
+    def cal_similarity(
+            self,
+            anomaly,
+            target_metric: str,
+            description: str,
+            machine_id: str):
+        """Calculates the similarity between source and target metrics"""
+        start, end = dt.last(minutes=6)
+        point_count = self.data_loader.expected_point_length(start, end)
+        ts_list = self.data_loader.get_metric(start, end, target_metric, machine_id=machine_id)
 
     def cal_anomaly_score(
             self,

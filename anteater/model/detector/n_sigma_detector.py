@@ -19,7 +19,7 @@ from anteater.core.kpi import KPI
 from anteater.core.time_series import TimeSeriesScore
 from anteater.model.detector.base import Detector
 from anteater.model.algorithms.smooth import smoothing
-from anteater.model.algorithms.three_sigma import n_sigma
+from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
@@ -27,7 +27,7 @@ from anteater.utils.log import logger
 
 
 class NSigmaDetector(Detector):
-    """The three sigma anomaly detector"""
+    """The n-sigma anomaly detector"""
 
     def __init__(self, data_loader: MetricLoader):
         """The detector base class initializer"""
