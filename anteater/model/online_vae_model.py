@@ -73,10 +73,14 @@ class OnlineVAEModel:
         if len(y_pred) > POINTS_MINUTE:
             y_pred = y_pred[-POINTS_MINUTE:]
 
+        if len(y_pred) < POINTS_MINUTE:
+            logger.warning(f'The length of y_pred is less than {POINTS_MINUTE}')
+            return False
+
         abnormal = sum([1 for y in y_pred if y > 0]) >= len(y_pred) * self.th
 
         if abnormal:
-            logger.info("Detected abnormal events by online vae model!")
+            logger.info(f'Detects abnormal events by {self.__class__.__name__}!')
 
         return abnormal
 
@@ -94,7 +98,9 @@ class OnlineVAEModel:
         if self.__last_retrain + timedelta(hours=self.min_retrain_hours) >= utc_now:
             return False
 
-        return True
+        else:
+            self.__last_retrain = utc_now
+            return True
 
     def online_training(self, x):
         """Executes online training and run online model training"""
