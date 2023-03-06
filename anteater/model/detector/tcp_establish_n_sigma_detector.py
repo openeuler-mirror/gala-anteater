@@ -48,18 +48,24 @@ class TcpEstablishNSigmaDetector(Detector):
             if sum(_ts.values) > 0:
                 filtered_ts_list.append(_ts)
 
-        establish_time = reduce(lambda x, y: x + y, [list(set(_ts.values)) for _ts in filtered_ts_list])
-
-        self.mean = np.mean(establish_time)
-        self.std = np.std(establish_time)
+        if not filtered_ts_list:
+            self.mean = 0
+            self.std = 0
+        else:
+            establish_time = reduce(lambda x, y: x + y, [list(set(_ts.values)) for _ts in filtered_ts_list])
+            self.mean = np.mean(establish_time)
+            self.std = np.std(establish_time)
 
     def detect_kpis(self, kpis: List[KPI]) -> List[Anomaly]:
         """Executes anomaly detection on kpis"""
         self.update_global_mean_std(kpis[0])
 
+        anomalies = []
+        if not self.std or not self.mean:
+            return anomalies
+
         start, end = dt.last(minutes=1)
         machine_ids = self.get_unique_machine_id(start, end, kpis)
-        anomalies = []
         for _id in machine_ids:
             for kpi in kpis:
                 anomalies.extend(self.detect_signal_kpi(kpi, _id))
