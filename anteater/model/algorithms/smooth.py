@@ -15,8 +15,22 @@ import numpy as np
 from scipy.signal import savgol_filter
 
 
+def is_empty(y):
+    """Checks if y is empty or not"""
+    if isinstance(y, list) and not y:
+        return True
+
+    if isinstance(y, np.ndarray) and not y.any():
+        return True
+
+    return False
+
+
 def conv_smooth(y, box_pts):
     """Apply a convolution smoothing to an array"""
+    if is_empty(y):
+        return y
+
     box = np.divide(np.ones(box_pts), box_pts)
     y_smooth = np.convolve(y, box, mode='valid')
     return y_smooth
@@ -24,6 +38,9 @@ def conv_smooth(y, box_pts):
 
 def savgol_smooth(y, window_length, polyorder, *args, **kwargs):
     """Apply a Savitzky-Golay filter to an array"""
+    if is_empty(y):
+        return y
+
     return savgol_filter(y, window_length, polyorder, *args, *kwargs)
 
 

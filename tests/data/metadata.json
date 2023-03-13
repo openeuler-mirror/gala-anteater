@@ -1,0 +1,3 @@
+[
+  {"timestamp": 1676103976000, "meta_name": "tcp_tx_rx", "entity_name": "tcp_link", "version": "1.0.0", "keys": ["machine_id", "tgid", "role", "client_ip", "server_ip", "client_port", "server_port", "protocol"], "labels": ["hostname", "comm"], "metrics": ["rx_bytes", "tx_bytes", "segs_in", "segs_out"]}
+]

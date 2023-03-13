@@ -12,6 +12,9 @@
 # ******************************************************************************/
 
 from datetime import datetime, timezone, timedelta
+from typing import Union
+
+from anteater.utils.singleton import Singleton
 
 
 class DateTimeManager:
@@ -28,13 +31,13 @@ class DateTimeManager:
         if cls.__freeze:
             return cls.__freeze_utc_now
         else:
-            return datetime.now(timezone.utc).astimezone()
+            return DateTime().now()
 
     @classmethod
     def update_and_freeze(cls):
         """Updates and freezes current datetime"""
         cls.__freeze = True
-        cls.__freeze_utc_now = datetime.now(timezone.utc).astimezone()
+        cls.__freeze_utc_now = DateTime().now()
 
     @classmethod
     def unfreeze(cls):
@@ -47,3 +50,37 @@ class DateTimeManager:
         return ((cls.utc_now() -
                 timedelta(seconds=seconds, minutes=minutes, hours=hours)),
                 cls.utc_now())
+
+
+class DateTime(metaclass=Singleton):
+    """The overriding datetime class which is a singleton class,
+    and could replace the 'now' time with any pre-defined timestamp.
+    Generally, it is used in the unit-tests for the datetime mocking.
+    """
+
+    def __init__(self, time: Union[str, int, datetime] = None, *args, **kwargs):
+        """The DateTime class initializer"""
+        super().__init__(*args, **kwargs)
+        self.time = time
+
+    def now(self):
+        """Gets the current 'now' time"""
+        if isinstance(self.time, str):
+            time = datetime.strptime(self.time, "%Y-%m-%d %H:%M:%S").astimezone()
+        elif isinstance(self.time, int):
+            time = datetime.fromtimestamp(self.time).astimezone()
+
+        elif isinstance(self.time, datetime):
+            time = self.time
+
+        elif not self.time:
+            time = datetime.now(timezone.utc).astimezone()
+
+        else:
+            raise TypeError(f"TypeError: type {type(self.time)} is not supported!")
+
+        return time
+
+    def update(self, time: Union[str, int, datetime]):
+        """Updates the time with pre-defined timestamp"""
+        self.time = time

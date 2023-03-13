@@ -34,6 +34,13 @@ class TimeSeries:
 
         self.__id = f'{metric}'
 
+    def __eq__(self, other):
+        """Returns if the 'self' equals to the 'other' or not."""
+        labels1 = tuple(sorted([(k, v) for k, v in self.labels.items()]))
+        labels2 = tuple(sorted([(k, v) for k, v in other.labels.items()]))
+
+        return self.metric == other.metric and labels1 == labels2
+
     @property
     def id(self) -> str:
         """Get the unique id for this time series"""
@@ -46,13 +53,29 @@ class TimeSeries:
         self.time_stamps.extend(time_stamps)
         self.values.extend(values)
 
-    def to_df(self) -> pd.Series:
+    def insert(self, other):
+        if self != other:
+            raise ValueError("InsertError: different 'TimeSeries' instances!")
+
+        self_ts_values = list(zip(self.time_stamps, self.values))
+        other_ts_values = list(zip(other.time_stamps, self.values))
+
+        ts_values = self_ts_values + other_ts_values
+        ts_values.sort()
+
+        self.time_stamps = [v[0] for v in ts_values]
+        self.values = [v[1] for v in ts_values]
+
+    def to_df(self, name: str = None) -> pd.Series:
         """Convert the time series to the pandas DataFrame"""
         timestamp = pd.to_datetime(np.asarray(self.time_stamps).astype(float) * 1000, unit="ms")
         index = pd.to_datetime(timestamp)
         np_values = np.asarray(self.values)
 
-        series = pd.Series(np_values, index=index, name=self.id)
+        if not name:
+            name = self.id
+
+        series = pd.Series(np_values, index=index, name=name)
         series = series[~series.index.duplicated()]
 
         df = series.to_frame()
