@@ -21,6 +21,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from anteater.anomaly_detection import AnomalyDetection
 from anteater.config import AnteaterConf
 from anteater.module.app.app_sli_detector import APPSliDetector
+from anteater.module.jvm.jvm_oom_detector import JVMOutOfMemoryDetector
 from anteater.module.sys.disk_throughput import DiskThroughputDetector
 from anteater.module.sys.nic_loss import NICLossDetector
 from anteater.module.sys.proc_io_latency import ProcIOLatencyDetector
@@ -59,6 +60,9 @@ def main():
         ProcIOLatencyDetector(loader, report),
         DiskThroughputDetector(loader, report),
         NICLossDetector(loader, report),
+
+        # JVM anomaly detection
+        JVMOutOfMemoryDetector(loader, report)
     ]
 
     anomaly_detect = AnomalyDetection(detectors, conf)

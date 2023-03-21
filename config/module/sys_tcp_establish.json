@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_tcp_link_syn_srtt",
-      "kpi_type": "",
       "entity_name": "tcp_link",
       "enable": true,
       "description": "RTT of syn packet(us): the max syn packets rtt is {:.0f} us",

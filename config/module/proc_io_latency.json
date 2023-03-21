@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_proc_bio_latency",
-      "kpi_type": "",
       "entity_name": "proc",
       "enable": true,
       "description": "I/O operation delay at the BIO layer (unit: us)",
@@ -26,7 +25,6 @@
     },
     {
       "metric": "gala_gopher_proc_less_4k_io_read",
-      "kpi_type": "",
       "entity_name": "proc",
       "enable": true,
       "description": "Number of small I/O (less than 4 KB) read operations at the BIO layer.",
@@ -44,7 +42,6 @@
     },
     {
       "metric": "gala_gopher_proc_less_4k_io_write",
-      "kpi_type": "",
       "entity_name": "proc",
       "enable": true,
       "description": "Number of small I/O (less than 4 KB) write operations at the BIO layer.",
@@ -63,7 +60,6 @@
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_read",
-      "kpi_type": "",
       "entity_name": "proc",
       "enable": true,
       "description": "Number of big I/O (greater than 4 KB) read operations at the BIO layer.",
@@ -81,7 +77,6 @@
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_write",
-      "kpi_type": "",
       "entity_name": "proc",
       "enable": true,
       "description": "Number of big I/O (greater than 4 KB) write operations at the BIO layer.",
