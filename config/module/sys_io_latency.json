@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_block_latency_req_max",
-      "kpi_type": "",
       "entity_name": "block",
       "enable": true,
       "description": "Block I/O latency performance is deteriorating!",

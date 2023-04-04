@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_nic_tc_sent_drop",
-      "kpi_type": "",
       "entity_name": "nic",
       "enable": true,
       "description": "TC sent dropped packets",

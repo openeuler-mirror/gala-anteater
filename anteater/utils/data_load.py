@@ -43,13 +43,13 @@ def load_job_config(file_name) -> JobConfig:
                          f'file {os.path.basename(abs_path)}')
             raise e
 
-    name = config['name']
-    job_type = config['job_type']
-    keywords = config['keywords']
-    root_cause_number = config['root_cause_number']
+    name = config.get('name')
+    job_type = config.get('job_type')
+    keywords = config.get('keywords', [])
+    root_cause_number = config.get('root_cause_number', 0)
 
-    kpis = [KPI.from_dict(**update_description(_conf)) for _conf in config['KPI']]
-    features = [Feature.from_dict(**update_description(_conf)) for _conf in config['Features']]
+    kpis = [KPI.from_dict(**update_description(_conf)) for _conf in config.get('KPI')]
+    features = [Feature.from_dict(**update_description(_conf)) for _conf in config.get('Features', [])]
 
     model_config = None
     if 'OnlineModel' in config:

@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_sli_rtt_nsec",
-      "kpi_type": "rtt",
       "entity_name": "sli",
       "enable": true,
       "atrend": "rise",
@@ -27,7 +26,6 @@
     },
     {
       "metric": "gala_gopher_sli_tps",
-      "kpi_type": "tps",
       "entity_name": "sli",
       "enable": true,
       "atrend": "fall",

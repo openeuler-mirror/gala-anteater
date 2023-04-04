@@ -1,0 +1,86 @@
+{
+  "name": "jvm_oom",
+  "job_type": "jvm",
+  "keywords": [
+    "jvm"
+  ],
+  "KPI": [
+    {
+      "metric": "gala_gopher_jvm_info",
+      "entity_name": "jvm",
+      "description": "JVM INFO",
+      "params": {
+        "look_back": 2
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_gc_collection_seconds_count",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory GC Overhead",
+      "params": {
+        "look_back": 2,
+        "threshold": 15
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_memory_bytes_used",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory Memory Used",
+      "params": {
+        "look_back": 2,
+        "threshold": 0.5
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_memory_bytes_max",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory Memory Max",
+      "params": {
+        "look_back": 2
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_memory_pool_bytes_used",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory: Heapspace, memory pool '{}' usage exceeds {:.2%}.",
+      "params": {
+        "look_back": 2,
+        "threshold": 0.9
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_memory_pool_bytes_max",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory Memory Pool Max",
+      "params": {
+        "look_back": 2
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_classes_currently_loaded",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory: Metaspace, loaded classes count exceeds {}.",
+      "params": {
+        "look_back": 2,
+        "threshold": 10000
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_threads_current",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory: Unable to create new native thread, current threads count exceeds {}.",
+      "params": {
+        "look_back": 2,
+        "threshold": 10000
+      }
+    },
+    {
+      "metric": "gala_gopher_jvm_buffer_pool_capacity_bytes",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory Classes Load",
+      "params": {
+        "look_back": 2
+      }
+    }
+  ]
+}

@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_net_tcp_in_segs",
-      "kpi_type": "in_segs",
       "entity_name": "net",
       "enable": false,
       "description": "Total number of segments received",
@@ -24,7 +23,6 @@
     },
     {
       "metric": "gala_gopher_net_tcp_out_segs",
-      "kpi_type": "out_segs",
       "entity_name": "net",
       "enable": false,
       "description": "Total number of segments sent",
@@ -40,7 +38,6 @@
     },
     {
       "metric": "gala_gopher_tcp_link_sk_wmem_size",
-      "kpi_type": "sk_wmem_size",
       "entity_name": "tcp_link",
       "enable": false,
       "description": "Used memory size of the sending cache",
@@ -56,7 +53,6 @@
     },
     {
       "metric": "gala_gopher_tcp_link_sk_rcvbuf",
-      "kpi_type": "sk_rcvbuf",
       "entity_name": "tcp_link",
       "enable": false,
       "description": "Byte length of the RX buffer",
@@ -72,7 +68,6 @@
     },
     {
       "metric": "gala_gopher_tcp_link_sk_sndbuf",
-      "kpi_type": "sk_sndbuf",
       "entity_name": "tcp_link",
       "enable": false,
       "description": "Byte length of the TX buffer",

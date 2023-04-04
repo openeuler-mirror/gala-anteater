@@ -19,11 +19,11 @@ from anteater.core.anomaly import AnomalyTrend
 
 @dataclass
 class KPI:
+    """The kpi for an abstract target of AD job"""
     metric: str
-    kpi_type: str
     entity_name: str
-    enable: bool
     description: str
+    enable: bool = True
     params: dict = field(default=dict)
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
 
@@ -37,6 +37,7 @@ class KPI:
 
 @dataclass
 class Feature:
+    """The feature with it's detailed infos"""
     metric: str
     description: str
     priority: int = 0
@@ -52,6 +53,7 @@ class Feature:
 
 @dataclass
 class ModelConfig:
+    """The model config for a specific ML model"""
     name: str
     enable: bool
     model_path: str
@@ -60,6 +62,7 @@ class ModelConfig:
 
 @dataclass
 class JobConfig:
+    """The Job Config would be passed to an AD job"""
     name: str
     job_type: str
     keywords: List[str]

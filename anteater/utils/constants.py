@@ -15,3 +15,25 @@
 POINTS_MINUTE = 12
 POINTS_HOUR = 12 * 60
 POINTS_DAY = 12 * 60 * 24
+
+# PARAMS
+THRESHOLD = 'threshold'
+LOOK_BACK = 'look_back'
+
+# LABELS
+TGID = 'tgid'
+GC = 'gc'
+POOL = 'pool'
+
+# JVM CONSTANTS CLASS
+AREA = 'area'
+AREA_HEAP = 'heap'
+AREA_NON_HEAP = 'nonheap'
+OLD_G_COLLECTORS = [
+    'MarkSweepCompact',
+    'PS MarkSweep',
+    'ConcurrentMarkSweep',
+    'G1 Mixed Generation'
+]
+PS_OLD_G = 'PS Old Gen'
+METASPACE = 'Metaspace'

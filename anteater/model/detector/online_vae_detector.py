@@ -30,7 +30,7 @@ from anteater.utils.log import logger
 
 
 class OnlineVAEDetector(Detector):
-    """The anomaly detector base class"""
+    """The online vae detector"""
 
     def __init__(self, data_loader: MetricLoader, conf: ModelConfig):
         """The detector base class initializer"""

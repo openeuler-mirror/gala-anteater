@@ -8,7 +8,6 @@
   "KPI": [
     {
       "metric": "gala_gopher_disk_r_await",
-      "kpi_type": "",
       "entity_name": "disk",
       "enable": true,
       "description": "Disk read await time is increasing!",
@@ -26,7 +25,6 @@
     },
     {
       "metric": "gala_gopher_disk_w_await",
-      "kpi_type": "",
       "entity_name": "disk",
       "enable": true,
       "description": "Disk write await time is increasing!",
