@@ -22,6 +22,7 @@ from anteater.core.kpi import KPI, Feature
 from anteater.core.time_series import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.source.metric_loader import MetricLoader
+from anteater.utils.common import divide, to_bytes
 from anteater.utils.constants import \
     AREA, THRESHOLD, TGID, GC, LOOK_BACK, PS_OLD_G, METASPACE, POOL, OLD_G_COLLECTORS, \
     POINTS_MINUTE
@@ -194,6 +195,26 @@ class JVMOOMDetector(Detector):
                     labels=_ts.labels,
                     entity_name=kpi.entity_name,
                     description=kpi.description.format(round(count)),
+                    score=-1))
+
+        return anomalies
+
+    def detect_direct_buffer(self, kpis: List[KPI], machine_id: str) -> List[Anomaly]:
+        """Detects direct buffer abnormal status of the JVM"""
+        kpi = get_kpi(kpis, 'buffer_pool_used_bytes')
+        time_series = self.load_time_series(kpi, machine_id=machine_id)
+        threshold = kpi.params.get(THRESHOLD)
+        threshold = to_bytes(threshold)
+        anomalies = []
+        for _ts in time_series:
+            count = (np.average(_ts.values) if _ts.values else 0)
+            if count >= threshold:
+                anomalies.append(Anomaly(
+                    machine_id=machine_id,
+                    metric=_ts.metric,
+                    labels=_ts.labels,
+                    entity_name=kpi.entity_name,
+                    description=kpi.description.format(round(divide(count, 1024*1024))),
                     score=-1))
 
         return anomalies

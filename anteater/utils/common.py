@@ -17,6 +17,11 @@ Description: Some common functions are able to use in this project.
 """
 
 
+import logging
+import re
+from typing import Union
+
+
 def divide(x, y):
     """Divide expression in case divide-by-zero problem"""
     if y != 0:
@@ -35,3 +40,39 @@ def same_intersection_key_value(first: dict, second: dict):
             return False
 
     return True
+
+
+def to_bytes(letter: Union[str, int]) -> int:
+    """Converts the string to the number of bytes
+
+    such as:
+        - '1k' / '1kb' => 1024
+        - '1m' / '1mb' => 1024 * 1024
+        - '1g' / '1gb' => 1024 * 1024 * 1024
+    """
+    if isinstance(letter, int):
+        return letter
+
+    elif isinstance(letter, str):
+        size_map = {
+            '': 1,
+            'b': 1,
+            'k': 1024,
+            'kb': 1024,
+            'm': 1024 * 1024,
+            'mb': 1024 * 1024,
+            'g': 1024 * 1024 * 1024,
+            'gb': 1024 * 1024 * 1024,
+        }
+
+        letter = letter.lower()
+
+        try:
+            num, suffix = re.split('([a-z]+)', letter)
+        except ValueError as e:
+            logging.info(f'ValueError: parses "{letter}" to the number of bytes!')
+
+        return int(num) * size_map(suffix)
+
+    else:
+        raise ValueError("The type of letter is neither str nor int!")
