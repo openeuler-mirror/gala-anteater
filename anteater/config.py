@@ -41,6 +41,7 @@ class KafkaConf(ServiceConf):
     """The kafka config"""
     model_topic: str
     meta_topic: str
+    group_id: str
 
 
 @dataclass
