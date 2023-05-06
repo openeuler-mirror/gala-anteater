@@ -19,6 +19,7 @@ Description: The implementation of Kafka Consumer and Producer.
 import collections
 import json
 import threading
+import time
 from typing import Any, Dict
 
 from kafka import KafkaConsumer, KafkaProducer
@@ -48,7 +49,8 @@ class KafkaProvider:
             "bootstrap_servers": f"{conf.server}:{conf.port}",
             "auto_offset_reset": "earliest",
             "enable_auto_commit": False,
-            "consumer_timeout_ms": 1000
+            "consumer_timeout_ms": 1000,
+            "group_id": conf.group_id,
         }
 
         self.model_topic = conf.model_topic
@@ -65,13 +67,13 @@ class KafkaProvider:
         t.start()
 
     def fetch_metadata(self):
-        index = 1
-        for msg in self.consumer:
-            index += 1
-            data = json.loads(msg.value)
-            metadata = {}
-            metadata.update(data)
-            self.metadata.append(metadata)
+        while True:
+            for msg in self.consumer:
+                data = json.loads(msg.value)
+                metadata = {}
+                metadata.update(data)
+                self.metadata.append(metadata)
+            time.sleep(5)
 
     def get_metadata(self, entity_name):
         for item in self.metadata:
