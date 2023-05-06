@@ -81,6 +81,15 @@
       "params": {
         "look_back": 2
       }
+    },
+    {
+      "metric": "gala_gopher_jvm_buffer_pool_used_bytes",
+      "entity_name": "jvm",
+      "description": "JVM OutOfMemory: Direct buffer memory, current direct buffer memory exceeds {} MB",
+      "params": {
+        "look_back": 2,
+        "threshold": "1024MB"
+      }
     }
   ]
 }
