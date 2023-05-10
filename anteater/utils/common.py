@@ -50,29 +50,39 @@ def to_bytes(letter: Union[str, int]) -> int:
         - '1m' / '1mb' => 1024 * 1024
         - '1g' / '1gb' => 1024 * 1024 * 1024
     """
+    size_map = {
+        '': 1,
+        'b': 1,
+        'k': 1024,
+        'kb': 1024,
+        'm': 1024 * 1024,
+        'mb': 1024 * 1024,
+        'g': 1024 * 1024 * 1024,
+        'gb': 1024 * 1024 * 1024,
+    }
+
     if isinstance(letter, int):
         return letter
 
     elif isinstance(letter, str):
-        size_map = {
-            '': 1,
-            'b': 1,
-            'k': 1024,
-            'kb': 1024,
-            'm': 1024 * 1024,
-            'mb': 1024 * 1024,
-            'g': 1024 * 1024 * 1024,
-            'gb': 1024 * 1024 * 1024,
-        }
+        try:
+            num = int(letter)
+        except ValueError:
+            num = -1
+
+        if num > 0:
+            return num
 
         letter = letter.lower()
-
         try:
-            num, suffix = re.split('([a-z]+)', letter)
+            num, suffix, _ = re.split('([a-z]+)', letter)
         except ValueError as e:
-            logging.info(f'ValueError: parses "{letter}" to the number of bytes!')
+            logging.error(f'ValueError: parses "{letter}" to the number of bytes!')
 
-        return int(num) * size_map(suffix)
+        if suffix not in size_map.items():
+            raise ValueError(f'Unknown suffix "{suffix}" convert to bytes!')
+
+        return int(num) * size_map.get(suffix)
 
     else:
         raise ValueError("The type of letter is neither str nor int!")

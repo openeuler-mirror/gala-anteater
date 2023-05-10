@@ -83,7 +83,7 @@ def get_query2(
 
     rule = ""
     if labels:
-        pairs = ",".join([f"{n}='{v}'" for n, v in labels.items()])
+        pairs = ",".join([f"{n}=~'{v}'" for n, v in labels.items()])
         rule = f"{{{pairs}}}"
 
     group = ""

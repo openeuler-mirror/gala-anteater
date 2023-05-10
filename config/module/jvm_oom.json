@@ -45,7 +45,7 @@
       "description": "JVM OutOfMemory: Heapspace, memory pool '{}' usage exceeds {:.2%}.",
       "params": {
         "look_back": 2,
-        "threshold": 0.9
+        "threshold": 0.65
       }
     },
     {
@@ -62,7 +62,7 @@
       "description": "JVM OutOfMemory: Metaspace, loaded classes count exceeds {}.",
       "params": {
         "look_back": 2,
-        "threshold": 10000
+        "threshold": 100000
       }
     },
     {

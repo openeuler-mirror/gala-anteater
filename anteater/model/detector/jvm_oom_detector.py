@@ -75,9 +75,11 @@ class JVMOOMDetector(Detector):
             if areas:
                 anomalies.extend(self.detect_memory_pool(kpis, machine_id, tgid, PS_OLD_G))
                 anomalies.extend(self.detect_memory_pool(kpis, machine_id, tgid, METASPACE))
-                anomalies.extend(self.detect_jvm_class(kpis, machine_id, tgid))
+
+            anomalies.extend(self.detect_jvm_class(kpis, machine_id, tgid))
 
         anomalies.extend(self.detect_thread(kpis, machine_id))
+        anomalies.append(self.detect_direct_buffer(kpis, machine_id))
 
         return anomalies
 
