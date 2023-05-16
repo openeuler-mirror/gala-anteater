@@ -32,20 +32,17 @@ class JVMAnomalyTemplate(Template):
                 'event_id': f'{timestamp}_{self.entity_id}',
                 'event_type': 'jvm',
                 'event_source': 'gala-anteater',
-                'keywords': self.keywords,
+                'keywords': self.keywords
             },
             'Resource': {
                 'metric': self.metric,
                 'labels': self.labels,
                 'score': self.score,
-                'cause_metrics': self.cause_metrics,
-                'description': self.description
+                'cause_metrics': self.cause_metrics
             },
             'SeverityText': 'WARN',
             'SeverityNumber': 13,
-            'Body': f'{self.timestamp.strftime("%c")} WARN, JVM OutOfMemory issues.',
-            'event_id': f'{timestamp}_{self.entity_id}',
-            "keywords": self.keywords
+            'Body': f'{self.timestamp.strftime("%Y-%m-%d %H:%M:%S")}, {self.description}.'
         }
 
         return result
