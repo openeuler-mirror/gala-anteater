@@ -13,7 +13,6 @@
 import json
 import os.path
 import collections
-import pandas as pd
 
 from typing import List
 
@@ -28,30 +27,64 @@ ANTEATER_DATA_PATH = "D:\\project\\os\\gala-anteater\\"  # '/etc/gala-anteater/'
 
 
 class FeatureExtract(object):
+    """The feature extract entry class.
+
+    anaylze method can portrait single metric and
+    get relevance between key metric and other metrics.
+    """
     def __init__(self, data_loader: MetricLoader, metric_list: []):
         self.data_loader = data_loader
         self.metric_list = metric_list
-        self.feature_portrait = FeaturePortrait()
+        self.fp = FeaturePortrait()
 
-    def analyze(self):
-        portrait_result = collections.defaultdict(list)
+    def analyze(self, machine_id: str, key_metric: str):
+        """
+        Analyze metric' feature and relevance.
 
+        :param machine_id: one machine's id information
+        :param key_metric: base metric
+        :return: single_metric_portrait : collections.defaultdict(list),
+                 multi_metric_relevance : collections.defaultdict(list)
+        """
+        single_metric_portrait = collections.defaultdict(list)
+        multi_metric_relevance = collections.defaultdict(list)
+
+        multi_metric_df = None
+        start, end = dt.last(minutes=60)
+        # get single metric portrait
         for metric in self.metric_list:
             df = None
-            for _time_series in self.__load_time_series(metric):
+            for _time_series in self.__load_time_series(start, end, metric, machine_id):
                 df = _time_series.to_df()
-                df['ts'] = pd.to_datetime(df.index).view('int64')//10**9
                 break
 
             if df is not None:
-                portrait_result[metric] = self.feature_portrait.get_portrait(df)
+                multi_metric_df = df if multi_metric_df is None else multi_metric_df.join(df)
+                single_metric_portrait[metric] = self.fp.get_single_metric_portrait(df)
 
-        logger.debug(portrait_result)
+        # get multi metric relevance
+        if multi_metric_df is not None:
+            multi_metric_relevance = self.fp.get_multi_metric_relevance(multi_metric_df, key_metric, threshold=0.6)
 
-    def __load_time_series(self, metric) -> List[TimeSeries]:
-        """Loads time series of the target kpi"""
-        start, end = dt.last(minutes=1)
-        time_series = self.data_loader.get_metric(start, end, metric, operator='avg', keys="machine_id")
+        logger.debug(single_metric_portrait, multi_metric_relevance)
+        return single_metric_portrait, multi_metric_relevance
+
+    def __load_time_series(self, start, end, metric: str, machine_id: str) -> List[TimeSeries]:
+        """
+        Loads time series of the target machine from time of start to end.
+
+        :param start: data of start time
+        :param end: data of start time
+        :param metric: metric name to load
+        :param machine_id: the machine's id of the data to load
+        :return: time_series: List[TimeSeries]
+        """
+        time_series = self.data_loader.get_metric(start,
+                                                  end,
+                                                  metric,
+                                                  operator='avg',
+                                                  keys="machine_id",
+                                                  machine_id=machine_id)
 
         return time_series
 
@@ -66,4 +99,6 @@ if __name__ == '__main__':
         metrics = json.load(fl)["features"]
 
     feature_extract = FeatureExtract(loader, metrics)
-    feature_extract.analyze()
+    m_id = '7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe'
+    k_metric = 'gala_gopher_sli_rtt_nsec'
+    feature_extract.analyze(m_id, k_metric)
