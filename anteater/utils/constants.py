@@ -20,12 +20,23 @@ POINTS_DAY = 12 * 60 * 24
 THRESHOLD = 'threshold'
 LOOK_BACK = 'look_back'
 
-# LABELS
+# LABEL NAME
+MACHINE_ID = 'machine_id'
 TGID = 'tgid'
+PID = 'pid'
+COMM = 'comm'
+IP = 'ip'
+SERVER_IP = 'server_ip'
+CONTAINER_ID = 'container_id'
+POD_NAME = 'pod_name'
+DEVICE = 'device'
+DEV_NAME = 'dev_name'
+DISK_NAME = 'disk_name'
+FSNAME = 'Fsname'
+
+# JVM LABEL NAME
 GC = 'gc'
 POOL = 'pool'
-
-# JVM CONSTANTS CLASS
 AREA = 'area'
 AREA_HEAP = 'heap'
 AREA_NON_HEAP = 'nonheap'

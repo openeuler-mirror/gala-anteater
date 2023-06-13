@@ -32,21 +32,17 @@ class SysAnomalyTemplate(Template):
                 'event_id': f'{timestamp}_{self.entity_id}',
                 'event_type': 'sys',
                 'event_source': 'gala-anteater',
-                'keywords': self.keywords,
-                'cause_metric': self.cause_metrics[0] if self.cause_metrics else {'description': self.description}
+                'keywords': self.keywords
             },
             'Resource': {
                 'metric': self.metric,
                 'labels': self.labels,
                 'score': self.score,
                 'cause_metrics': self.cause_metrics,
-                'description': self.description
             },
             'SeverityText': 'WARN',
             'SeverityNumber': 13,
-            'Body': f'{self.timestamp.strftime("%c")} WARN, SYS may be impacting performance issues.',
-            'event_id': f'{timestamp}_{self.entity_id}',
-            "keywords": self.keywords
+            'Body': f'{self.timestamp.strftime("%Y-%m-%d %H:%M:%S")}, {self.description}.'
         }
 
         return result

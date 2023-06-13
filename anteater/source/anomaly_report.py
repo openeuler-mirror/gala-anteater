@@ -11,13 +11,16 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+import logging
 import re
-from typing import List
+from typing import Dict, List
 
 from anteater.core.anomaly import Anomaly
 from anteater.provider.kafka import KafkaProvider
 from anteater.template.template import Template
-from anteater.utils.log import logger
+from anteater.utils.constants import COMM, CONTAINER_ID,\
+    DEV_NAME, DEVICE, DISK_NAME, FSNAME, IP, MACHINE_ID,\
+    PID, POD_NAME, SERVER_IP, TGID
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 
@@ -34,11 +37,39 @@ class AnomalyReport:
 
         return entity_id
 
+    @staticmethod
+    def purify_labels(labels: Dict) -> Dict:
+        """Purifying raw labels to keep specific keys, includes:
+        'Host', 'PID', 'COMM', 'IP', 'ContainerID', 'Device', etc.
+        """
+        if not labels:
+            return {}
+
+        if not isinstance(labels, dict):
+            raise TypeError('The type of labels is not a dict.')
+
+        machine_id = labels.get(MACHINE_ID, '')
+        ip = labels.get(IP, '') or labels.get(SERVER_IP, '')
+
+        keys = ['Host', 'PID', 'COMM', 'IP', 'ContainerID', 'POD', 'Device']
+        values = [
+            f'{machine_id}-{ip}' if machine_id and ip else '',
+            labels.get(TGID, '') or labels.get(PID, ''),
+            labels.get(COMM, ''),
+            ip,
+            labels.get(CONTAINER_ID, ''),
+            labels.get(POD_NAME, ''),
+            (labels.get(DEVICE, '') or labels.get(DEV_NAME, '') or
+             labels.get(DISK_NAME, '') or labels.get(FSNAME, ''))
+        ]
+
+        return dict([(k, v) for k, v in zip(keys, values) if v])
+
     def get_keys(self, entity_name):
         keys = self.provider.get_metadata(entity_name)
 
         if not keys:
-            logger.warning(f"Empty metadata for entity name {entity_name}!")
+            logging.warning(f"Empty metadata for entity name {entity_name}!")
 
         return keys
 
@@ -49,9 +80,8 @@ class AnomalyReport:
         labels = anomaly.labels
 
         template.score = anomaly.score
-        template.labels = labels
+        template.labels = self.purify_labels(labels)
         template.entity_id = self.get_entity_id(machine_id, entity_name, labels, keys)
-        template.keys = keys
         template.description = anomaly.description
         template.cause_metrics = cause_metrics
         template.keywords = keywords
