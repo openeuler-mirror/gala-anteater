@@ -33,7 +33,9 @@ OLD_G_COLLECTORS = [
     'MarkSweepCompact',
     'PS MarkSweep',
     'ConcurrentMarkSweep',
-    'G1 Mixed Generation'
+    'G1 Mixed Generation',
+    'G1 Old Generation',
+    'G1 Concurrent GC'
 ]
-PS_OLD_G = 'PS Old Gen'
+PS_OLD_G = 'PS Old Gen|G1 Old Gen'
 METASPACE = 'Metaspace'
