@@ -6,12 +6,12 @@ Kafka:
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
   meta_topic: "gala_gopher_metadata"
-  group_id: gala_anteater_kafka
+  group_id: "gala_anteater_kafka"
 
 Prometheus:
   server: "localhost"
   port: "9090"
-  steps: 5
+  steps: "5"
 
 Aom:
   base_url: ""

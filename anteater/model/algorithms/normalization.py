@@ -11,8 +11,8 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 """
-Time:
-Author:
+Time: 2023-6-12
+Author: Zhenxing
 Description: The normalization method for the data processing
 """
 
@@ -32,7 +32,6 @@ class Normalization:
     def __init__(self, **kwargs):
         """The normalizer initializer"""
         self.normalizer = MinMaxScaler(**kwargs)
-
 
     @classmethod
     def load(cls, folder, **kwargs):

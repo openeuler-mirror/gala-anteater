@@ -78,8 +78,9 @@ def to_bytes(letter: Union[str, int]) -> int:
             num, suffix, _ = re.split('([a-z]+)', letter)
         except ValueError as e:
             logging.error(f'ValueError: parses "{letter}" to the number of bytes!')
+            raise e
 
-        if suffix not in size_map.items():
+        if suffix not in size_map:
             raise ValueError(f'Unknown suffix "{suffix}" convert to bytes!')
 
         return int(num) * size_map.get(suffix)
