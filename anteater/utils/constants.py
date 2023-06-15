@@ -48,5 +48,5 @@ OLD_G_COLLECTORS = [
     'G1 Old Generation',
     'G1 Concurrent GC'
 ]
-PS_OLD_G = 'PS Old Gen|G1 Old Gen'
+PS_OLD_G = 'PS Old Gen|G1 Old Gen|Tenured Gen'
 METASPACE = 'Metaspace'
