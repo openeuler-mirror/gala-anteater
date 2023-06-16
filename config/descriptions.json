@@ -1,0 +1,340 @@
+[
+  {
+    "metric": "gala_gopher_sli_tps",
+    "en": "sli throughput per seconds",
+    "zh": "应用级请求吞吐量（TPS）"
+  },
+  {
+    "metric": "gala_gopher_sli_rtt_nsec",
+    "en": "sli round-trip delay(ns)",
+    "zh": "应用级请求（SLI）往返时延(ns)"
+  },
+  {
+    "metric": "gala_gopher_block_count_latency_req",
+    "zh": "block层request操作次数异常"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_jitter",
+    "zh": "block层request时延抖动异常"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_last",
+    "zh": "block层request时延最近值异常"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_max",
+    "zh": "block层request时延最大值异常"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_sum",
+    "zh": "block层request时延总计值异常"
+  },
+  {
+    "metric": "gala_gopher_cpu_iowait_total_second",
+    "zh": "CPU等待I/O完成的时间异常"
+  },
+  {
+    "metric": "gala_gopher_cpu_user_total_second",
+    "zh": "用户态cpu占用时间（不包括nice）异常"
+  },
+  {
+    "metric": "gala_gopher_cpu_total_used_per",
+    "zh": "CPU总利用率异常"
+  },
+  {
+    "metric": "gala_gopher_cpu_backlog_drops",
+    "zh": "softnet_data队列满而丢弃报文数量异常"
+  },
+  {
+    "metric": "gala_gopher_cpu_rps_count",
+    "zh": "CPU收到的RPS次数异常"
+  },
+  {
+    "metric": "gala_gopher_fs_Free",
+    "zh": "分区内空闲的Block数量异常"
+  },
+  {
+    "metric": "gala_gopher_fs_IUsed",
+    "zh": "分区内已使用的inode数量异常"
+  },
+  {
+    "metric": "gala_gopher_fs_UsePer",
+    "zh": "分区内已使用的Block占比异常"
+  },
+  {
+    "metric": "gala_gopher_fs_Used",
+    "zh": "分区内已使用的Block数量异常"
+  },
+  {
+    "metric": "gala_gopher_disk_r_await",
+    "zh": "读响应时间异常"
+  },
+  {
+    "metric": "gala_gopher_disk_rareq",
+    "zh": "饱和度(rareq-sz 和 wareq-sz+响应时间)异常"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed",
+    "zh": "读速率（IOPS）异常"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed_kB",
+    "zh": "磁盘读吞吐量异常升高，导致I/O等待时间性能劣化"
+  },
+  {
+    "metric": "gala_gopher_disk_util",
+    "zh": "磁盘使用率异常"
+  },
+  {
+    "metric": "gala_gopher_disk_w_await",
+    "zh": "磁盘写响应时间异常",
+    "atrend": "rise"
+  },
+  {
+    "metric": "gala_gopher_disk_wareq",
+    "zh": "饱和度(rareq-sz 和 wareq-sz+响应时间)异常"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed",
+    "zh": "磁盘写速率（IOPS）异常"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed_kB",
+    "zh": "磁盘写吞吐量异常"
+  },
+  {
+    "metric": "gala_gopher_proc_read_bytes",
+    "zh": "进程实际从磁盘读取的字节数异常"
+  },
+  {
+    "metric": "gala_gopher_proc_write_bytes",
+    "zh": "进程实际从磁盘写入的字节数异常"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_retrans_segs",
+    "zh": "TCP重传的分片数异常"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_srtt",
+    "en": "Smoothed Round Trip Time(us)",
+    "zh": "TCP链接往返时延"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_cwnd",
+    "zh": "拥塞控制窗口大小异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_write",
+    "zh": "ext4文件系统写操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_read",
+    "zh": "ext4文件系统读操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_open",
+    "zh": "ext4文件系统open操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_flush",
+    "zh": "ext4文件系统flush操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_write",
+    "zh": "overlayfs文件系统写操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_flush",
+    "zh": "overlayfs文件系统flush操作时间(单位ns)异常"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_dropped",
+    "zh": "网卡发送丢弃的数据包数异常"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_sent_drop",
+    "zh": "TC发送丢包异常"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_dropped",
+    "zh": "网卡接收丢弃的数据包数异常"
+  },
+  {
+    "metric": "gala_gopher_proc_stime_jiffies",
+    "zh": "进程系统态运行时间异常"
+  },
+  {
+    "metric": "gala_gopher_proc_utime_jiffies",
+    "zh": "进程用户态运行时间异常"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_notsent_bytes",
+    "en": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window.",
+    "zh": "由于网络延迟或对端应用程序性能，滑动窗口中累积了太多要发送的数据包"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_notack_bytes",
+    "en": "Due to network delay or peer application performance, too many NO ACK packets are accumulated in the sliding window.",
+    "zh": "由于网络延迟或对端应用程序性能，滑动窗口中累积了过多的NO ACK数据包"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_wnd",
+    "en": "The TCP send window is abnormal due to peer application performance or network congestion.",
+    "zh": "对端应用性能或网络拥塞导致TCP发送窗口异常"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rcv_wnd",
+    "en": "The TCP receive window becomes abnormal due to the local application performance.",
+    "zh": "本地应用性能导致TCP接收窗口异常，传输性能变差"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_avl_snd_wnd",
+    "en": "The available TCP send window may be abnormal due to network congestion。",
+    "zh": "可用的TCP发送窗口可能因网络拥塞而异常"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_lost_out",
+    "en": "The network may be congested, causing abnormal TCP packet loss",
+    "zh": "网络可能拥塞，导致TCP异常丢包"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_drops",
+    "en": "Packets are lost in the host protocol stack due to unknown causes",
+    "zh": "主机协议栈不明原因丢包，导致TCP传输性能劣化"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_retran_packets",
+    "en": "TCP retransmission is triggered due to network faults",
+    "zh": "网络故障触发TCP重传，导致TCP传输性能劣化"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_backlog_drops",
+    "en": "TCP backlog overflows due to local application performance.",
+    "zh": "由于本地应用程序性能问题，TCP积压溢出，导致TCP传输性能劣化"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sacked_out",
+    "en": "TCP performance deteriorates due to network out-of-order.",
+    "zh": "网络乱序导致TCP传输性能劣化"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_backlog_size",
+    "en": "The TCP backlog queue length is abnormal due to the local application performance.",
+    "zh": "本地应用性能导致TCP backlog队列长度异常，TCP传输性能劣化"
+  },
+  {
+    "metric": "gala_gopher_proc_bio_latency",
+    "en": "I/O operation delay at the BIO layer (unit: us)",
+    "zh": "BIO层I/O操作延时高(单位：us)"
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_read",
+    "en": "Number of small I/O (less than 4 KB) read operations at the BIO layer.",
+    "zh": "BIO层小数据I/O读操作数量异常（小于4KB）"
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_write",
+    "en": "Number of small I/O (less than 4 KB) write operations at the BIO layer.",
+    "zh": "BIO层小数据I/O写操作数量异常（小于4KB）"
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_read",
+    "en": "Number of big I/O (greater than 4 KB) read operations at the BIO layer.",
+    "zh": "BIO层大数据I/O读操作数量异常（大于4KB）"
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_write",
+    "en": "Number of big I/O (greater than 4 KB) write operations at the BIO layer.",
+    "zh": "BIO层大数据写操作数量异常（大于4KB）"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_max",
+    "en": "Process I/O performance deteriorates due to device I/O bandwidth insufficient.",
+    "zh": "设备I/O带宽不足引起进程I/O性能劣化"
+  },
+  {
+    "metric": "gala_gopher_block_read_bytes",
+    "en": "Process I/O performance deteriorates due to frequent read I/O operations.",
+    "zh": "频繁I/O读操作引起进程I/O性能劣化"
+  },
+  {
+    "metric": "gala_gopher_block_write_bytes",
+    "en": "Process I/O performance deteriorates due to frequent write I/O operations.",
+    "zh": "频繁写操作引起进程I/O性能劣化"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_max",
+    "en": "The system I/O performance deteriorates due to a drive failure.",
+    "zh": "驱动异常引起系统I/O性能劣化"
+  },
+  {
+    "metric": "gala_gopher_endpoint_retran_synacks",
+    "en": "TCP established performance deteriorates due to loss of SYN/ACK packets.",
+    "zh": "由于SYN/ACK数据包丢失，TCP建链性能劣化"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_syn_srtt",
+    "en": "RTT of syn packet(us)",
+    "zh": "SYN数据包时延异常"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_in_segs",
+    "en": "Total number of segments received"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_out_segs",
+    "en": "Total number of segments sent"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_wmem_size",
+    "en": "Used memory size of the sending cache"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_rcvbuf",
+    "en": "Byte length of the RX buffer"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_sndbuf",
+    "en": "Byte length of the TX buffer"
+  },
+  {
+    "metric": "gala_gopher_jvm_info",
+    "en": "JVM INFO"
+  },
+  {
+    "metric": "gala_gopher_jvm_gc_collection_seconds_count",
+    "en": "JVM gc collections seconds count"
+  },
+  {
+    "metric": "gala_gopher_jvm_memory_bytes_used",
+    "en": "JVM memory bytes used"
+  },
+  {
+    "metric": "gala_gopher_jvm_memory_bytes_max",
+    "en": "JVM memory bytes max"
+  },
+  {
+    "metric": "gala_gopher_jvm_memory_pool_bytes_used",
+    "en": "JVM memory pool bytes used"
+  },
+  {
+    "metric": "gala_gopher_jvm_memory_pool_bytes_max",
+    "en": "JVM memory pool bytes max"
+  },
+  {
+    "metric": "gala_gopher_jvm_classes_currently_loaded",
+    "en": "JVM classes currently loaded"
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_current",
+    "en": "JVM threads current count."
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_capacity_bytes",
+    "en": "JVM buffer pool capacity bytes"
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_used_bytes",
+    "en": "JVM direct buffer pool used bytes"
+  }
+]

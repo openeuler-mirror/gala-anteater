@@ -11,16 +11,15 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 from abc import abstractmethod
+import logging
 from typing import Dict, List, Type
 
 from anteater.core.anomaly import Anomaly
 from anteater.model.detector.base import Detector
 from anteater.source.anomaly_report import AnomalyReport
-from anteater.template.template import Template
+from anteater.source.template import Template
 from anteater.utils.data_load import load_job_config
-from anteater.utils.datetime import DateTimeManager as dt
 
 
 class E2EDetector:
@@ -41,26 +40,19 @@ class E2EDetector:
     def execute(self):
         """Start to run each signal configured detectors"""
         if not self.job_config.kpis:
-            logging.info(f"Empty kpis for detector: {self.__class__.__name__}, skip it!")
+            logging.info('Empty kpis for detector: %s, skip it!',
+                         self.__class__.__name__)
             return
 
-        logging.info(f'Run E2E detector: {self.__class__.__name__}')
+        logging.info('Run E2E detector: %s', self.__class__.__name__)
         for detector in self.detectors:
             anomalies = detector.execute(self.job_config)
             for anomaly in anomalies:
                 self.report(anomaly, self.job_config.keywords)
 
-    @abstractmethod
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        pass
-
     def report(self, anomaly: Anomaly, keywords):
         """Parses the anomaly into a specific formats
         based on the template and reports parsed results
         """
-        cause_metrics = self.parse_cause_metrics(anomaly)
-        timestamp = dt.utc_now()
-        template = self.template(timestamp, anomaly.machine_id,
-                                 anomaly.metric, anomaly.entity_name)
-        self.reporter.sent_anomaly(anomaly, cause_metrics, keywords, template)
+        template = self.template()
+        self.reporter.sent_anomaly(anomaly, keywords, template)

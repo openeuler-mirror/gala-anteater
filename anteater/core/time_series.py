@@ -54,6 +54,7 @@ class TimeSeries:
         self.values.extend(values)
 
     def insert(self, other):
+        """Inserts and updates this time series"""
         if self != other:
             raise ValueError("InsertError: different 'TimeSeries' instances!")
 
@@ -81,10 +82,3 @@ class TimeSeries:
         df = series.to_frame()
 
         return df
-
-
-@dataclass
-class TimeSeriesScore:
-    ts: TimeSeries
-    score: float
-    description: str

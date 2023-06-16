@@ -22,7 +22,6 @@ class KPI:
     """The kpi for an abstract target of AD job"""
     metric: str
     entity_name: str
-    description: str
     enable: bool = True
     params: dict = field(default=dict)
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
@@ -39,12 +38,12 @@ class KPI:
 class Feature:
     """The feature with it's detailed infos"""
     metric: str
-    description: str
     priority: int = 0
     atrend: AnomalyTrend = AnomalyTrend.DEFAULT
 
     @classmethod
     def from_dict(cls, **data):
+        """Converts data to Feature object"""
         if 'atrend' in data:
             data['atrend'] = AnomalyTrend.from_str(data.get('atrend'))
 

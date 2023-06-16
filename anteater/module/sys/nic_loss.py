@@ -11,14 +11,11 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from typing import List, Dict
-
-from anteater.core.anomaly import Anomaly
 from anteater.model.detector.th_base_detector import ThBaseDetector
 from anteater.module.base import E2EDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.sys_anomaly_template import SysAnomalyTemplate
+from anteater.source.template import SysAnomalyTemplate
 
 
 class NICLossDetector(E2EDetector):
@@ -34,26 +31,3 @@ class NICLossDetector(E2EDetector):
         self.detectors = [
             ThBaseDetector(data_loader)
         ]
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        cause_metrics = []
-        for _cs in anomaly.root_causes:
-            tmp = {
-                'metric': _cs.ts.metric,
-                'labels': _cs.ts.labels,
-                'score': _cs.score,
-            }
-            if 'tcp' in _cs.ts.metric:
-                tmp['description'] = _cs.description.format(
-                    _cs.ts.labels.get('tgid', ''),
-                    _cs.ts.labels.get('client_port', ''),
-                    _cs.ts.labels.get('server_ip', ''),
-                    _cs.ts.labels.get('server_port', ''))
-            else:
-                tmp['description'] = _cs.description.format(
-                    _cs.ts.labels.get('dev_name', ''))
-
-            cause_metrics.append(tmp)
-
-        return cause_metrics

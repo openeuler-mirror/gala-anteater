@@ -56,8 +56,7 @@ class ThBaseDetector(Detector):
                 metric=_ts.metric,
                 labels=_ts.labels,
                 score=1,
-                entity_name=kpi.entity_name,
-                description=kpi.description)
+                entity_name=kpi.entity_name)
             for _ts in ts_list
             if sum(_ts.values) >= th
         ]

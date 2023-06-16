@@ -10,8 +10,6 @@
       "metric": "gala_gopher_disk_r_await",
       "entity_name": "disk",
       "enable": true,
-      "description": "Disk read await time is increasing!",
-      "description-zh": "磁盘读响应时间升高，性能发生劣化",
       "params": {
         "method": "max",
         "look_back": 20,
@@ -27,8 +25,6 @@
       "metric": "gala_gopher_disk_w_await",
       "entity_name": "disk",
       "enable": true,
-      "description": "Disk write await time is increasing!",
-      "description-zh": "磁盘写响应时间升高，性能发生劣化",
       "params": {
         "method": "max",
         "look_back": 20,
@@ -51,7 +47,11 @@
       "min_predict_minutes": 20,
       "norm": {},
       "vae": {
-        "hidden_sizes": [25, 10, 5],
+        "hidden_sizes": [
+          25,
+          10,
+          5
+        ],
         "latent_size": 5,
         "dropout_rate": 0.25,
         "batch_size": 1024,
@@ -69,29 +69,21 @@
     {
       "metric": "gala_gopher_disk_rspeed_kB",
       "priority": 0,
-      "description": "The disk I/O await time performance deteriorates due to read throughput rise (read kbytes/second).(Disk = {})",
-      "description-zh": "磁盘读吞吐量异常升高，导致I/O等待时间性能劣化(Disk = {})",
       "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_wspeed_kB",
       "priority": 0,
-      "description": "The disk I/O await time performance deteriorates due to write throughput rise (write kbytes/second).(Disk = {})",
-      "description-zh": "磁盘写吞吐量异常升高，导致I/O等待时间性能劣化(Disk = {})",
       "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_rareq",
       "priority": 0,
-      "description": "The disk I/O await time performance deteriorates due to read saturation rise.(Disk = {})",
-      "description-zh": "磁盘读饱和度量异常升高，导致I/O等待时间性能劣化(Disk = {})",
       "atrend": "rise"
     },
     {
       "metric": "gala_gopher_disk_wareq",
       "priority": 0,
-      "description": "The disk I/O await time performance deteriorates due to write saturation rise.(Disk = {})",
-      "description-zh": "磁盘读写饱和度量异常升高，导致I/O等待时间性能劣化(Disk = {})",
       "atrend": "rise"
     }
   ]

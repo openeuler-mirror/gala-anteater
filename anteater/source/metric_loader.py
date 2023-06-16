@@ -16,11 +16,11 @@ Author:
 Description: The implementation of metrics data loader.
 """
 
+from datetime import datetime
 from typing import List, Union
 
 from anteater.config import AnteaterConf
 from anteater.factory.factory import DataCollectorFactory
-from anteater.utils import datetime
 from anteater.utils.log import logger
 from anteater.core.time_series import TimeSeries
 from anteater.utils.timer import timer

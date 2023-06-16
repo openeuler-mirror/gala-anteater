@@ -93,11 +93,7 @@ class AnomalySuppression:
                labels == x.labels:
                 filtered_queue.append(x)
 
-        if not filtered_queue:
-            return False
-
-        for x in filtered_queue:
-            if anomaly.description == x.description:
-                return True
+        if filtered_queue:
+            return True
 
         return False

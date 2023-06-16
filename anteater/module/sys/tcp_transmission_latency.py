@@ -20,7 +20,7 @@ from anteater.model.detector.tcp_trans_latency_n_sigma_detector import \
 from anteater.module.base import E2EDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.sys_anomaly_template import SysAnomalyTemplate
+from anteater.source.template import SysAnomalyTemplate
 
 
 class SysTcpTransmissionLatencyDetector(E2EDetector):
@@ -47,19 +47,3 @@ class SysTcpTransmissionLatencyDetector(E2EDetector):
             ]
 
         return detectors
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        cause_metrics = [
-            {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description.format(
-                    cause.ts.labels.get('tgid', ''),
-                    cause.ts.labels.get('client_port', ''),
-                    cause.ts.labels.get('server_ip', ''),
-                    cause.ts.labels.get('server_port', ''))}
-            for cause in anomaly.root_causes]
-
-        return cause_metrics

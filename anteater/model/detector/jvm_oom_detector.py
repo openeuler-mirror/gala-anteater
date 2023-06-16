@@ -23,8 +23,8 @@ from anteater.core.time_series import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide, to_bytes
-from anteater.utils.constants import \
-    AREA, THRESHOLD, TGID, GC, LOOK_BACK, PS_OLD_G, METASPACE, POOL, OLD_G_COLLECTORS, \
+from anteater.utils.constants import AREA, THRESHOLD, TGID,\
+    GC, LOOK_BACK, PS_OLD_G, METASPACE, POOL, OLD_G_COLLECTORS,\
     POINTS_MINUTE
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.timer import timer
@@ -158,7 +158,7 @@ class JVMOOMDetector(Detector):
                     metric=_ts.metric,
                     labels=_ts.labels,
                     entity_name=kpi.entity_name,
-                    description=kpi.description.format(pool, usage),
+                    details={f'\'{pool}\'Usage': usage},
                     score=-1))
 
         return anomalies
@@ -177,7 +177,7 @@ class JVMOOMDetector(Detector):
                     metric=_ts.metric,
                     labels=_ts.labels,
                     entity_name=kpi.entity_name,
-                    description=kpi.description.format(round(count)),
+                    details={'LoadedClassCount': round(count)},
                     score=-1))
 
         return anomalies
@@ -196,7 +196,7 @@ class JVMOOMDetector(Detector):
                     metric=_ts.metric,
                     labels=_ts.labels,
                     entity_name=kpi.entity_name,
-                    description=kpi.description.format(round(count)),
+                    details={'ThreadsCount': round(count)},
                     score=-1))
 
         return anomalies
@@ -216,7 +216,7 @@ class JVMOOMDetector(Detector):
                     metric=_ts.metric,
                     labels=_ts.labels,
                     entity_name=kpi.entity_name,
-                    description=kpi.description.format(round(divide(count, 1024*1024))),
+                    details={'DirectBufferMem': count},
                     score=-1))
 
         return anomalies

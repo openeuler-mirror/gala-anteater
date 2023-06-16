@@ -30,7 +30,7 @@ def divide(x, y):
         return 0
 
 
-def same_intersection_key_value(first: dict, second: dict):
+def same_intersection_pairs(first: dict, second: dict):
     """Checks there are same key value pairs between two dictionaries
     intersections by the key
     """

@@ -12,6 +12,12 @@
 # ******************************************************************************/
 
 
+# CONFIG PATH
+ANTEATER_CONFIG_PATH = '/etc/gala-anteater/config'
+ANTEATER_MODULE_PATH = '/etc/gala-anteater/config/module'
+ANTEATER_MODEL_PATH = '/etc/gala-anteater/models'
+
+# COMMON TIME STEMP
 POINTS_MINUTE = 12
 POINTS_HOUR = 12 * 60
 POINTS_DAY = 12 * 60 * 24

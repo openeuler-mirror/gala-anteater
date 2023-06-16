@@ -19,7 +19,7 @@ from anteater.model.detector.online_vae_detector import OnlineVAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.sys_anomaly_template import SysAnomalyTemplate
+from anteater.source.template import SysAnomalyTemplate
 
 
 class SysIOLatencyDetector(E2EDetector):
@@ -46,18 +46,3 @@ class SysIOLatencyDetector(E2EDetector):
             ]
 
         return detectors
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        cause_metrics = [
-            {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description.format(
-                    cause.ts.labels.get('disk_name', ''),
-                    cause.ts.labels.get('tgid', ''),
-                    cause.ts.labels.get('comm', ''))}
-            for cause in anomaly.root_causes]
-
-        return cause_metrics
