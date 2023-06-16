@@ -17,6 +17,7 @@ from typing import Dict, List
 
 from anteater.core.anomaly import Anomaly
 from anteater.provider.kafka import KafkaProvider
+from anteater.source.suppress import AnomalySuppression
 from anteater.template.template import Template
 from anteater.utils.constants import COMM, CONTAINER_ID,\
     DEV_NAME, DEVICE, DISK_NAME, FSNAME, IP, MACHINE_ID,\
@@ -26,14 +27,25 @@ PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 
 
 class AnomalyReport:
-    def __init__(self, provider: KafkaProvider):
+    """The anomaly events report class
+
+    Which will send anomaly events to the spedified provider,
+    currently, we sends the anomaly events the the Kafka.
+    """
+    def __init__(
+            self,
+            provider: KafkaProvider,
+            suppressor: AnomalySuppression):
+        """The Anomaly Report class initializer"""
         self.provider = provider
+        self.suppressor = suppressor
 
     @staticmethod
-    def get_entity_id(machine_id, entity_name, labels, keys):
-        label_keys = [labels.get(key, '0') for key in keys if key != "machine_id"]
-        entity_id = f"{machine_id}_{entity_name}_{'_'.join(label_keys)}"
-        entity_id = PUNCTUATION_PATTERN.sub(":", entity_id)
+    def extract_entity_id(machine_id, entity_name, labels, keys):
+        """Extracts entity id on the machine id, entity name, label and keys"""
+        label_keys = [labels.get(k, '0') for k in keys if k != "machine_id"]
+        entity_id = f'{machine_id}_{entity_name}_{"_".join(label_keys)}'
+        entity_id = PUNCTUATION_PATTERN.sub(':', entity_id)
 
         return entity_id
 
@@ -65,23 +77,30 @@ class AnomalyReport:
 
         return dict([(k, v) for k, v in zip(keys, values) if v])
 
-    def get_keys(self, entity_name):
+    def extract_keys(self, entity_name):
+        """Extracts keys from the specific metadata"""
         keys = self.provider.get_metadata(entity_name)
 
         if not keys:
-            logging.warning(f"Empty metadata for entity name {entity_name}!")
+            logging.warning(f'Empty metadata for entity name {entity_name}!')
 
         return keys
 
-    def sent_anomaly(self, anomaly: Anomaly, cause_metrics: List, keywords: List[str], template: Template):
-        keys = self.get_keys(template.entity_name)
+    def sent_anomaly(self, anomaly: Anomaly, cause_metrics: List,
+                     keywords: List[str], template: Template):
+        """Sends the anomaly events to the provider"""
+        if self.suppressor.suppress(anomaly):
+            return
+
+        keys = self.extract_keys(anomaly.entity_name)
         machine_id = template.machine_id
         entity_name = template.entity_name
         labels = anomaly.labels
 
         template.score = anomaly.score
         template.labels = self.purify_labels(labels)
-        template.entity_id = self.get_entity_id(machine_id, entity_name, labels, keys)
+        template.entity_id = self.extract_entity_id(machine_id, entity_name,
+                                                    labels, keys)
         template.description = anomaly.description
         template.cause_metrics = cause_metrics
         template.keywords = keywords

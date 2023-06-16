@@ -11,6 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+import logging
 from abc import abstractmethod
 from typing import Dict, List, Type
 
@@ -20,7 +21,6 @@ from anteater.source.anomaly_report import AnomalyReport
 from anteater.template.template import Template
 from anteater.utils.data_load import load_job_config
 from anteater.utils.datetime import DateTimeManager as dt
-from anteater.utils.log import logger
 
 
 class E2EDetector:
@@ -41,10 +41,10 @@ class E2EDetector:
     def execute(self):
         """Start to run each signal configured detectors"""
         if not self.job_config.kpis:
-            logger.info(f"Empty kpis for detector: {self.__class__.__name__}, skip it!")
+            logging.info(f"Empty kpis for detector: {self.__class__.__name__}, skip it!")
             return
 
-        logger.info(f'Run E2E detector: {self.__class__.__name__}')
+        logging.info(f'Run E2E detector: {self.__class__.__name__}')
         for detector in self.detectors:
             anomalies = detector.execute(self.job_config)
             for anomaly in anomalies:

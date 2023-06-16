@@ -58,8 +58,8 @@ def count_per_minutes(values: List):
 class JVMOOMDetector(Detector):
     """The jvm out-of-memory detector
 
-    This detector mainly leverages the rule-based model as fundation, and
-    will predict or detect the potentional OOM errors in Java Virtual Machine.
+    This detector mainly leverages the rule-based model as foundation, and
+    will predict or detect the potential OOM errors in Java Virtual Machine.
     """
 
     def __init__(self, data_loader: MetricLoader):
@@ -79,7 +79,7 @@ class JVMOOMDetector(Detector):
             anomalies.extend(self.detect_jvm_class(kpis, machine_id, tgid))
 
         anomalies.extend(self.detect_thread(kpis, machine_id))
-        anomalies.append(self.detect_direct_buffer(kpis, machine_id))
+        anomalies.extend(self.detect_direct_buffer(kpis, machine_id))
 
         return anomalies
 
@@ -164,7 +164,7 @@ class JVMOOMDetector(Detector):
         return anomalies
 
     def detect_jvm_class(self, kpis: List[KPI], machine_id: str, tgid: str) -> List[Anomaly]:
-        """Detects classes abnoraml status of the JVM"""
+        """Detects classes abnormal status of the JVM"""
         kpi = get_kpi(kpis, 'classes_currently_loaded')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid)
         threshold = kpi.params[THRESHOLD]
