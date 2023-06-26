@@ -92,9 +92,7 @@ class TcpEstablishNSigmaDetector(Detector):
                         metric=kpi.metric,
                         labels=_ts.labels,
                         score=ratio,
-                        entity_name=kpi.entity_name,
-                        description=kpi.description.format(max(_ts.values)))
-                )
+                        entity_name=kpi.entity_name))
 
         if anomalies:
             logger.info(f'{len(anomalies)} anomalies was detected on {self.__class__.__name__}.')

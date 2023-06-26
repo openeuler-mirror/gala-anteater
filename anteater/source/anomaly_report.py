@@ -16,12 +16,14 @@ import re
 from typing import Dict, List
 
 from anteater.core.anomaly import Anomaly
+from anteater.core.desc import Description
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.suppress import AnomalySuppression
-from anteater.template.template import Template
+from anteater.source.template import Template
 from anteater.utils.constants import COMM, CONTAINER_ID,\
     DEV_NAME, DEVICE, DISK_NAME, FSNAME, IP, MACHINE_ID,\
     PID, POD_NAME, SERVER_IP, TGID
+from anteater.utils.data_load import load_desc
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 
@@ -29,8 +31,8 @@ PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 class AnomalyReport:
     """The anomaly events report class
 
-    Which will send anomaly events to the spedified provider,
-    currently, we sends the anomaly events the the Kafka.
+    Which will send anomaly events to the specified provider,
+    currently, we send the anomaly events to the Kafka.
     """
     def __init__(
             self,
@@ -39,6 +41,7 @@ class AnomalyReport:
         """The Anomaly Report class initializer"""
         self.provider = provider
         self.suppressor = suppressor
+        self.desc = load_desc(Description.file_name)
 
     @staticmethod
     def extract_entity_id(machine_id, entity_name, labels, keys):
@@ -82,28 +85,37 @@ class AnomalyReport:
         keys = self.provider.get_metadata(entity_name)
 
         if not keys:
-            logging.warning(f'Empty metadata for entity name {entity_name}!')
+            logging.warning('Empty metadata for entity name %s!', entity_name)
 
         return keys
 
-    def sent_anomaly(self, anomaly: Anomaly, cause_metrics: List,
-                     keywords: List[str], template: Template):
+    def get_description(self, metric) -> str:
+        """Gets the description based on the metric name"""
+        des = self.desc.get_zh(metric)
+        if not des:
+            des = self.desc.get_en(metric)
+
+        return des
+
+    def sent_anomaly(self, anomaly: Anomaly,
+                     keywords: List[str], template: Template) -> None:
         """Sends the anomaly events to the provider"""
         if self.suppressor.suppress(anomaly):
             return
 
         keys = self.extract_keys(anomaly.entity_name)
-        machine_id = template.machine_id
-        entity_name = template.entity_name
-        labels = anomaly.labels
+        labels = self.purify_labels(anomaly.labels)
+        entity_id = self.extract_entity_id(anomaly.machine_id,
+                                           anomaly.entity_name,
+                                           anomaly.labels, keys)
+        description = self.get_description(anomaly.metric)
 
-        template.score = anomaly.score
-        template.labels = self.purify_labels(labels)
-        template.entity_id = self.extract_entity_id(machine_id, entity_name,
-                                                    labels, keys)
-        template.description = anomaly.description
-        template.cause_metrics = cause_metrics
-        template.keywords = keywords
+        template.parse_anomaly(anomaly)
+        template.add_labels(labels)
+        template.add_entity_id(entity_id)
+        template.add_keywords(keywords)
+        template.add_details(details=anomaly.details)
+        template.add_description(description=description)
 
         msg = template.get_template()
         self.provider.send_message(msg)

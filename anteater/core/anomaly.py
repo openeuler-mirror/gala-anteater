@@ -15,19 +15,33 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List
 
-from anteater.core.time_series import TimeSeriesScore
+
+@dataclass
+class RootCause:
+    """The root cause of an anomaly events"""
+    metric: str
+    labels: dict
+    score: float
+
+    def __str__(self) -> str:
+        dic = {
+            "metric": self.metric,
+            "labels": self.labels,
+            "score": self.score
+        }
+        return str(dic)
 
 
 @dataclass
 class Anomaly:
+    """The anomaly events dataclass"""
     machine_id: str
     metric: str
     labels: dict
     score: float
     entity_name: str
-    description: str
-
-    root_causes: List[TimeSeriesScore] = None
+    details: dict = None
+    root_causes: List[RootCause] = None
 
     def __eq__(self, other):
         if not other or not isinstance(other, Anomaly):
@@ -40,11 +54,12 @@ class Anomaly:
 
     @property
     def id(self):
+        """The unique id for the anomaly"""
         return self.metric + str(tuple(sorted(self.labels.items())))
 
 
 class AnomalyTrend(Enum):
-    """The anomaly trend of the kpi,
+    """The anomaly trend of the kpi
     - such as: a larger TCP link srtt probably would be thought
               as an anomaly event, usually, a smaller one should be
               thought as a normal event.

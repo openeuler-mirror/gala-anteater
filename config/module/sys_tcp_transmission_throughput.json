@@ -10,7 +10,6 @@
       "metric": "gala_gopher_net_tcp_in_segs",
       "entity_name": "net",
       "enable": false,
-      "description": "Total number of segments received",
       "params": {
         "look_back": 20,
         "obs_size": 25,
@@ -25,7 +24,6 @@
       "metric": "gala_gopher_net_tcp_out_segs",
       "entity_name": "net",
       "enable": false,
-      "description": "Total number of segments sent",
       "params": {
         "look_back": 10,
         "obs_size": 25,
@@ -40,7 +38,6 @@
       "metric": "gala_gopher_tcp_link_sk_wmem_size",
       "entity_name": "tcp_link",
       "enable": false,
-      "description": "Used memory size of the sending cache",
       "params": {
         "look_back": 10,
         "obs_size": 25,
@@ -55,7 +52,6 @@
       "metric": "gala_gopher_tcp_link_sk_rcvbuf",
       "entity_name": "tcp_link",
       "enable": false,
-      "description": "Byte length of the RX buffer",
       "params": {
         "look_back": 10,
         "obs_size": 25,
@@ -70,7 +66,6 @@
       "metric": "gala_gopher_tcp_link_sk_sndbuf",
       "entity_name": "tcp_link",
       "enable": false,
-      "description": "Byte length of the TX buffer",
       "params": {
         "look_back": 10,
         "obs_size": 25,
@@ -92,7 +87,11 @@
       "min_predict_minutes": 20,
       "norm": {},
       "vae": {
-        "hidden_sizes": [25, 10, 5],
+        "hidden_sizes": [
+          25,
+          10,
+          5
+        ],
         "latent_size": 5,
         "dropout_rate": 0.25,
         "batch_size": 1024,
@@ -109,58 +108,47 @@
   "Features": [
     {
       "metric": "gala_gopher_tcp_link_notsent_bytes",
-      "priority": 4,
-      "description": "Due to network delay or peer application performance, too many packets to be sent are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_tcp_link_notack_bytes",
-      "priority": 4,
-      "description": "Due to network delay or peer application performance, too many NO ACK packets are accumulated in the sliding window. As a result, TCP performance deteriorates. (PID = {}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_tcp_link_snd_wnd",
-      "priority": 4,
-      "description": "The TCP send window is abnormal due to peer application performance or network congestion. As a result, the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_tcp_link_rcv_wnd",
-      "priority": 4,
-      "description": "The TCP receive window becomes abnormal due to the local application performance. As a result, the performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_tcp_link_avl_snd_wnd",
-      "priority": 4,
-      "description": "The available TCP send window may be abnormal due to network congestion and the performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_tcp_link_lost_out",
-      "priority": 3,
-      "description": "The network may be congested, causing abnormal TCP packet loss and performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 3
     },
     {
       "metric": "gala_gopher_tcp_link_sk_drops",
-      "priority": 3,
-      "description": "Packets are lost in the host protocol stack due to unknown causes, and the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 3
     },
     {
       "metric": "gala_gopher_tcp_link_retran_packets",
-      "priority": 1,
-      "description": "TCP retransmission is triggered due to network faults, resulting in TCP performance deterioration. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 1
     },
     {
       "metric": "gala_gopher_tcp_link_backlog_drops",
-      "priority": 0,
-      "description": "TCP backlog overflows due to local application performance. As a result, TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 0
     },
     {
       "metric": "gala_gopher_tcp_link_sacked_out",
-      "priority": 2,
-      "description": "TCP performance deteriorates due to network out-of-order. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 2
     },
     {
       "metric": "gala_gopher_tcp_link_sk_backlog_size",
-      "priority": 0,
-      "description": "The TCP backlog queue length is abnormal due to the local application performance. As a result, the TCP performance deteriorates. (PID ={}, client IP = {}, Server IP = {}, Port = {})"
+      "priority": 0
     }
   ]
 }

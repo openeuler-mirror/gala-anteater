@@ -12,11 +12,11 @@
 # ******************************************************************************/
 
 from itertools import groupby
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
-from anteater.core.time_series import TimeSeriesScore
+from anteater.core.time_series import TimeSeries
 from anteater.model.algorithms.smooth import smoothing
 from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
@@ -32,8 +32,8 @@ class TcpTransLatencyNSigmaDetector(NSigmaDetector):
         """The detector base class initializer"""
         super().__init__(data_loader)
 
-    def calculate_n_sigma_score(self, metric, description, machine_id: str, **kwargs)\
-            -> List[TimeSeriesScore]:
+    def cal_n_sigma_score(self, metric, machine_id: str,
+                          **kwargs) -> List[Tuple[TimeSeries, int]]:
         """Calculates anomaly scores based on n sigma scores"""
         method = kwargs.get('method', 'abs')
         look_back = kwargs.get('look_back')
@@ -43,7 +43,8 @@ class TcpTransLatencyNSigmaDetector(NSigmaDetector):
         n = kwargs.get('n', 3)
         start, end = dt.last(minutes=look_back)
         point_count = self.data_loader.expected_point_length(start, end)
-        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
+        ts_list = self.data_loader.get_metric(
+            start, end, metric, machine_id=machine_id)
         ts_scores = []
         for _ts in ts_list:
             dedup_values = [k for k, g in groupby(_ts.values)]
@@ -51,29 +52,30 @@ class TcpTransLatencyNSigmaDetector(NSigmaDetector):
                len(_ts.values) < point_count * 0.6 or \
                len(_ts.values) > point_count * 1.5 or \
                all(x == _ts.values[0] for x in _ts.values):
-                ratio = 0
+                score = 0
             elif len(dedup_values) < point_count * 0.6:
-                ratio = 0
+                score = 0
             else:
                 smoothed_val = smoothing(_ts.values, **smooth_params)
-                outlier, mean, std = n_sigma(
+                outlier, _, _ = n_sigma(
                     smoothed_val, obs_size=obs_size, n=n, method=method)
                 if outlier and np.average(outlier) <= min_srtt:
-                    ratio = 0
+                    score = 0
                 else:
-                    ratio = divide(len(outlier), obs_size)
+                    score = divide(len(outlier), obs_size)
 
-            ts_scores.append(TimeSeriesScore(ts=_ts, score=ratio, description=description))
+            ts_scores.append((_ts, score))
 
         return ts_scores
 
-    def cal_anomaly_score(self, metric, description, machine_id: str) \
-            -> List[TimeSeriesScore]:
-        """Calculate metric anomaly scores based on max values"""
+    def cal_metric_ab_score(self, metric, machine_id: str) \
+            -> List[Tuple[TimeSeries, float]]:
+        """Calculate metric's anomaly scores based on max values"""
         start, end = dt.last(minutes=2)
         point_count = self.data_loader.expected_point_length(start, end)
         ts_scores = []
-        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
+        ts_list = self.data_loader.get_metric(
+            start, end, metric, machine_id=machine_id)
         for _ts in ts_list:
             if sum(_ts.values) == 0 or \
                     len(_ts.values) < point_count * 0.5 or \
@@ -82,6 +84,6 @@ class TcpTransLatencyNSigmaDetector(NSigmaDetector):
             else:
                 score = max(_ts.values)
 
-            ts_scores.append(TimeSeriesScore(ts=_ts, score=score, description=description))
+            ts_scores.append((_ts, score))
 
         return ts_scores

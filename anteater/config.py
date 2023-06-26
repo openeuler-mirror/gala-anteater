@@ -82,7 +82,7 @@ class AnteaterConf:
         data_path = os.path.realpath(data_path)
 
         try:
-            with open(os.path.join(data_path, "config", self.filename), "rb") as f:
+            with open(os.path.join(data_path, self.filename), "rb") as f:
                 result = yaml.safe_load(f)
         except IOError as e:
             logging.error(f"Load gala-anteater config file failed {e}")

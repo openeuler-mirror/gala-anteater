@@ -19,7 +19,7 @@ from anteater.model.detector.jvm_oom_detector import JVMOOMDetector
 from anteater.module.base import E2EDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.jvm_anomaly_template import JVMAnomalyTemplate
+from anteater.source.template import JVMAnomalyTemplate
 
 
 class JVMOutOfMemoryDetector(E2EDetector):
@@ -38,7 +38,3 @@ class JVMOutOfMemoryDetector(E2EDetector):
         self.detectors = [
             JVMOOMDetector(data_loader)
         ]
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        return []

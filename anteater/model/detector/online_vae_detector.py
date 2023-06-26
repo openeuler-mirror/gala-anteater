@@ -58,25 +58,24 @@ class OnlineVAEDetector(Detector):
         metric_kpi = {kpi.metric: kpi for kpi in kpis}
         ts_scores = []
         for kpi in kpis:
-            tmp_ts_scores = self.cal_anomaly_score(kpi.metric, kpi.description, machine_id)
-            for _ts_score in tmp_ts_scores:
-                if not check_trend(_ts_score.ts.values, kpi.atrend):
-                    _ts_score.score = 0
-            ts_scores.extend(tmp_ts_scores)
+            tmp_ts_scores = self.cal_metric_ab_score(kpi.metric, machine_id)
+            for _ts, _score in tmp_ts_scores:
+                if not check_trend(_ts.values, kpi.atrend):
+                    break
+                ts_scores.append((_ts, _score))
 
-        ts_scores = [v for v in ts_scores if v.score > 0]
-        ts_scores = sorted(ts_scores, key=lambda x: x.score, reverse=True)
+        ts_scores = [t for t in ts_scores if t[1] > 0]
+        ts_scores.sort(key=lambda x: x.score, reverse=True)
         ts_scores = ts_scores[: top_n]
         anomalies = [
             Anomaly(
                 machine_id=machine_id,
-                metric=_ts_score.ts.metric,
-                labels=_ts_score.ts.labels,
-                score=_ts_score.score,
-                entity_name=metric_kpi[_ts_score.ts.metric].entity_name,
-                description=metric_kpi[_ts_score.ts.metric].description
+                metric=_ts.metric,
+                labels=_ts.labels,
+                score=_score,
+                entity_name=metric_kpi[_ts.metric].entity_name
             )
-            for _ts_score in ts_scores
+            for _ts, _score in ts_scores
         ]
 
         return anomalies

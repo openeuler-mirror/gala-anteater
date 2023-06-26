@@ -19,7 +19,7 @@ from anteater.model.detector.tcp_establish_n_sigma_detector import\
     TcpEstablishNSigmaDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.sys_anomaly_template import SysAnomalyTemplate
+from anteater.source.template import SysAnomalyTemplate
 
 
 class SysTcpEstablishDetector(E2EDetector):
@@ -42,19 +42,3 @@ class SysTcpEstablishDetector(E2EDetector):
         self.detectors = [
             TcpEstablishNSigmaDetector(data_loader),
         ]
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        cause_metrics = [
-            {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description.format(
-                    cause.ts.labels.get('ppid', ''),
-                    cause.ts.labels.get('s_port', ''))}
-            for cause in anomaly.root_causes]
-
-        return cause_metrics
-
-

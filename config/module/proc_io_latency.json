@@ -10,10 +10,8 @@
       "metric": "gala_gopher_proc_bio_latency",
       "entity_name": "proc",
       "enable": true,
-      "description": "I/O operation delay at the BIO layer (unit: us)",
-      "description-zh": "BIO层I/O操作延时高(单位：us)",
       "params": {
-        "method":"max",
+        "method": "max",
         "look_back": 20,
         "obs_size": 37,
         "outlier_ratio_th": 0.5,
@@ -27,10 +25,8 @@
       "metric": "gala_gopher_proc_less_4k_io_read",
       "entity_name": "proc",
       "enable": true,
-      "description": "Number of small I/O (less than 4 KB) read operations at the BIO layer.",
-      "description-zh": "BIO层小数据I/O读操作数量异常（小于4KB）",
       "params": {
-        "method":"max",
+        "method": "max",
         "look_back": 20,
         "obs_size": 25,
         "outlier_ratio_th": 0.4,
@@ -44,10 +40,8 @@
       "metric": "gala_gopher_proc_less_4k_io_write",
       "entity_name": "proc",
       "enable": true,
-      "description": "Number of small I/O (less than 4 KB) write operations at the BIO layer.",
-      "description-zh": "BIO层小数据I/O写操作数量异常（小于4KB）",
       "params": {
-        "method":"max",
+        "method": "max",
         "look_back": 20,
         "obs_size": 25,
         "outlier_ratio_th": 0.4,
@@ -62,10 +56,8 @@
       "metric": "gala_gopher_proc_greater_4k_io_read",
       "entity_name": "proc",
       "enable": true,
-      "description": "Number of big I/O (greater than 4 KB) read operations at the BIO layer.",
-      "description-zh": "BIO层大数据I/O读操作数量异常（大于4KB）",
       "params": {
-        "method":"max",
+        "method": "max",
         "look_back": 20,
         "obs_size": 25,
         "outlier_ratio_th": 0.4,
@@ -79,10 +71,8 @@
       "metric": "gala_gopher_proc_greater_4k_io_write",
       "entity_name": "proc",
       "enable": true,
-      "description": "Number of big I/O (greater than 4 KB) write operations at the BIO layer.",
-      "description-zh": "BIO层大数据写操作数量异常（大于4KB）",
       "params": {
-        "method":"max",
+        "method": "max",
         "look_back": 20,
         "obs_size": 25,
         "outlier_ratio_th": 0.4,
@@ -103,7 +93,11 @@
       "min_predict_minutes": 20,
       "norm": {},
       "vae": {
-        "hidden_sizes": [45, 15, 7],
+        "hidden_sizes": [
+          45,
+          15,
+          7
+        ],
         "latent_size": 5,
         "dropout_rate": 0.25,
         "batch_size": 1024,
@@ -120,51 +114,35 @@
   "Features": [
     {
       "metric": "gala_gopher_block_latency_req_max",
-      "priority": 4,
-      "description": "Process I/O performance deteriorates due to system I/O bandwidth insufficient.(Disk = {})",
-      "description-zh": "系统I/O带宽不足引起进程I/O性能劣化（Disk={}）"
+      "priority": 4
     },
     {
       "metric": "gala_gopher_block_latency_device_max",
-      "priority": 3,
-      "description": "Process I/O performance deteriorates due to device I/O bandwidth insufficient.(Disk = {})",
-      "description-zh": "设备I/O带宽不足引起进程I/O性能劣化（Disk={}）"
+      "priority": 3
     },
     {
       "metric": "gala_gopher_block_read_bytes",
-      "priority": 2,
-      "description": "Process I/O performance deteriorates due to frequent read I/O operations.(Disk = {})",
-      "description-zh": "频繁I/O读操作引起进程I/O性能劣化（Disk={}）"
+      "priority": 2
     },
     {
       "metric": "gala_gopher_block_write_bytes",
-      "priority": 2,
-      "description": "Process I/O performance deteriorates due to frequent write I/O operations.(Disk = {})",
-      "description-zh": "频繁写操作引起进程I/O性能劣化（Disk={}）"
+      "priority": 2
     },
     {
       "metric": "gala_gopher_proc_less_4k_io_read",
-      "priority": 0,
-      "description": "Process I/O performance degrades due to frequent small I/O read operations.(Disk = {}, PID = {}, comm = {})",
-      "description-zh": "频繁小数据量（小于4KB）读操作引起进程I/O性能劣化（Disk={}，PID={}，comm={}）"
+      "priority": 0
     },
     {
       "metric": "gala_gopher_proc_less_4k_io_write",
-      "priority": 0,
-      "description": "Process I/O performance degrades due to frequent small I/O write operations.(Disk = {}, PID = {}, comm = {})",
-      "description-zh": "频繁小数据量（小于4KB）写操作引起进程I/O性能劣化（Disk={}，PID={}，comm={}）"
+      "priority": 0
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_read",
-      "priority": 1,
-      "description": "Process I/O performance degrades due to frequent big I/O read operations.(Disk = {}, PID = {}, comm = {})",
-      "description-zh": "频繁大数据量（大于4KB）读操作引起进程I/O性能劣化（Disk={}，PID={}，comm={}）"
+      "priority": 1
     },
     {
       "metric": "gala_gopher_proc_greater_4k_io_write",
-      "priority": 1,
-      "description": "Process I/O performance degrades due to frequent big I/O write operations.(Disk = {}, PID = {}, comm = {})",
-      "description-zh": "频繁大数据量（大于4KB）写操作引起进程I/O性能劣化（Disk={}，PID={}，comm={}）"
+      "priority": 1
     }
   ]
 }

@@ -12,18 +12,18 @@
 # ******************************************************************************/
 
 from itertools import groupby
-from typing import List
+import logging
+from typing import List, Tuple
 
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI
-from anteater.core.time_series import TimeSeriesScore
+from anteater.core.time_series import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.model.algorithms.smooth import smoothing
 from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
-from anteater.utils.log import logger
 
 
 class NSigmaDetector(Detector):
@@ -47,29 +47,29 @@ class NSigmaDetector(Detector):
     def detect_signal_kpi(self, kpi, machine_id: str) -> List[Anomaly]:
         """Detects kpi based on signal time series anomaly detection model"""
         outlier_ratio_th = kpi.params['outlier_ratio_th']
-        ts_scores = self.calculate_n_sigma_score(
-            kpi.metric, kpi.description, machine_id, **kpi.params)
+        ts_scores = self.cal_n_sigma_score(
+            kpi.metric, machine_id, **kpi.params)
         if not ts_scores:
-            logger.warning(f'Key metric {kpi.metric} is null on the target machine {machine_id}!')
+            logging.warning('Key metric %s is null on the target machine %s!',
+                            kpi.metric, machine_id)
             return []
 
-        ts_scores = [t for t in ts_scores if t.score >= outlier_ratio_th]
+        ts_scores = [t for t in ts_scores if t[1] >= outlier_ratio_th]
         anomalies = [
             Anomaly(
                 machine_id=machine_id,
-                metric=_ts_score.ts.metric,
-                labels=_ts_score.ts.labels,
-                score=_ts_score.score,
-                entity_name=kpi.entity_name,
-                description=kpi.description)
-            for _ts_score in ts_scores
+                metric=_ts.metric,
+                labels=_ts.labels,
+                score=_score,
+                entity_name=kpi.entity_name)
+            for _ts, _score in ts_scores
         ]
 
         return anomalies
 
-    def calculate_n_sigma_score(self, metric, description, machine_id: str, **kwargs)\
-            -> List[TimeSeriesScore]:
-        """Calculate kpi anomaly scores based on three sigma scores"""
+    def cal_n_sigma_score(self, metric, machine_id: str, **kwargs) \
+            -> List[Tuple[TimeSeries, int]]:
+        """Calculates metrics' ab score based on n-sigma method"""
         method = kwargs.get('method', 'abs')
         look_back = kwargs.get('look_back')
         smooth_params = kwargs.get('smooth_params')
@@ -77,7 +77,8 @@ class NSigmaDetector(Detector):
         n = kwargs.get('n', 3)
         start, end = dt.last(minutes=look_back)
         point_count = self.data_loader.expected_point_length(start, end)
-        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
+        ts_list = self.data_loader.get_metric(
+            start, end, metric, machine_id=machine_id)
         ts_scores = []
         for _ts in ts_list:
             dedup_values = [k for k, g in groupby(_ts.values)]
@@ -85,15 +86,15 @@ class NSigmaDetector(Detector):
                len(_ts.values) < point_count * 0.6 or \
                len(_ts.values) > point_count * 1.5 or \
                all(x == _ts.values[0] for x in _ts.values):
-                ratio = 0
+                score = 0
             elif len(dedup_values) < point_count * 0.6:
-                ratio = 0
+                score = 0
             else:
                 smoothed_val = smoothing(_ts.values, **smooth_params)
-                outlier, mean, std = n_sigma(
+                outlier, _, _ = n_sigma(
                     smoothed_val, obs_size=obs_size, n=n, method=method)
-                ratio = divide(len(outlier), obs_size)
+                score = divide(len(outlier), obs_size)
 
-            ts_scores.append(TimeSeriesScore(ts=_ts, score=ratio, description=description))
+            ts_scores.append((_ts, score))
 
         return ts_scores

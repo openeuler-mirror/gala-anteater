@@ -24,7 +24,7 @@ from anteater.model.detector.online_vae_detector import OnlineVAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
-from anteater.template.app_anomaly_template import AppAnomalyTemplate
+from anteater.source.template import AppAnomalyTemplate
 
 
 class APPSliDetector(E2EDetector):
@@ -52,16 +52,3 @@ class APPSliDetector(E2EDetector):
             ]
 
         return detectors
-
-    def parse_cause_metrics(self, anomaly: Anomaly) -> List[Dict]:
-        """Parses the cause metrics into the specific formats"""
-        cause_metrics = [
-            {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description
-            }
-            for cause in anomaly.root_causes]
-
-        return cause_metrics

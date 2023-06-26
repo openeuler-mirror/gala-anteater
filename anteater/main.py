@@ -24,15 +24,14 @@ from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
 from anteater.source.suppress import AnomalySuppression
+from anteater.utils.constants import ANTEATER_CONFIG_PATH
 from anteater.utils.log import logger
-
-ANTEATER_DATA_PATH = '/etc/gala-anteater/'
 
 
 def init_config() -> AnteaterConf:
     """initialize anteater config"""
     conf = AnteaterConf()
-    conf.load_from_yaml(ANTEATER_DATA_PATH)
+    conf.load_from_yaml(ANTEATER_CONFIG_PATH)
 
     return conf
 
