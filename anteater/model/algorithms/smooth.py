@@ -12,6 +12,7 @@
 # ******************************************************************************/
 
 import numpy as np
+from pandas import DataFrame
 from scipy.signal import savgol_filter
 
 
@@ -44,7 +45,8 @@ def savgol_smooth(y, window_length, polyorder, *args, **kwargs):
     return savgol_filter(y, window_length, polyorder, *args, *kwargs)
 
 
-def smoothing(y, method='conv_smooth', *args, **kwargs):
+def smoothing(y, *args, method='conv_smooth', **kwargs):
+    """Smooth y base on the smooting method"""
     if method == 'conv_smooth':
         return conv_smooth(y, *args, **kwargs)
     elif method == 'savgol_smooth':
@@ -52,3 +54,76 @@ def smoothing(y, method='conv_smooth', *args, **kwargs):
     else:
         raise ValueError(f'Unknown smoothing method {method}!')
 
+
+def smooth_data(df: DataFrame, window=3) -> DataFrame:
+    """Smooth the dataframe df by clomun
+
+    new values is the mean of the rolling window and backfill by
+    the next valid observation
+    """
+    for col in df.columns:
+        if col == 'timestamp':
+            continue
+        df[col] = df[col].rolling(window=window).mean().bfill().values
+
+    return df
+
+
+def moving_average(x: np.ndarray, window: int, stride: int):
+    """Sliding window average
+
+    :param x: The data matrix shape=(n,d),
+              n is the number of sampling points,
+              and d is the data dimension of each point
+    :param window: Window length
+    :param stride: Window step
+    :return: the average result
+    """
+    n, k = x.shape
+    if window > n:
+        window = n
+    score = np.zeros(n)
+    # Record the number of times each point is updated,
+    # and represent the weight of the original value of
+    # the point as the impact of the new point is added
+    score_weight = np.zeros(n)
+    # The window starts
+    wb = 0
+    while True:
+        # The window ends
+        we = wb + window
+        x_window = x[wb:we]
+        # The average vector of the window
+        x_mean = np.mean(x_window, axis=0)
+        # Add influence to the score
+        dis = np.sqrt(np.sum(np.square(x_window - x_mean), axis=1))
+        score[wb:we] = (score[wb:we] * score_weight[wb:we] + dis)
+        score_weight[wb:we] += 1
+        score[wb:we] /= score_weight[wb:we]
+        if we >= n:
+            break
+        wb += stride
+    # Map score to (0, 1)
+    return score
+
+
+def online_moving_average(
+        incoming_data: np.ndarray,
+        historical_data: np.ndarray,
+        window: int, stride: int):
+    """ Online sliding window average
+    :param incoming_data: shape=(n,d)
+    :param historical_data: shape=(m,d)
+    :param window: the window sizes
+    :param stride: the window steps
+    :return: the moveing average result
+    """
+    n = incoming_data.shape[0]
+    # 根据窗口大小计算出所需要的所有数据量(把第一个窗口的终点放在incoming_data的起点)
+    need_history_begin = max(0, historical_data.shape[0] - window + 1)
+    need_data = np.concatenate(
+        [incoming_data, historical_data[need_history_begin:]], axis=0
+    )
+    score = moving_average(need_data, window, stride)
+    # 截取最后n个点的数据表示incoming_data的数值将score映射到(0, 1]上
+    return score[0:n]
