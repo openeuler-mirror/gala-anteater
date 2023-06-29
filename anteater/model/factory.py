@@ -19,6 +19,7 @@ Description: The factory of the model initializer.
 from anteater.model.algorithms.calibrate import Calibrator, ErrorCalibrator
 from anteater.model.algorithms.normalization import Normalization
 from anteater.model.algorithms.threshold import Threshold, DynamicThreshold
+from anteater.model.algorithms.usad import USADModel
 from anteater.model.algorithms.vae import VAEModel
 
 
@@ -45,6 +46,9 @@ class ModelFactory:
 
         elif name == 'error_calibrate':
             return ErrorCalibrator.load(folder, **kwargs.get('error_calibrate', {}))
+
+        elif name == 'uasd':
+            return USADModel.load(folder, **kwargs.get('usad', {}))
 
         else:
             raise ValueError(f"Unknown model name {name} when model factorization.")

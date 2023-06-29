@@ -151,7 +151,7 @@ class Detector:
         anomalies = self.detect_kpis(kpis)
         if anomalies:
             logging.info('%d anomalies was detected on %s.',
-                         len(anomalies),  self.__class__.__name__)
+                         len(anomalies), self.__class__.__name__)
             anomalies = self.find_root_causes(anomalies, features, **kwargs)
             anomalies = self.cal_kpi_anomaly_score(anomalies, kpis)
 
