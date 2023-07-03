@@ -11,8 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from typing import List, Dict
-
 from anteater.module.base import E2EDetector
 from anteater.model.detector.online_vae_detector import OnlineVAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector

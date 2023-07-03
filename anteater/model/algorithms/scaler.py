@@ -10,11 +10,16 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
+
 import numpy as np
+import pandas as pd
+from pandas import DataFrame
+
+from anteater.utils.common import divide
 
 
 class ClipScaler:
-    """Clip and scale fatures by a given range from the std
+    """Clipping and scaling features by a given range from the std
 
     Formula:
         1. x = min(max(mean - a * std, x)  mean + a * std)
@@ -23,18 +28,14 @@ class ClipScaler:
     def __init__(self, alpha=20) -> None:
         self.alpha = alpha
 
-        self.mean = None
-        self.std = None
+        self.mean = pd.Series()
+        self.std = pd.Series()
 
     def fit(self, x):
         """Compute the mean and std to be used for later scaling"""
-        if self.mean is None or self.std is None:
-            self.mean = np.mean(x, axis=0)
-
-            self.std = np.std(x, axis=0)
-            for _v in self.std:
-                if _v < 1e-4:
-                    _v = 1
+        if self.mean.empty or self.std.empty:
+            self.mean = x.mean(axis=0)
+            self.std = x.std(axis=0).map(lambda v: 1 if v < 1e-4 else v)
 
         return self
 
@@ -42,21 +43,17 @@ class ClipScaler:
         """Compute and scale the feature"""
         return self.fit(x).transform(x)
 
-    def transform(self, x):
-        """Scale the fatures by using computed mean and std"""
-        if not self.mean or not self.std:
-            raise ValueError(
-                'Need to run fit() before transform data X.')
+    def transform(self, x: DataFrame):
+        """Scale the features by using computed mean and std"""
+        if self.mean.empty or self.std.empty:
+            raise ValueError('Empty mean and std of scaler')
 
-        for i in range(x.shape[0]):
-            # compute clip value: (mean - a * std, mean + a * std)
-            clip_value = self.mean + self.alpha * self.std
-            temp = x[i] < clip_value
-            x[i] = temp * x[i] + (1 - temp) * clip_value
-            clip_value = self.mean - self.alpha * self.std
-            temp = x[i] > clip_value
-            x[i] = temp * x[i] + (1 - temp) * clip_value
-            std = np.maximum(self.std, 1e-5)  # to avoid std -> 0
-            x[i] = np.divide((x[i] - self.mean), std)  # normalization
+        # compute clip value: (mean - a * std, mean + a * std)
+        upper = self.mean + self.alpha * self.std
+        lower = self.mean - self.alpha * self.std
+        x = x.clip(upper=upper, lower=lower, axis=1)
+
+        # normalization
+        x = divide((x - self.mean), self.std)
 
         return x

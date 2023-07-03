@@ -11,10 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-
-from typing import List, Dict
-
-from anteater.core.anomaly import Anomaly
 from anteater.model.detector.jvm_oom_detector import JVMOOMDetector
 from anteater.module.base import E2EDetector
 from anteater.source.anomaly_report import AnomalyReport

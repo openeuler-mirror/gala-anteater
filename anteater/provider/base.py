@@ -85,7 +85,7 @@ class TimeSeriesProvider:
         return result
 
     def range_query(self, start_time: datetime, end_time: datetime,
-                    metric: str, query: str) -> List[TimeSeries]:
+                    metric: str, query: str, is_single=False) -> List[TimeSeries]:
         """Range query time series data from PrometheusAdapter"""
         headers = self.get_headers()
 

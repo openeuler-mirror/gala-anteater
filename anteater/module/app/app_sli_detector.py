@@ -16,9 +16,6 @@ Author:
 Description: The anomaly detector implementation on APP Sli
 """
 
-from typing import List, Dict
-
-from anteater.core.anomaly import Anomaly
 from anteater.module.base import E2EDetector
 from anteater.model.detector.online_vae_detector import OnlineVAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector

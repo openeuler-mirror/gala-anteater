@@ -11,6 +11,8 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+import numpy as np
+import pandas as pd
 from torch.utils.data import Dataset
 
 
@@ -34,4 +36,13 @@ class TSDataset(Dataset):
             idx = self.num_samples + idx
 
         i = idx * self.step_size
-        return self.x[i: i+self.win_size, :]
+        if isinstance(self.x, np.ndarray):
+            return self.x[i: i+self.win_size, :]
+
+        elif isinstance(self.x, pd.DataFrame):
+            item = self.x.iloc[i: i + self.win_size, :].values
+            item = item.astype(np.float32)
+            return item
+
+        else:
+            raise TypeError(f'__getitem__ failed, data type: {type(self.x)}')

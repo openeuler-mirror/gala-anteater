@@ -13,7 +13,7 @@
 
 import numpy as np
 import pandas as pd
-from anteater.model.process.base import PreProcess
+from anteater.model.process.base import PreProcessor
 
 
 class TrainTestDataLoader:
@@ -36,7 +36,7 @@ class TrainTestDataLoader:
         self.ori_valid = None
         self.ori_test = None
 
-        self.preprocessor = PreProcess(self.config)
+        self.preprocessor = PreProcessor(self.config)
 
         self.sli_metrics = kwargs.get("sli_metrics")
         self.machine_id = kwargs.get("machine_id")

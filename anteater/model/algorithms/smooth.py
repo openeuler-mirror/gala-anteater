@@ -46,7 +46,7 @@ def savgol_smooth(y, window_length, polyorder, *args, **kwargs):
 
 
 def smoothing(y, *args, method='conv_smooth', **kwargs):
-    """Smooth y base on the smooting method"""
+    """Smooth y base on the smoothing method"""
     if method == 'conv_smooth':
         return conv_smooth(y, *args, **kwargs)
     elif method == 'savgol_smooth':
@@ -56,15 +56,12 @@ def smoothing(y, *args, method='conv_smooth', **kwargs):
 
 
 def smooth_data(df: DataFrame, window=3) -> DataFrame:
-    """Smooth the dataframe df by clomun
+    """Smooth the dataframe df by column
 
     new values is the mean of the rolling window and backfill by
     the next valid observation
     """
-    for col in df.columns:
-        if col == 'timestamp':
-            continue
-        df[col] = df[col].rolling(window=window).mean().bfill().values
+    df = df.rolling(window=window).mean().bfill()
 
     return df
 

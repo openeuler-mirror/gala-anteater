@@ -11,9 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from typing import List, Dict
-
-from anteater.core.anomaly import Anomaly
 from anteater.module.base import E2EDetector
 from anteater.model.detector.tcp_establish_n_sigma_detector import\
     TcpEstablishNSigmaDetector
