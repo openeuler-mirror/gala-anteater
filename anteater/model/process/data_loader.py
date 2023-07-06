@@ -16,11 +16,11 @@ import pandas as pd
 from anteater.model.process.base import PreProcess
 
 
-class DataLoader:
+class TrainTestDataLoader:
     """The data loader provides train and test data for the model"""
 
     def __init__(self, config, is_training=False, **kwargs):
-        """The data loader calss initializer"""
+        """The data loader class initializer"""
         self.config = config
 
         self.__features = None
@@ -65,7 +65,7 @@ class DataLoader:
 
     @property
     def valid_times(self):
-        """The validing stage time cost"""
+        """The validating stage time cost"""
         return self.__valid_times
 
     @property

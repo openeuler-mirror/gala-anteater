@@ -47,3 +47,28 @@ def dtw_loss(y, y_hat, window=10):
     """
 
     return NotImplemented("'dtw_loss' is not implemented!")
+
+
+def gan_loss(y, y_g, y_g_d, loss_type, alpha):
+    """Compute GAN based model loss based on original data y,
+    generated data y_g, and generated and decoded data y_g_d
+    """
+
+    if loss_type == 'common':
+        loss = alpha * np.square(y - y_g) + (1 - alpha) * np.square(y - y_g_d)
+
+    elif loss_type == 'percentage':
+        scale = np.array([1] * y.shape[1])
+        loss = np.divide(np.abs(np.subtract(y, y_g_d)), scale)
+
+    elif loss_type == 'power10':
+        scale = np.array([1] * y.shape[1])
+        power_y = np.power(10, np.divide(y, scale))
+        power_y_g_d = np.power(10, np.divide(y_g_d, scale))
+        loss = np.subtract(power_y, power_y_g_d)
+        loss = np.abs(loss)
+
+    else:
+        raise NotImplementedError(f'Unknown loss type: {loss_type}!')
+
+    return loss

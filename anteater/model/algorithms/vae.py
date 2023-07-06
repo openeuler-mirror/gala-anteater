@@ -100,10 +100,6 @@ class VAEModel:
     def __init__(self, config: VAEConfig, **kwargs):
         """VAEDetector initializer"""
         self.config = copy.copy(config)
-        self.hidden_sizes = config.hidden_sizes
-        self.latent_size = config.latent_size
-        self.dropout_rate = config.dropout_rate
-        self.activation = config.activation
 
         self.batch_size = config.batch_size
         self.num_epochs = config.num_epochs
