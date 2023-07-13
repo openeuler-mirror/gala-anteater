@@ -42,6 +42,7 @@ class KafkaProvider:
     """
 
     def __init__(self, conf: KafkaConf) -> None:
+        self.conf = conf
         producer_configs = {
             "bootstrap_servers": f"{conf.server}:{conf.port}"
         }
@@ -53,6 +54,10 @@ class KafkaProvider:
             "group_id": conf.group_id,
         }
 
+        if conf.auth_type == 'sasl_plaintext':
+            self.config_kafka_sasl(producer_configs)
+            self.config_kafka_sasl(consumer_configs)
+
         self.model_topic = conf.model_topic
         self.meta_topic = conf.meta_topic
 
@@ -61,6 +66,13 @@ class KafkaProvider:
 
         self.metadata = collections.deque(maxlen=200)
         self.updating()
+
+    def config_kafka_sasl(self, kafka_conf):
+        """Config kafka sasl plaintext"""
+        kafka_conf['security_protocol'] = "SASL_PLAINTEXT"
+        kafka_conf['sasl_mechanism'] = "PLAIN"
+        kafka_conf['sasl_plain_username'] = self.conf.username
+        kafka_conf['sasl_plain_password'] = self.conf.password
 
     def updating(self):
         t = threading.Thread(target=self.fetch_metadata, args=())

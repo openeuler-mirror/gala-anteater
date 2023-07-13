@@ -7,6 +7,10 @@ Kafka:
   model_topic: "gala_anteater_hybrid_model"
   meta_topic: "gala_gopher_metadata"
   group_id: "gala_anteater_kafka"
+  # auth_type: plaintext/sasl_plaintext, please set "" for no auth
+  auth_type: ""
+  username: ""
+  password: ""
 
 Prometheus:
   server: "localhost"
