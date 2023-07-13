@@ -11,8 +11,10 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from typing import Union
+
+import pytz
 
 from anteater.utils.singleton import Singleton
 
@@ -74,7 +76,7 @@ class DateTime(metaclass=Singleton):
             time = self.time
 
         elif not self.time:
-            time = datetime.now(timezone.utc).astimezone()
+            time = datetime.utcnow().replace(tzinfo=pytz.utc)
 
         else:
             raise TypeError(f"TypeError: type {type(self.time)} is not supported!")

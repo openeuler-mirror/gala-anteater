@@ -12,13 +12,13 @@
 # ******************************************************************************/
 
 import logging
+import os
 
 import numpy as np
 
 from anteater.core.kpi import ModelConfig
 from anteater.model.factory import ModelFactory as factory
-from anteater.model.process.base import PreProcess
-from anteater.model.process.data_loader import TrainTestDataLoader
+from anteater.model.process.base import PreProcessor
 from anteater.model.process.post_process import PostProcessor
 from anteater.utils.constants import POINTS_MINUTE
 
@@ -28,36 +28,40 @@ class OnlineUsadModel:
 
     def __init__(self, config: ModelConfig) -> None:
         """The model initializer"""
-        params = config.params
         self.config = config
-        self.folder = config.model_path
-
-        self.preprocessor = PreProcess(self.config)
-        self.model = factory.create_model('usad', self.folder, **params)
-
         self.params = config.params
-        self.th = self.params.get('th')
 
-        self.post = PostProcessor(config)
+        self.preprocessor = PreProcessor(self.params)
+        self.postprocessor = PostProcessor(self.params)
 
-    def predict(self, x, machine_id, detect_metrics, sli_metrics):
+        self.models = {}
+
+    def get_min_predict_minutes(self):
+        """Gets minimal minutes for model prediction"""
+        return self.params.get('min_predict_minutes')
+
+    def predict(self, x, machine_id):
         """Runs online model predicting"""
-        data_loader = TrainTestDataLoader(self.config, is_training=False, machine_id=machine_id,
-                                          test_data=x, detect_metrics=detect_metrics, sli_metrics=sli_metrics)
-        x_test = data_loader.return_test_data()
-        x_g, x_g_d = self.model.predict(x_test)
-        scores = self.post.compute_score(x_test, x_g, x_g_d)
-        thresholds = self.post.spot_run(scores)
-        health_anomalies = self.post.health_detection(x_test, scores, thresholds)
-        y_pred = self.post.get_anomalies(x_test, health_anomalies)
+        model = self.models.get(machine_id)
+        x_test = self.preprocessor.transform(x)
+        x_g, x_g_d = model.predict(x_test)
+        scores = self.postprocessor.compute_score(x_test, x_g, x_g_d)
+        thresholds = self.postprocessor.spot_run(scores)
+        y_pred = np.where(scores > thresholds, scores, 0)
         return y_pred
 
-    def train(self, df, machine_id, detect_metrics, sli_metrics):
+    def train(self, x, machine_id):
         """Runs online model training"""
-        data_loader = TrainTestDataLoader(self.config, is_training=True, machine_id=machine_id,
-                                          train_data=df, detect_metrics=detect_metrics, sli_metrics=sli_metrics)
-        x_train, x_valid = data_loader.return_data()
-        self.model.train(x_train, x_valid)
+        sub_directory = os.path.join(self.config.model_path, machine_id)
+        model = factory.create_model('usad', sub_directory, **self.params)
+        train_df, valid_df = self.preprocessor.split_data(x)
+        x_train = self.preprocessor.fit_transform(train_df)
+        x_valid = self.preprocessor.transform(valid_df)
+        model.train(x_train, x_valid)
+        self.models[machine_id] = model
+        x_g, x_g_d = model.predict(x_train)
+        scores = self.postprocessor.compute_score(x_train, x_g, x_g_d)
+        self.postprocessor.fit(scores)
 
     def is_abnormal(self, y_pred):
         """Checks if existing abnormal or not"""
@@ -71,11 +75,18 @@ class OnlineUsadModel:
             logging.warning(
                 f'The length of y_pred is less than {POINTS_MINUTE}')
             return False
-
-        abnormal = sum([1 for y in y_pred if y > 0]) >= len(y_pred) * self.th
+        th = self.params.get('th')
+        abnormal = sum([1 for y in y_pred if y > 0]) >= len(y_pred) * th
 
         if abnormal:
             logging.info(
                 f'Detects abnormal events by {self.__class__.__name__}!')
 
         return abnormal
+
+    def need_training(self, machine_id):
+        """Checks model need to be training before predicting"""
+        if machine_id not in self.models:
+            return True
+
+        return False

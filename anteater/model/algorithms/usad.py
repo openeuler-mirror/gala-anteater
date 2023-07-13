@@ -16,7 +16,6 @@ import json
 import logging
 import os
 import stat
-import time
 from itertools import chain
 from os import path
 from typing import List, Callable, Tuple
@@ -26,6 +25,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from anteater.model.algorithms.early_stop import EarlyStopper
 from anteater.utils.ts_dataset import TSDataset
 
 
@@ -86,6 +86,9 @@ class USADModel:
         self._window_size = config.window_size
         self._lr = config.lr
         self._weight_decay = config.weight_decay
+
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
         self.model: USAD = None
 
     @classmethod
@@ -120,7 +123,7 @@ class USADModel:
     def init_model(self, x_dim):
         """Initializes the model"""
         model = USAD(
-            x_dim=x_dim,
+            x_dim=x_dim * self._window_size,
             config=self.config
         )
 
@@ -129,113 +132,89 @@ class USADModel:
     def train(self, train_values, valid_values):
         self.model = self.model if self.model else self.init_model(train_values.shape[1])
 
-        x_dim = train_values.shape[1] * self._window_size
         train_loader = DataLoader(TSDataset(train_values, self._window_size, self._window_size),
                                   batch_size=self._batch_size,
                                   shuffle=True,
                                   drop_last=True)
-
         valid_loader = DataLoader(TSDataset(valid_values, self._window_size, self._window_size),
                                   batch_size=self._batch_size)
 
-        train_loss1 = []
-        train_loss2 = []
+        early_stopper1 = EarlyStopper(patience=5)
+        early_stopper2 = EarlyStopper(patience=5)
 
-        valid_loss1 = []
-        valid_loss2 = []
+        loss_func = nn.MSELoss()
 
-        # 损失函数
-        mse = nn.MSELoss()
-        # 优化器
         optimizer_g = torch.optim.Adam(self.model.g_parameters())
         optimizer_d = torch.optim.Adam(self.model.d_parameters())
 
-        train_time = 0
-        valid_time = 0
         for epoch in range(self._num_epochs):
             self.model.train()
-            train_start = time.time()
-            train_losses_g = []
-            train_losses_d = []
-            for x_batch_train in train_loader:
-                # [batch, window, feature] -> [batch, window*feature]
-                w = torch.reshape(x_batch_train, (-1, x_dim))
-                w_g, w_d, w_g_d = self.model(w)
+            train_g_loss = []
+            train_d_loss = []
+            for x_batch in train_loader:
+                x_batch = x_batch.to(self.device)
+                x_batch = torch.flatten(x_batch, start_dim=1)
+
+                w_g, w_d, w_g_d = self.model(x_batch)
                 beta = np.divide(1, epoch + 1)
-                loss_g = beta * mse(w_g, w) + (1 - beta) * mse(w_g_d, w)
-                loss_d = beta * mse(w_d, w) - (1 - beta) * mse(w_g_d, w)
+                loss_g = beta * loss_func(x_batch, w_g) + (1 - beta) * loss_func(x_batch, w_g_d)
+                loss_d = beta * loss_func(x_batch, w_d) - (1 - beta) * loss_func(x_batch, w_g_d)
 
-                train_losses_g.append(loss_g.detach().numpy())
-                train_losses_d.append(loss_d.detach().numpy())
+                train_g_loss.append(loss_g.detach().numpy())
+                train_d_loss.append(loss_d.detach().numpy())
 
-                # 梯度清零
                 optimizer_g.zero_grad()
                 optimizer_d.zero_grad()
 
-                # 反向传播
                 loss_g.backward(retain_graph=True)
                 loss_d.backward()
 
-                # 更新梯度
                 optimizer_g.step()
                 optimizer_d.step()
 
-            train_loss1_mean = np.mean(train_losses_g)
-            train_loss2_mean = np.mean(train_losses_d)
-            train_loss1.append(train_loss1_mean)
-            train_loss2.append(train_loss2_mean)
-            train_time += time.time() - train_start
+            avg_train_g_loss = np.mean(train_g_loss)
+            avg_train_d_loss = np.mean(train_d_loss)
 
             self.model.eval()
-            val_losses1 = []
-            val_losses2 = []
-            valid_start = time.time()
+            val_g_loss = []
+            val_d_loss = []
+            for x_val_batch in valid_loader:
+                x_val_batch = torch.flatten(x_val_batch, start_dim=1)
+                w_g, w_d, w_g_d = self.model(x_val_batch)
+                beta = np.divide(1, epoch + 1)
+                val_g = beta * loss_func(x_val_batch, w_g) + (1 - beta) * loss_func(x_val_batch, w_g_d)
+                val_d = beta * loss_func(x_val_batch, w_d) - (1 - beta) * loss_func(x_val_batch, w_g_d)
 
-            for x_batch_val in valid_loader:
-                w = torch.reshape(x_batch_val, (-1, x_dim))
-                w_g, w_d, w_g_d = self.model(w)
-                beta = np.divide(1, epoch)
-                val_loss1 = beta * mse(w, w_g) + (1 - beta) * mse(w, w_g_d)
-                val_loss2 = beta * mse(w, w_d) - (1 - beta) * mse(w, w_g_d)
+                val_g_loss.append(val_g.detach().numpy())
+                val_d_loss.append(val_d.detach().numpy())
 
-                val_losses1.append(val_loss1.detach().numpy())
-                val_losses2.append(val_loss2.detach().numpy())
+            avg_val_g_loss = np.mean(val_g_loss)
+            avg_val_d_loss = np.mean(val_d_loss)
 
-            valid_time += time.time() - valid_start
+            logging.info(f'Epoch {epoch}, training loss:\t'
+                         f'val_g: {avg_val_g_loss:.3f}\t'
+                         f'val_d: {avg_val_d_loss:.3f}\t'
+                         f'train_g: {avg_train_g_loss:.3f}\t'
+                         f'train_d:{avg_train_d_loss:.3f}')
 
-            val1_loss = np.mean(val_losses1)
-            val2_loss = np.mean(val_losses2)
-            valid_loss1.append(val1_loss)
-            valid_loss2.append(val2_loss)
-            logging.info(f'epoch {epoch} val1_loss: {val1_loss}, val2_loss: {val2_loss}, '
-                         f'train_loss1: {train_loss1_mean} train_loss2:{train_loss2_mean}')
-
-        return {
-            'train_time': train_time,
-            'valid_time': valid_time,
-            'train_loss1': np.array(train_loss1).tolist(),
-            'train_loss2': np.array(train_loss2).tolist(),
-            'valid_loss1': np.array(valid_loss1).tolist(),
-            'valid_loss2': np.array(valid_loss2).tolist()
-        }
+            if early_stopper1.early_stop(avg_val_g_loss) and \
+               early_stopper2.early_stop(avg_val_d_loss):
+                logging.info("Early Stopped!")
+                break
 
     def predict(self, values):
-        x_dim = values.shape[1] * self._window_size
-        collect_g, collect_g_d = [], []
-        x_loader = DataLoader(TSDataset(values, self._window_size, self._window_size),
-                              batch_size=self._batch_size)
+        self.model.eval()
+        dataset = TSDataset(values, self._window_size, 1)
+        x_loader = DataLoader(dataset, batch_size=len(dataset))
+        x_pred = next(iter(x_loader))
+        x_pred = torch.flatten(x_pred, start_dim=1)
+        w_g, _, w_g_d = self.model(x_pred)
+        batch_g = torch.reshape(w_g, (-1, self._window_size, values.shape[1])).detach()
+        batch_g_d = torch.reshape(w_g_d, (-1, self._window_size, values.shape[1])).detach()
+        batch_g = torch.cat([batch_g[0], batch_g[1:, -1]], dim=0).numpy()
+        batch_g_d = torch.cat([batch_g_d[0], batch_g_d[1:, -1]], dim=0).numpy()
 
-        for w in x_loader:
-            w = torch.reshape(w, (-1, x_dim))
-            w_g, w_d, w_g_d = self.model(w)
-            batch_g = torch.reshape(w_g, (-1, self._window_size, values.shape[1]))
-            batch_g_d = torch.reshape(w_g_d, (-1, self._window_size, values.shape[1]))
-
-            # 只取最后一个点的重构值
-            collect_g.extend(batch_g[:, -1].detach().numpy())
-            collect_g_d.extend(batch_g_d[:, -1].detach().numpy())
-
-        return np.array(collect_g), np.array(collect_g_d)
+        return batch_g, batch_g_d
 
     def save(self, folder):
         """Saves the model into the file"""
@@ -257,9 +236,9 @@ class USADModel:
 class USAD(nn.Module):
     def __init__(self, x_dim, config: USADConfig):
         super().__init__()
-        self._shared_encoder = Encoder(x_dim * self._window_size, config)
-        self._decoder_g = Decoder(x_dim * self._window_size, config)
-        self._decoder_d = Decoder(x_dim * self._window_size, config)
+        self._shared_encoder = Encoder(x_dim, config)
+        self._decoder_g = Decoder(x_dim, config)
+        self._decoder_d = Decoder(x_dim, config)
 
     def g_parameters(self):
         return chain(self._shared_encoder.parameters(), self._decoder_g.parameters())
@@ -288,7 +267,7 @@ class Encoder(nn.Module):
         dropout_rate = config.dropout_rate
         activation = config.activation
 
-        self.mlp = build_multi_hidden_layers(latent_size, hidden_sizes,
+        self.mlp = build_multi_hidden_layers(x_dim, hidden_sizes,
                                              dropout_rate, activation)
         self.linear = nn.Linear(hidden_sizes[-1], latent_size)
 

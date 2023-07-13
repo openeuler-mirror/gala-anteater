@@ -11,9 +11,10 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from functools import partial
 import os
-from typing import Union, Tuple
+from functools import partial
+from typing import Union, Tuple, Callable, Dict
+
 import joblib
 import numpy as np
 from pandas import DataFrame
@@ -25,39 +26,39 @@ from anteater.model.algorithms.smooth import conv_smooth, \
     savgol_smooth, smooth_data
 
 
-class PreProcess:
-    """The preprocess base class
+class PreProcessor:
+    """The preprocessor base class
 
-    which provides raw data smoting, scaling, and spliting
+    which provides raw data smoothing, scaling, and splitting
     """
 
-    filename = 'preprocess.pkl'
+    filename = 'preprocessor.pkl'
 
-    def __init__(self, config, *args, **kwargs) -> None:
-        """The preprocess class initializer"""
-        self.config = config.get('preprocess')
-
-        self.smooth = self._select_smoother()
-        self.scaler = self._select_scaler()
+    def __init__(self, params: Dict) -> None:
+        """The preprocessor class initializer"""
+        self.params = params.get('preprocessor')
+        self.smoothing = self.__select_smoothing()
+        self.scaler = self.__select_scaler()
 
     @classmethod
-    def load(cls, folder, **kwargs):
+    def load(cls, folder: str, **kwargs):
         """Load model from the file"""
         file = os.path.join(folder, cls.filename)
         model = cls(**kwargs)
         model.scaler = joblib.load(file)
+
         return model
 
-    def save(self, folder):
+    def save(self, folder: str):
         """Save the scaler into the file"""
         model_path = os.path.join(folder, self.filename)
         joblib.dump(self.scaler, model_path)
 
-    def split_data(self, x, default_size=0.7) -> Tuple[DataFrame, DataFrame]:
-        """"Divides the train and valid data"""
-        train_size = self.config.get('train_size')
-        valid_size = self.config.get('valid_size')
-        shuffle = self.config.get('shuffle')
+    def split_data(self, x: DataFrame, default_size: float = 0.7) -> Tuple[DataFrame, DataFrame]:
+        """"Divides the data x into train and valid dataset"""
+        train_size = self.params.get('train_size')
+        valid_size = self.params.get('valid_size')
+        shuffle = self.params.get('shuffle')
 
         if not train_size and not valid_size:
             train_size, valid_size = default_size, 1 - default_size
@@ -69,67 +70,69 @@ class PreProcess:
             x_train, x_valid = train_test_split(
                 x, test_size=valid_size, shuffle=shuffle)
         elif isinstance(x, DataFrame):
-            n = len(x) * train_size
-            x_train = x[:-n]
+            n = round(len(x) * train_size)
+            x_train = x[:n]
             x_valid = x[-n:]
         else:
             raise TypeError(f'Unknown X type: {type(x)}')
 
         return x_train, x_valid
 
-    def fit(self, x):
+    def fit(self, x: DataFrame):
         """Compute the arguments of the scaler"""
-        x = self.smooth(x)
+        x = self.smoothing(x)
         self.scaler.fit_transform(x)
 
         return self
 
-    def fit_transform(self, x):
+    def fit_transform(self, x: DataFrame):
         """Compute arguments, then mooting and scaling the features"""
-        x = self.smooth(x)
+        x = self.smoothing(x)
         x = self.scaler.fit_transform(x)
 
         return x
 
-    def transform(self, x):
+    def transform(self, x: DataFrame):
         """Scale the features based on the data"""
-        x = self.smooth(x)
-        x = self.scaler.fit_transform(x)
+        x = self.smoothing(x)
+        x = self.scaler.transform(x)
 
         return x
 
-    def _select_scaler(self) -> \
-            Union[MinMaxScaler, StandardScaler, ClipScaler]:
+    def __select_scaler(self) -> Union[MinMaxScaler, StandardScaler, ClipScaler]:
         """Select scaler based on scaler type"""
-        scl_type = self.config.get('scale_type')
-        if scl_type == 'minmax':
+        scale_type = self.params.get('scale_type')
+        if scale_type == 'minmax':
             scaler = MinMaxScaler()
-        elif scl_type == 'standard':
+        elif scale_type == 'standard':
             scaler = StandardScaler()
-        elif scl_type == 'clip':
-            alpha = self.config.get('clip_alpha')
+        elif scale_type == 'clip':
+            alpha = self.params.get('clip_alpha')
             scaler = ClipScaler(alpha=alpha)
         else:
-            raise ValueError(f'Unknown scaler type: {scl_type}')
+            raise ValueError(f'Unknown scaler type: {scale_type}')
 
         return scaler
 
-    def _select_smoother(self) -> partial:
+    def __select_smoothing(self) -> Callable:
         """Select smoother method based on smooth type"""
-        smt_type = self.config('smooth_type')
-        if smt_type == 'rolling':
-            window = self.config['window']
-            smooth = partial(smooth_data, window=window)
-        elif smt_type == 'conv_smooth':
-            box_pts = self.config['box_pts']
-            smooth = partial(conv_smooth, box_pts=box_pts)
-        elif smt_type == 'savgol_smooth':
-            window_length = self.config['window_length']
-            polyorder = self.config['polyorder']
-            smooth = partial(savgol_smooth,
-                             window_length=window_length,
-                             polyorder=polyorder)
-        else:
-            raise ValueError(f'Unknown smooth type: {smt_type}')
+        smooth_type = self.params.get('smooth_type')
+        if smooth_type == 'rolling':
+            window = self.params.get('smooth_window')
+            smoothing = partial(smooth_data, window=window)
 
-        return smooth
+        elif smooth_type == 'conv_smooth':
+            box_pts = self.params.get('box_pts')
+            smoothing = partial(conv_smooth, box_pts=box_pts)
+
+        elif smooth_type == 'savgol_smooth':
+            window_length = self.params.get('window_length')
+            polyorder = self.params.get('polyorder')
+            smoothing = partial(savgol_smooth,
+                                window_length=window_length,
+                                polyorder=polyorder)
+
+        else:
+            raise ValueError(f'Unknown smoothing type: {smooth_type}')
+
+        return smoothing

@@ -47,7 +47,7 @@ class ModelFactory:
         elif name == 'error_calibrate':
             return ErrorCalibrator.load(folder, **kwargs.get('error_calibrate', {}))
 
-        elif name == 'uasd':
+        elif name == 'usad':
             return USADModel.load(folder, **kwargs.get('usad', {}))
 
         else:

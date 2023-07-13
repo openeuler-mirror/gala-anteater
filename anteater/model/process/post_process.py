@@ -11,6 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
+import math
 from typing import Dict
 
 import numpy as np
@@ -24,12 +25,13 @@ from anteater.model.algorithms.spot import Spot
 class PostProcessor:
     """The post processor for deep learning model output"""
 
-    def __init__(self, config: Dict):
+    def __init__(self, params: Dict):
         """The """
-        self.score_type = config.get('score_type')
-        self.alpha = config.get('alpha')
-        self.q = config.get('q')
-        self.level = config.get('q')
+        self.params = params.get('postprocessor')
+        self.score_type = self.params.get('score_type')
+        self.alpha = self.params.get('alpha')
+        self.q = self.params.get('q')
+        self.level = self.params.get('level')
 
         self.spot = None
         self.health = None
@@ -51,8 +53,7 @@ class PostProcessor:
     def fit(self, scores):
         """The post-processor fit and initialize local variables"""
         self.spot = Spot(self.q)
-        self.spot.fit(scores, scores)
-        self.spot.initialize(level=self.level, verbose=False)
+        self.spot.initialize(scores, level=self.level)
 
         score_std = np.std(scores)
         self.health = HealthMulti(score_std, None)
@@ -75,7 +76,7 @@ class PostProcessor:
     def health_detection(self, x, scores, thresholds):
         """Filters reported anomalies through health detection"""
         for i, th in enumerate(thresholds):
-            x_np = x[i]
+            x_np = x.iloc[i, :]
             err = scores[i]
             self.health.fit(i, x_np, err, th)
 
