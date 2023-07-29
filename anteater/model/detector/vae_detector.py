@@ -29,7 +29,7 @@ from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 
-class OnlineVAEDetector(Detector):
+class VAEDetector(Detector):
     """The online vae detector"""
 
     def __init__(self, data_loader: MetricLoader, conf: ModelConfig):

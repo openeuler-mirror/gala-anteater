@@ -17,7 +17,7 @@ Description: The anomaly detector implementation on APP Sli
 """
 
 from anteater.module.base import E2EDetector
-from anteater.model.detector.online_vae_detector import OnlineVAEDetector
+from anteater.model.detector.vae_detector import VAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
@@ -41,7 +41,7 @@ class APPSliDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                OnlineVAEDetector(data_loader, self.job_config.model_config)
+                VAEDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
