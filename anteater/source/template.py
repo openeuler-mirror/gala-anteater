@@ -45,7 +45,7 @@ class Template:
             'Attributes': {
                 'entity_id': self._entity_id,
                 'event_id': f'{timestamp}_{self._entity_id}',
-                'event_type': 'jvm',
+                'event_type': self.event_type,
                 'event_source': 'gala-anteater',
                 'keywords': self._keywords
             },

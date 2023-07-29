@@ -70,9 +70,9 @@ class PreProcessor:
             x_train, x_valid = train_test_split(
                 x, test_size=valid_size, shuffle=shuffle)
         elif isinstance(x, DataFrame):
-            n = round(len(x) * train_size)
+            n = round(x.shape[0] * train_size)
             x_train = x[:n]
-            x_valid = x[-n:]
+            x_valid = x[n:]
         else:
             raise TypeError(f'Unknown X type: {type(x)}')
 

@@ -42,9 +42,9 @@ class KafkaConf(ServiceConf):
     model_topic: str
     meta_topic: str
     group_id: str
-    auth_type: str
-    username: str
-    password: str
+    auth_type: str = None
+    username: str = None
+    password: str = None
 
 
 @dataclass

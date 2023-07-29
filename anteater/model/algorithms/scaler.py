@@ -11,11 +11,8 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import numpy as np
 import pandas as pd
 from pandas import DataFrame
-
-from anteater.utils.common import divide
 
 
 class ClipScaler:
@@ -33,9 +30,8 @@ class ClipScaler:
 
     def fit(self, x):
         """Compute the mean and std to be used for later scaling"""
-        if self.mean.empty or self.std.empty:
-            self.mean = x.mean(axis=0)
-            self.std = x.std(axis=0).map(lambda v: 1 if v < 1e-4 else v)
+        self.mean = x.mean(axis=0)
+        self.std = x.std(axis=0).map(lambda v: 1 if v < 1e-4 else v)
 
         return self
 
@@ -54,6 +50,6 @@ class ClipScaler:
         x = x.clip(upper=upper, lower=lower, axis=1)
 
         # normalization
-        x = divide((x - self.mean), self.std)
+        x = (x - self.mean).divide(self.std)
 
         return x

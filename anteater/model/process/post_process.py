@@ -53,7 +53,8 @@ class PostProcessor:
     def fit(self, scores):
         """The post-processor fit and initialize local variables"""
         self.spot = Spot(self.q)
-        self.spot.initialize(scores, level=self.level)
+        self.spot.initialize(scores[:1000], level=self.level)
+        self.spot.run(scores[1000:])
 
         score_std = np.std(scores)
         self.health = HealthMulti(score_std, None)
