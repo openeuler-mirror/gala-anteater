@@ -11,7 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from anteater.model.detector.online_vae_detector import OnlineVAEDetector
+from anteater.model.detector.vae_detector import VAEDetector
 from anteater.model.detector.tcp_trans_latency_n_sigma_detector import \
     TcpTransLatencyNSigmaDetector
 from anteater.module.base import E2EDetector
@@ -36,7 +36,7 @@ class SysTcpTransmissionLatencyDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                OnlineVAEDetector(data_loader, self.job_config.model_config)
+                VAEDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
