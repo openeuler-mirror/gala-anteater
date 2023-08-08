@@ -50,18 +50,18 @@ class UsadDetector(Detector):
         min_minutes = self.online_model.get_min_predict_minutes()
         start, end = dt.last(minutes=min_minutes)
         if self.online_model.need_training(machine_id):
-            train_df = self.get_training_data(start - timedelta(hours=24), end, metrics, machine_id)
+            hours = self.online_model.get_min_training_hours()
+            train_df = self.get_training_data(start - timedelta(hours=hours), end, metrics, machine_id)
             if len(train_df) > 0:
                 self.online_model.train(train_df, machine_id)
             else:
                 logging.info('Got empty training dataset, return')
                 return []
 
-        sli_metrics = [kpi.metric for kpi in kpis]
         anomalies = []
         for machine_id, x_df in self.get_inference_data(start, end, metrics, machine_id):
             y_pred = self.online_model.predict(x_df, machine_id)
-            if True or self.online_model.is_abnormal(y_pred):
+            if self.online_model.is_abnormal(y_pred):
                 anomalies.extend(self.find_abnormal_kpis(machine_id, kpis))
 
         if anomalies:
@@ -75,14 +75,12 @@ class UsadDetector(Detector):
         """Find abnormal kpis when detected anomaly events"""
         detect_kpis = copy.deepcopy(kpis)
         detect_metrics = {kpi.metric: kpi for kpi in detect_kpis}
-
         ts_scores = []
         for kpi in kpis:
-            tmp_ts_scores = self.cal_metric_ab_score(kpi.metric, machine_id)
-            if tmp_ts_scores:
-                for _ts, _score in tmp_ts_scores:
-                    if check_trend(_ts.values, kpi.atrend):
-                        ts_scores.append((_ts, _score))
+            ts_scores.extend(self.cal_metric_ab_score(kpi.metric, machine_id))
+
+        ts_scores.sort(key=lambda x: x[1], reverse=True)
+        ts_scores = ts_scores[:1]
 
         anomalies = [
             Anomaly(
@@ -97,6 +95,27 @@ class UsadDetector(Detector):
 
         return anomalies
 
+    def cal_metric_ab_score(self, metric: str, machine_id: str) \
+            -> List[Tuple[TimeSeries, int]]:
+        """Calculates metric abnormal scores based on sr model"""
+        start, end = dt.last(minutes=10)
+        ts_list = self.data_loader.get_metric(
+            start, end, metric, machine_id=machine_id, )
+        point_count = self.data_loader.expected_point_length(start, end)
+        ts_scores = []
+        for _ts in ts_list:
+            if sum(_ts.values) == 0 or \
+               len(_ts.values) < point_count * 0.9 or\
+               len(_ts.values) > point_count * 1.5 or \
+               all(x == _ts.values[0] for x in _ts.values):
+                score = 0
+            else:
+                score = max(_ts.values)
+
+            ts_scores.append((_ts, score))
+
+        return ts_scores
+
     def get_training_data(self, start: datetime, end: datetime, metrics: List[str], machine_id: str)\
             -> DataFrame:
         """Get the training data to support model training"""
@@ -108,6 +127,7 @@ class UsadDetector(Detector):
     def get_inference_data(self, start: datetime, end: datetime, metrics: List[str], machine_id: str)\
             -> List[Tuple[str, DataFrame]]:
         """Get data for the model inference and prediction"""
+        logging.info('Get inference data during %s to %s on %s!', start, end, machine_id)
         ids, x_dfs = self.get_dataframe(start, end, metrics, machine_ids=[machine_id])
 
         return list(zip(ids, x_dfs))
@@ -153,7 +173,6 @@ class UsadDetector(Detector):
         anomalies = []
         result = []
         for _id in machine_ids:
-            anomalies.extend(self.detect_machine_kpis(kpis, features, _id))
             result.append(p.apply_async(self.detect_machine_kpis,
                           args=(kpis, features, _id)))
         p.close()

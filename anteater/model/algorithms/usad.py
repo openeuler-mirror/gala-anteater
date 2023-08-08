@@ -26,18 +26,20 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from anteater.model.algorithms.early_stop import EarlyStopper
+from anteater.utils.timer import timer
 from anteater.utils.ts_dataset import TSDataset
 
 
 class USADConfig:
-    """The USADModel model configuration"""
+    """The USAD model configuration"""
 
     filename = "usad_config.json"
 
     def __init__(self, hidden_sizes: Tuple = (25, 10, 5), latent_size: int = 5,
-                 dropout_rate: float = 0.25, batch_size: int = 128,
-                 num_epochs: int = 250, lr: float = 0.001, step_size: int = 60,
-                 window_size: int = 10, weight_decay: float = 0.01, **kwargs):
+                 dropout_rate: float = 0.1, batch_size: int = 128,
+                 num_epochs: int = 100, lr: float = 0.001, step_size: int = 60,
+                 window_size: int = 10, weight_decay: float = 0.01, patience: int = 5,
+                 **kwargs):
         """The usad model config initializer"""
         self.hidden_sizes = hidden_sizes
         self.latent_size = latent_size
@@ -49,6 +51,7 @@ class USADConfig:
         self.step_size = step_size
         self.window_size = window_size
         self.weight_decay = weight_decay
+        self.patience = patience
 
     @classmethod
     def from_dict(cls, config_dict: dict):
@@ -75,6 +78,12 @@ class USADConfig:
 
 
 class USADModel:
+    """The usad model implementation on pytorch version
+
+    Paper: USAD: UnSupervised Anomaly Detection on Multivariate Time Series
+    link: https://dl.acm.org/doi/10.1145/3394486.3403392
+    """
+
     filename = 'usad.pkl'
     config_class = USADConfig
 
@@ -86,6 +95,7 @@ class USADModel:
         self._window_size = config.window_size
         self._lr = config.lr
         self._weight_decay = config.weight_decay
+        self._patience = config.patience
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -98,7 +108,7 @@ class USADModel:
         state_file = os.path.join(folder, cls.filename)
 
         if not os.path.isfile(config_file) or not os.path.isfile(state_file):
-            logging.warning("Unknown model file, load default vae model!")
+            logging.warning("Unknown model file, load default usad model!")
             config = USADConfig()
             config.update(**kwargs)
             return USADModel(config)
@@ -129,8 +139,11 @@ class USADModel:
 
         return model
 
+    @timer
     def train(self, train_values, valid_values):
         self.model = self.model if self.model else self.init_model(train_values.shape[1])
+        self.model.to(self.device)
+        logging.info('Train model on the device \'%s\'', self.device)
 
         train_loader = DataLoader(TSDataset(train_values, self._window_size, self._window_size),
                                   batch_size=self._batch_size,
@@ -139,13 +152,13 @@ class USADModel:
         valid_loader = DataLoader(TSDataset(valid_values, self._window_size, self._window_size),
                                   batch_size=self._batch_size)
 
-        early_stopper1 = EarlyStopper(patience=5)
-        early_stopper2 = EarlyStopper(patience=5)
+        early_stopper1 = EarlyStopper(patience=self._patience)
+        early_stopper2 = EarlyStopper(patience=self._patience)
 
         loss_func = nn.MSELoss()
 
-        optimizer_g = torch.optim.Adam(self.model.g_parameters())
-        optimizer_d = torch.optim.Adam(self.model.d_parameters())
+        optimizer_g = torch.optim.Adam(self.model.g_parameters(), lr=self._lr)
+        optimizer_d = torch.optim.Adam(self.model.d_parameters(), lr=self._lr)
 
         for epoch in range(self._num_epochs):
             self.model.train()
@@ -160,8 +173,8 @@ class USADModel:
                 loss_g = beta * loss_func(x_batch, w_g) + (1 - beta) * loss_func(x_batch, w_g_d)
                 loss_d = beta * loss_func(x_batch, w_d) - (1 - beta) * loss_func(x_batch, w_g_d)
 
-                train_g_loss.append(loss_g.detach().numpy())
-                train_d_loss.append(loss_d.detach().numpy())
+                train_g_loss.append(loss_g.detach().cpu().numpy())
+                train_d_loss.append(loss_d.detach().cpu().numpy())
 
                 optimizer_g.zero_grad()
                 optimizer_d.zero_grad()
@@ -179,14 +192,15 @@ class USADModel:
             val_g_loss = []
             val_d_loss = []
             for x_val_batch in valid_loader:
+                x_val_batch = x_val_batch.to(self.device)
                 x_val_batch = torch.flatten(x_val_batch, start_dim=1)
                 w_g, w_d, w_g_d = self.model(x_val_batch)
                 beta = np.divide(1, epoch + 1)
                 val_g = beta * loss_func(x_val_batch, w_g) + (1 - beta) * loss_func(x_val_batch, w_g_d)
                 val_d = beta * loss_func(x_val_batch, w_d) - (1 - beta) * loss_func(x_val_batch, w_g_d)
 
-                val_g_loss.append(val_g.detach().numpy())
-                val_d_loss.append(val_d.detach().numpy())
+                val_g_loss.append(val_g.detach().cpu().numpy())
+                val_d_loss.append(val_d.detach().cpu().numpy())
 
             avg_val_g_loss = np.mean(val_g_loss)
             avg_val_d_loss = np.mean(val_d_loss)
@@ -202,17 +216,19 @@ class USADModel:
                 logging.info("Early Stopped!")
                 break
 
+    @timer
     def predict(self, values):
         self.model.eval()
         dataset = TSDataset(values, self._window_size, 1)
         x_loader = DataLoader(dataset, batch_size=len(dataset))
         x_pred = next(iter(x_loader))
+        x_pred = x_pred.to(self.device)
         x_pred = torch.flatten(x_pred, start_dim=1)
         w_g, _, w_g_d = self.model(x_pred)
         batch_g = torch.reshape(w_g, (-1, self._window_size, values.shape[1])).detach()
         batch_g_d = torch.reshape(w_g_d, (-1, self._window_size, values.shape[1])).detach()
-        batch_g = torch.cat([batch_g[0], batch_g[1:, -1]], dim=0).numpy()
-        batch_g_d = torch.cat([batch_g_d[0], batch_g_d[1:, -1]], dim=0).numpy()
+        batch_g = torch.cat([batch_g[0], batch_g[1:, -1]], dim=0).cpu().numpy()
+        batch_g_d = torch.cat([batch_g_d[0], batch_g_d[1:, -1]], dim=0).cpu().numpy()
 
         return batch_g, batch_g_d
 
@@ -244,7 +260,7 @@ class USAD(nn.Module):
         return chain(self._shared_encoder.parameters(), self._decoder_g.parameters())
 
     def d_parameters(self):
-        return chain(self._shared_encoder.parameters(), self._decoder_g.parameters())
+        return chain(self._shared_encoder.parameters(), self._decoder_d.parameters())
 
     def forward(self, x):
         z = self._shared_encoder(x)

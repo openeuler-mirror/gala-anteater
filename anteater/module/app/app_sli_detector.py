@@ -16,6 +16,7 @@ Author:
 Description: The anomaly detector implementation on APP Sli
 """
 
+from anteater.model.detector.usad_detector import UsadDetector
 from anteater.module.base import E2EDetector
 from anteater.model.detector.vae_detector import VAEDetector
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
@@ -29,7 +30,8 @@ class APPSliDetector(E2EDetector):
     on the sli metrics including rtt, tps, etc.
     """
 
-    config_file = 'app_sli_rtt.json'
+    # config_file = 'app_sli_rtt.json'
+    config_file = 'usad_model.json'
 
     def __init__(self, data_loader: MetricLoader, reporter: AnomalyReport):
         """The app sli E2E detector initializer"""
@@ -41,7 +43,8 @@ class APPSliDetector(E2EDetector):
     def init_detectors(self, data_loader):
         if self.job_config.model_config.enable:
             detectors = [
-                VAEDetector(data_loader, self.job_config.model_config)
+                # VAEDetector(data_loader, self.job_config.model_config)
+                UsadDetector(data_loader, self.job_config.model_config)
             ]
         else:
             detectors = [
