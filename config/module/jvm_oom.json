@@ -13,7 +13,7 @@
       }
     },
     {
-      "metric": "gala_gopher_jvm_gc_collection_seconds_count",
+      "metric": "gala_gopher_jvm_gc_coll_secs_count",
       "entity_name": "jvm",
       "params": {
         "look_back": 2,
@@ -21,7 +21,7 @@
       }
     },
     {
-      "metric": "gala_gopher_jvm_memory_bytes_used",
+      "metric": "gala_gopher_jvm_mem_bytes_used",
       "entity_name": "jvm",
       "params": {
         "look_back": 2,
@@ -29,14 +29,14 @@
       }
     },
     {
-      "metric": "gala_gopher_jvm_memory_bytes_max",
+      "metric": "gala_gopher_jvm_mem_bytes_max",
       "entity_name": "jvm",
       "params": {
         "look_back": 2
       }
     },
     {
-      "metric": "gala_gopher_jvm_memory_pool_bytes_used",
+      "metric": "gala_gopher_jvm_mem_pool_bytes_used",
       "entity_name": "jvm",
       "params": {
         "look_back": 2,
@@ -44,14 +44,14 @@
       }
     },
     {
-      "metric": "gala_gopher_jvm_memory_pool_bytes_max",
+      "metric": "gala_gopher_jvm_mem_pool_bytes_max",
       "entity_name": "jvm",
       "params": {
         "look_back": 2
       }
     },
     {
-      "metric": "gala_gopher_jvm_classes_currently_loaded",
+      "metric": "gala_gopher_jvm_class_current_loaded",
       "entity_name": "jvm",
       "params": {
         "look_back": 2,

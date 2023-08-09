@@ -97,7 +97,7 @@ class JVMOOMDetector(Detector):
 
     def check_gc(self, kpis: List[KPI], machine_id: str) -> Dict[str, List]:
         """Checks the garbage collection status of the JVM"""
-        kpi = get_kpi(kpis, 'gc_collection_seconds_count')
+        kpi = get_kpi(kpis, 'gc_coll_secs_count')
         time_series = self.load_time_series(kpi, machine_id=machine_id)
         time_series = [ts for ts in time_series if ts.labels.get(GC) in OLD_G_COLLECTORS]
         threshold = kpi.params.get(THRESHOLD)
@@ -114,7 +114,7 @@ class JVMOOMDetector(Detector):
 
     def check_memory(self, kpis: List[KPI], machine_id: str, tgid: str) -> List[str]:
         """Checks the memory status of the JVM"""
-        kpi = get_kpi(kpis, 'memory_bytes_max')
+        kpi = get_kpi(kpis, 'mem_bytes_max')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid)
         max_values = {_ts.labels.get(AREA): _ts.values[-1] for _ts in time_series}
         max_values = {key: val for key, val in max_values.items() if val != -1}
@@ -122,7 +122,7 @@ class JVMOOMDetector(Detector):
             return []
 
         areas = []
-        kpi = get_kpi(kpis, 'memory_bytes_used')
+        kpi = get_kpi(kpis, 'mem_bytes_used')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid)
         time_series = [_ts for _ts in time_series if _ts.labels.get(AREA) in max_values]
         threshold = kpi.params.get(THRESHOLD)
@@ -137,7 +137,7 @@ class JVMOOMDetector(Detector):
     def detect_memory_pool(self, kpis: List[KPI], machine_id: str, tgid: str, pool: str)\
             -> List[Anomaly]:
         """Detects the memory pools abnormal status of the JVM"""
-        kpi = get_kpi(kpis, 'memory_pool_bytes_max')
+        kpi = get_kpi(kpis, 'mem_pool_bytes_max')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid, pool=pool)
         max_values = {_ts.labels.get(POOL): _ts.values[-1] for _ts in time_series}
         max_values = {key: val for key, val in max_values.items() if val != -1}
@@ -145,7 +145,7 @@ class JVMOOMDetector(Detector):
             return []
 
         anomalies = []
-        kpi = get_kpi(kpis, 'memory_pool_bytes_used')
+        kpi = get_kpi(kpis, 'mem_pool_bytes_used')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid, pool=pool)
         time_series = [_ts for _ts in time_series if _ts.labels.get(POOL) in max_values]
         threshold = kpi.params.get(THRESHOLD)
@@ -165,7 +165,7 @@ class JVMOOMDetector(Detector):
 
     def detect_jvm_class(self, kpis: List[KPI], machine_id: str, tgid: str) -> List[Anomaly]:
         """Detects classes abnormal status of the JVM"""
-        kpi = get_kpi(kpis, 'classes_currently_loaded')
+        kpi = get_kpi(kpis, 'class_current_loaded')
         time_series = self.load_time_series(kpi, machine_id=machine_id, tgid=tgid)
         threshold = kpi.params[THRESHOLD]
         anomalies = []
