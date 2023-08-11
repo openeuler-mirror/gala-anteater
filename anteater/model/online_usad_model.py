@@ -13,10 +13,12 @@
 
 import logging
 import os
+from typing import Dict
 
 import numpy as np
 
 from anteater.core.kpi import ModelConfig
+from anteater.model.algorithms.usad import USADModel
 from anteater.model.factory import ModelFactory as factory
 from anteater.model.process.base import PreProcessor
 from anteater.model.process.post_process import PostProcessor
@@ -31,9 +33,9 @@ class OnlineUsadModel:
         self.config = config
         self.params = config.params
 
-        self.models = {}
-        self.preprocessors = {}
-        self.postprocessors = {}
+        self.models: Dict[str, USADModel] = {}
+        self.preprocessors: Dict[str, PreProcessor] = {}
+        self.postprocessors: Dict[str, PostProcessor] = {}
 
     def get_min_predict_minutes(self):
         """Gets minimal minutes for model prediction"""

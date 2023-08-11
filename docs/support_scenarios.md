@@ -1,7 +1,9 @@
 # gala-anteater 支持的故障诊断场景
 
-## anteater 模型简介
+## 测试准则
 
+* 场景：Redis
+* 打流：redis-benchmark -h xxx.xxx.xxx.xxx -t set -p 
 * 当前 anteater 主要基于历史数据进行无监督训练，然后进行异常检测；
 * 训练数据集应保证**无故障数据**，数据量不小于 14h；
 * 推理阶段，按分钟级别进行推理，最小推理时间 1 分钟；
