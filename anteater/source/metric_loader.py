@@ -134,7 +134,7 @@ class MetricLoader:
         """Gets the unique machine ids based on the metrics"""
         machine_ids = self.get_unique_label(start, end, metrics, label_name="machine_id")
         if not machine_ids:
-            logger.warning(f'Empty unique machine ids on given metrics!')
+            logger.warning('Empty unique machine ids on given metrics!')
             logger.debug(f'metrics: {";".join(metrics)}')
         else:
             logger.info(f'Got {len(machine_ids)} unique machine_ids on given metrics')

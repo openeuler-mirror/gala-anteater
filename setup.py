@@ -28,7 +28,7 @@ setup(
         ('/etc/gala-anteater/config/', glob('config/descriptions.json')),
         ('/etc/gala-anteater/config/', glob('config/gala-anteater.yaml')),
         ('/etc/gala-anteater/config/', glob('config/log.settings.ini')),
-        ('/etc/gala-anteater/config/module/', glob('config/module/*')),
+        ('/etc/gala-anteater/module/', glob('config/module/*')),
         ('/usr/lib/systemd/system/', glob('service/*')),
     ],
     install_requires=[

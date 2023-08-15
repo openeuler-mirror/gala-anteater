@@ -11,14 +11,12 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import math
 from typing import Dict
 
 import numpy as np
 import pandas as pd
 
 from anteater.model.algorithms.loss import gan_loss
-from anteater.model.algorithms.online_ad_helper import HealthMulti
 from anteater.model.algorithms.spot import Spot
 
 
@@ -34,12 +32,11 @@ class PostProcessor:
         self.level = self.params.get('level')
 
         self.spot = None
-        self.health = None
 
     @staticmethod
-    def get_anomalies(x, health_anomalies):
+    def get_anomalies(x, anomalies):
         """Gets the results predicted by the model"""
-        anomalies = np.array(health_anomalies)
+        anomalies = np.array(anomalies)
         pred_anomaly_times = []
         for i in anomalies:
             pred_anomaly_times.append(x[i])
@@ -56,9 +53,6 @@ class PostProcessor:
         self.spot.initialize(scores[:1000], level=self.level)
         self.spot.run(scores[1000:])
 
-        score_std = np.std(scores)
-        self.health = HealthMulti(score_std, None)
-
     def compute_score(self, x, x_g, x_g_d):
         """Calculates the anomaly score by reconstruction error"""
         recon_x = gan_loss(x, x_g, x_g_d, self.score_type, self.alpha)
@@ -73,13 +67,3 @@ class PostProcessor:
 
         result = self.spot.run(scores)
         return result.get('thresholds')
-
-    def health_detection(self, x, scores, thresholds):
-        """Filters reported anomalies through health detection"""
-        for i, th in enumerate(thresholds):
-            x_np = x.iloc[i, :]
-            err = scores[i]
-            self.health.fit(i, x_np, err, th)
-
-        health_anomalies = self.health.predict(threshold=0.2)
-        return health_anomalies

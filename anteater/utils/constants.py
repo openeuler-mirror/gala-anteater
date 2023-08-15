@@ -14,7 +14,7 @@
 
 # CONFIG PATH
 ANTEATER_CONFIG_PATH = '/etc/gala-anteater/config'
-ANTEATER_MODULE_PATH = '/etc/gala-anteater/config/module'
+ANTEATER_MODULE_PATH = '/etc/gala-anteater/module'
 ANTEATER_MODEL_PATH = '/etc/gala-anteater/models'
 
 # COMMON TIME STEMP

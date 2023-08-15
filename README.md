@@ -1,96 +1,91 @@
-# gala-anteater 介绍
-gala-anteater是一款基于AI的操作系统异常检测平台。主要涵盖时序数据预处理、异常点发现、以及异常上报等功能。
-基于线下预训练、线上模型的增量学习与模型更新，能够很好地适应于多维多模态数据故障诊断。
+# gala-anteater
+## 介绍
+gala-anteater 是一款基于 AI 的操作系统灰度故障的异常检测平台，其集成了多种异常检测算法，针对不同场景和应用，实现实时地系统级故障发现、以及故障点的上报。
 
-## 1. 安装gala-anteater
-支持的python版本：3.7+
+anteater 基于系统历史数据，进行自动化模型预训练、线上模型的增量学习和模型更新，能够很好地适应多场景、多指标型数据，实现分钟级模型推理能力。
 
-### 1.1 方法一：Docker镜像安装（适用于普通用户）
-#### 1.1.1 Docker镜像制作
+## 支持的异常检测场景汇总
+当前 anteater 支持 3 大故障类别，13 种不同子场景的异常检测。
+
+| 类别              | 诊断场景                               | KPI                                                                                                                                                                                      | 故障注入方式                                                           |
+|-----------------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| 应用级             | 应用时延（RTT）                          | gala_gopher_sli_rtt_nsec                                                                                                                                                                 | chaosblade: network loss/delay, disk fill/burn, cpu              |
+|                 | 应用吞吐量（TPS）                         | gala_gopher_sli_tps                                                                                                                                                                      | chaosblade: network loss/delay, disk fill/burn, cpu              |
+| 系统级             | TCP建链性能                            | gala_gopher_tcp_link_syn_srtt                                                                                                                                                            | chaosblade: network delay                                        |
+|                 | TCP传输性能                            | gala_gopher_tcp_link_srtt                                                                                                                                                                | chaosblade: network loss                                         |
+|                 | 系统I/O性能                            | gala_gopher_block_latency_req_max                                                                                                                                                        | chaosblade: disk burn                                            |
+|                 | 进程I/O性能                            | gala_gopher_proc_bio_latency<br/>gala_gopher_proc_less_4k_io_read<br/>gala_gopher_proc_less_4k_io_write<br/>gala_gopher_proc_greater_4k_io_read<br/>gala_gopher_proc_greater_4k_io_write | chaosblade: disk burn                                            |
+|                 | 磁盘吞吐量                              | gala_gopher_disk_r_await<br/>gala_gopher_disk_w_await                                                                                                                                    | chaosblade: disk full                                            |
+|                 | 网卡发送丢包                             | gala_gopher_nic_tc_sent_drop                                                                                                                                                             | chaosblade: network loss                                         |
+| [JVM OutOfMemory](docs/jvm_oom_introduction.md) | Heapspace                          | gala_gopher_jvm_mem_bytes_used<br/>gala_gopher_jvm_mem_pool_bytes_used                                                                                                                   | java code: JavaOOMHttpServer |
+|                 | GC Overhead                        | gala_gopher_jvm_mem_bytes_used<br/>gala_gopher_jvm_mem_pool_bytes_used                                                                                                                   | java code: JavaOOMHttpServer |
+|                 | Metaspace                          | gala_gopher_jvm_class_current_loaded                                                                                                                                                     | java code: JavaOOMHttpServer |
+|                 | Unable to create new native thread | gala_gopher_jvm_threads_current                                                                                                                                                          | java code: JavaOOMHttpServer |
+|                 | Direct buffer memory               | gala_gopher_jvm_buffer_pool_used_bytes                                                                                                                                                   | java code: JavaOOMHttpServer |
+
+## 安装部署
+
+### 前置条件
+* 支持的python版本：3.7+；
+* anteater 依赖于 gopher 采集的数据，请先完成 gopher 的安装部署；
+* anteater 直接从 Prometheus 中获取时序指标型数据，需要完成 Prometheus 的安装部署；
+* anteater 依赖于 gopher 上报的 meta 数据（上报至 Kafka），因为需要确保 Kafka 安装部署完成。
+
+### 方法一：Docker镜像安装（适用于普通用户）
+#### Docker镜像制作
 请在工程`./gala-anteater`目录下，执行下面的命令，将`gala-anteater`工程文件打包成Docker镜像。
 ```
 docker build -f Dockerfile -t gala-anteater:1.0.0 .
 ```
 注：根据环境网络情况，可能需要修改`Dockfile`文件中的`pip`源地址
 
-#### 1.1.2 Docker镜像运行
+#### Docker镜像运行
 执行下面的命令，运行Docker镜像。首次运行会将配置文件`gala-anteater.yaml`文件映射到宿主机`/etc/gala-anteater/config`文件中，
 请配置`gala-anteater.yaml`里面的参数，配置方式，请参考[配置文件介绍](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 ```
 docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
 ```
 
-#### 1.1.3 日志查看
-日志文件路径：`/etc/gala-anteater/logs/`
-
-#### 1.1.4 运行结果查看
-如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`gala-anteater.yaml`中修改配置
-
-### 1.2 方法二：从本仓库源码安装运行（适用于开发者）
-#### 1.2.1 下载源码
+### 方法二：从本仓库源码安装运行（适用于开发者）
+#### 下载源码
 ```
  git clone https://gitee.com/openeuler/gala-anteater.git
 ```
 
-#### 1.2.2 安装python依赖包  
+#### 安装
 工程`./gala-anteater`目录下执行下面命令：
 ```bash
 python3 setup.py install
 ```
 
-#### 1.2.3 参数配置
+#### 参数配置
 配置参数会被映射到`/etc/gala-anteater/config`文件中，需要首先设置相应的参数，配置方式，请参考[配置文件介绍](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 
 
 注：在配置文件中，最重要的是完成配置文件中中间件的配置，如其中`Kafka server/port`、`Prometheus server/port`。
 
-#### 1.2.4 程序运行
+#### 运行
 ```
-gala-anteater
-```
-
-#### 1.2.4 日志查看
-日志文件路径：`/var/gala-anteater/logs/`
-
-#### 1.2.5 运行结果查看
-
-如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`gala-anteater.yaml`中修改配置。
-
-## 2. 快速使用指南
-
-### 2.1 启动gala-anteater服务
-
-按照1中的方式启动服务，命令如下：
-
-```shell
-docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
+systemctl start gala-anteater
 ```
 
-或者直接通过下列命令，运行程序（需要将工程目录设置为Python工作目录）。
+### 日志
+日志文件默认路径：`/var/gala-anteater/logs/`，也可以根据配置文件`log.settings.ini`去修改日志文件的路径。
 
-```shell
-python ./anteater/main.py
-```
-
-启动结果，可查看运行日志。
-
-### 2.2 异常检测结果信息查看
-gala-anteater输出异常检测结果到`Kafka`，可使用`Kafka`命令查看异常检测结果，具体命令如下：
+### 异常上报
+gala-anteater输出异常检测结果到`Kafka`，如果检测到异常，检测结果输出到`Kafka`中，默认`Topic`为：`gala_anteater_hybrid_model`，也可以在`gala-anteater.yaml`中修改配置。查看异常检测结果，具体命令如下：
 
 ```bash
 ./bin/kafka-console-consumer.sh --topic gala_anteater_hybrid_model --from-beginning --bootstrap-server localhost:9092
 ```
 
-## 3. 异常检测结果API文档
-### 3.1 API说明
+## 异常检测结果
 
-异常检测结果默认输出到`Kafka`中，也可存储到`ArangoDB`中，供第三方运维系统查询、集成。数据格式遵循`OpenTelemetry V1`规范。
+异常检测结果默认输出到`Kafka`中，也可存储到`ArangoDB`中，供第三方运维系统查询、集成。数据格式遵循`OpenTelemetry V1`规范，具体方式请参考 [Kafka to ArangoDB](docs/kafka_to_arangodb.md)。如下介绍异常检测输出格式
 
-本文档介绍异常检测格式，`Kafka、Arangodb`的API参考其官方文档。
+### 输出数据
 
-### 3.2 输出数据
-
-#### 3.2.1 输出数据格式
+#### 输出数据格式
 
 | 参数 |  参数含义  | 描述 |
 |:---:|:------:|---|
@@ -101,7 +96,7 @@ gala-anteater输出异常检测结果到`Kafka`，可使用`Kafka`命令查看�
 | SeverityNumber | 异常事件编号 | 9, 13, 178, 21 ... |
 | Body | 异常事件信息 | 字符串，对当前异常事件的描述信息 |
 
-#### 3.2.2 输出数据示例
+#### 输出数据示例
 
 ```json
 {
