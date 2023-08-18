@@ -98,7 +98,7 @@ class Template:
         body = [self._timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                 self.header, self._description, self._details]
 
-        return ' - '.join([x for x in body if x])
+        return ' - '.join([str(x) for x in body if x])
 
 
 class AppAnomalyTemplate(Template):

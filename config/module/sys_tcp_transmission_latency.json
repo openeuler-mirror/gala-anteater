@@ -92,10 +92,6 @@
     {
       "metric": "gala_gopher_tcp_link_sacked_out",
       "priority": 2
-    },
-    {
-      "metric": "gala_gopher_tcp_link_sk_backlog_size",
-      "priority": 0
     }
   ]
 }

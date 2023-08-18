@@ -97,10 +97,10 @@
       "atrend": "rise"
     },
     {
-      "metric": "gala_gopher_cpu_iowait_total_second"
+      "metric": "gala_gopher_cpu_iowait_msec"
     },
     {
-      "metric": "gala_gopher_cpu_user_total_second",
+      "metric": "gala_gopher_cpu_user_msec",
       "atrend": "rise"
     },
     {

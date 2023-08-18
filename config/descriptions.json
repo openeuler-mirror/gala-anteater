@@ -30,11 +30,11 @@
     "zh": "block层request时延总计值异常"
   },
   {
-    "metric": "gala_gopher_cpu_iowait_total_second",
+    "metric": "gala_gopher_cpu_iowait_msec",
     "zh": "CPU等待I/O完成的时间异常"
   },
   {
-    "metric": "gala_gopher_cpu_user_total_second",
+    "metric": "gala_gopher_cpu_user_msec",
     "zh": "用户态cpu占用时间（不包括nice）异常"
   },
   {
@@ -101,6 +101,10 @@
   {
     "metric": "gala_gopher_disk_wspeed_kB",
     "zh": "磁盘写吞吐量异常"
+  },
+  {
+    "metric": "gala_gopher_disk_aqu",
+    "zh": "平均队列深度"
   },
   {
     "metric": "gala_gopher_proc_read_bytes",
@@ -302,39 +306,53 @@
     "en": "JVM INFO"
   },
   {
-    "metric": "gala_gopher_jvm_gc_collection_seconds_count",
+    "metric": "gala_gopher_jvm_gc_coll_secs_count",
+    "zh": "给定的垃圾回收器已发生的GC总次数",
     "en": "JVM gc collections seconds count"
   },
   {
-    "metric": "gala_gopher_jvm_memory_bytes_used",
+    "metric": "gala_gopher_jvm_gc_coll_secs_sum",
+    "zh": "在给定的垃圾回收器花费的总时间",
+    "en": "JVM gc collections seconds count"
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_used",
+    "zh": "给定JVM内存区域的已使用字节数",
     "en": "JVM memory bytes used"
   },
   {
-    "metric": "gala_gopher_jvm_memory_bytes_max",
+    "metric": "gala_gopher_jvm_mem_bytes_max",
+    "zh": "给定JVM内存区域的最大字节数",
     "en": "JVM memory bytes max"
   },
   {
-    "metric": "gala_gopher_jvm_memory_pool_bytes_used",
+    "metric": "gala_gopher_jvm_mem_pool_bytes_used",
+    "zh": "给定JVM内存池的已使用字节数",
     "en": "JVM memory pool bytes used"
   },
   {
-    "metric": "gala_gopher_jvm_memory_pool_bytes_max",
+    "metric": "gala_gopher_jvm_mem_pool_bytes_max",
+    "zh": "给定JVM内存池的最大字节数",
     "en": "JVM memory pool bytes max"
   },
   {
-    "metric": "gala_gopher_jvm_classes_currently_loaded",
+    "metric": "gala_gopher_jvm_class_current_loaded",
+    "zh": "JVM当前已加载类的数量",
     "en": "JVM classes currently loaded"
   },
   {
     "metric": "gala_gopher_jvm_threads_current",
+    "zh": "JVM当前线程数",
     "en": "JVM threads current count."
   },
   {
     "metric": "gala_gopher_jvm_buffer_pool_capacity_bytes",
+    "zh": "给定JVM缓冲池的字节容量",
     "en": "JVM buffer pool capacity bytes"
   },
   {
     "metric": "gala_gopher_jvm_buffer_pool_used_bytes",
+    "zh": "给定JVM缓冲池的已用字节数",
     "en": "JVM direct buffer pool used bytes"
   }
 ]
