@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 from collections import defaultdict
 from typing import List, Dict
 
@@ -19,14 +18,14 @@ import numpy as np
 
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI, Feature
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.detector.base import Detector
-from anteater.source.metric_loader import MetricLoader
-from anteater.utils.common import divide, to_bytes
+from anteater.utils.common import to_bytes
 from anteater.utils.constants import AREA, THRESHOLD, TGID,\
     GC, LOOK_BACK, PS_OLD_G, METASPACE, POOL, OLD_G_COLLECTORS,\
     POINTS_MINUTE
 from anteater.utils.datetime import DateTimeManager as dt
+from anteater.utils.log import logger
 from anteater.utils.timer import timer
 
 
@@ -61,10 +60,6 @@ class JVMOOMDetector(Detector):
     This detector mainly leverages the rule-based model as foundation, and
     will predict or detect the potential OOM errors in Java Virtual Machine.
     """
-
-    def __init__(self, data_loader: MetricLoader):
-        """The jvm out-of-memory detector initializer"""
-        super().__init__(data_loader)
 
     def detect_out_of_memory(self, kpis, machine_id: str) -> List[Anomaly]:
         """Detects the oom errors based on the model kpis"""
@@ -233,6 +228,6 @@ class JVMOOMDetector(Detector):
             anomalies.extend(self.detect_out_of_memory(kpis, _id))
 
         if anomalies:
-            logging.info(f'{len(anomalies)} anomalies was detected on {self.__class__.__name__}.')
+            logger.info(f'{len(anomalies)} anomalies was detected on {self.__class__.__name__}.')
 
         return anomalies

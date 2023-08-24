@@ -1,11 +1,13 @@
 {
-  "name": "sys_tcp_transmission_latency",
-  "job_type": "sys",
+  "name": "NICLossDetector",
+  "enable": true,
   "keywords": [
     "net"
   ],
-  "root_cause_number": 3,
-  "KPI": [
+  "root_cause_num": 3,
+  "detector": "th-base",
+  "template": "sys",
+  "kpis": [
     {
       "metric": "gala_gopher_nic_tc_sent_drop",
       "entity_name": "nic",
@@ -16,7 +18,7 @@
       }
     }
   ],
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_nic_tx_dropped",
       "priority": 0

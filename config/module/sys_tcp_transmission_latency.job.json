@@ -1,11 +1,13 @@
 {
-  "name": "sys_tcp_transmission_latency",
-  "job_type": "sys",
+  "name": "SysTcpTransmissionLatencyDetector",
+  "enable": true,
   "keywords": [
     "tcp"
   ],
-  "root_cause_number": 3,
-  "KPI": [
+  "root_cause_num": 3,
+  "detector": "n-sigma-tcp-latency",
+  "template": "sys",
+  "kpis": [
     {
       "metric": "gala_gopher_tcp_link_srtt",
       "entity_name": "tcp_link",
@@ -24,9 +26,8 @@
       }
     }
   ],
-  "OnlineModel": {
-    "name": "online_vae_model",
-    "enable": false,
+  "model_config": {
+    "name": "vae_model",
     "params": {
       "th": 0.5,
       "max_error_rate": 0.7,
@@ -52,7 +53,7 @@
       "threshold": {}
     }
   },
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_tcp_link_notsent_bytes",
       "priority": 4

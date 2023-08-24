@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 import re
 from typing import Dict, List
 
@@ -24,6 +23,7 @@ from anteater.utils.constants import COMM, CONTAINER_ID,\
     DEV_NAME, DEVICE, DISK_NAME, FSNAME, IP, MACHINE_ID,\
     PID, POD_NAME, SERVER_IP, TGID
 from anteater.utils.data_load import load_desc
+from anteater.utils.log import logger
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
 
@@ -85,7 +85,7 @@ class AnomalyReport:
         keys = self.provider.get_metadata(entity_name)
 
         if not keys:
-            logging.warning('Empty metadata for entity name %s!', entity_name)
+            logger.warning('Empty metadata for entity name %s!', entity_name)
 
         return keys
 

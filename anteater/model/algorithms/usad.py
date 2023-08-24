@@ -13,7 +13,6 @@
 
 import copy
 import json
-import logging
 import os
 import stat
 from itertools import chain
@@ -26,6 +25,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from anteater.model.algorithms.early_stop import EarlyStopper
+from anteater.utils.log import logger
 from anteater.utils.timer import timer
 from anteater.utils.ts_dataset import TSDataset
 
@@ -108,7 +108,7 @@ class USADModel:
         state_file = os.path.join(folder, cls.filename)
 
         if not os.path.isfile(config_file) or not os.path.isfile(state_file):
-            logging.warning("Unknown model file, load default usad model!")
+            logger.warning('Unknown model file, load default usad model!')
             config = USADConfig()
             config.update(**kwargs)
             return USADModel(config)
@@ -143,7 +143,7 @@ class USADModel:
     def train(self, train_values, valid_values):
         self.model = self.model if self.model else self.init_model(train_values.shape[1])
         self.model.to(self.device)
-        logging.info('Train model on the device \'%s\'', self.device)
+        logger.info('Train model on the device \'%s\'', self.device)
 
         train_loader = DataLoader(TSDataset(train_values, self._window_size, self._window_size),
                                   batch_size=self._batch_size,
@@ -205,15 +205,14 @@ class USADModel:
             avg_val_g_loss = np.mean(val_g_loss)
             avg_val_d_loss = np.mean(val_d_loss)
 
-            logging.info(f'Epoch {epoch}, training loss:\t'
-                         f'val_g: {avg_val_g_loss:.3f}\t'
-                         f'val_d: {avg_val_d_loss:.3f}\t'
-                         f'train_g: {avg_train_g_loss:.3f}\t'
-                         f'train_d:{avg_train_d_loss:.3f}')
+            logger.info('Epoch %d, train loss: train_g: %.3f\t'
+                        'train_d:%.3f\tval_g: %.3f\tval_d: %.3f\t',
+                        epoch, avg_train_g_loss, avg_train_d_loss,
+                        avg_val_g_loss, avg_val_d_loss)
 
             if early_stopper1.early_stop(avg_val_g_loss) and \
                early_stopper2.early_stop(avg_val_d_loss):
-                logging.info("Early Stopped!")
+                logger.info('Early Stopped!')
                 break
 
     @timer

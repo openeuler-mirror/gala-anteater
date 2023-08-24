@@ -43,10 +43,10 @@ def main():
     loader = MetricLoader(conf)
     suppressor = AnomalySuppression()
     report = AnomalyReport(kafka_provider, suppressor)
-    anomaly_detection = AnomalyDetection(loader, report, conf)
+    anomaly_detection = AnomalyDetection(loader, report)
 
     duration = conf.schedule.duration
-    logger.info(f'Schedule recurrent job, interval {duration} minute(s).')
+    logger.info('Schedule recurrent job, interval %d minute(s).', duration)
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
     scheduler.add_job(anomaly_detection.run, trigger='interval', minutes=duration)

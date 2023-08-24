@@ -35,7 +35,7 @@ anteater 基于系统历史数据，进行自动化模型预训练、线上模�
 #### Docker镜像制作
 请在工程`./gala-anteater`目录下，执行下面的命令，将`gala-anteater`工程文件打包成Docker镜像。
 ```
-docker build -f Dockerfile -t gala-anteater:1.0.0 .
+docker build -f Dockerfile -t gala-anteater:1.1.0 .
 ```
 注：根据环境网络情况，可能需要修改`Dockfile`文件中的`pip`源地址
 
@@ -43,7 +43,7 @@ docker build -f Dockerfile -t gala-anteater:1.0.0 .
 执行下面的命令，运行Docker镜像。首次运行会将配置文件`gala-anteater.yaml`文件映射到宿主机`/etc/gala-anteater/config`文件中，
 请配置`gala-anteater.yaml`里面的参数，配置方式，请参考[配置文件介绍](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 ```
-docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.0.0
+docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.1.0
 ```
 
 ### 方法二：从本仓库源码安装运行（适用于开发者）

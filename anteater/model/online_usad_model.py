@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 import os
 from typing import Dict
 
@@ -23,6 +22,7 @@ from anteater.model.factory import ModelFactory as factory
 from anteater.model.process.base import PreProcessor
 from anteater.model.process.post_process import PostProcessor
 from anteater.utils.constants import POINTS_MINUTE
+from anteater.utils.log import logger
 
 
 class OnlineUsadModel:
@@ -85,15 +85,15 @@ class OnlineUsadModel:
             y_pred = y_pred[-POINTS_MINUTE:]
 
         if len(y_pred) < POINTS_MINUTE:
-            logging.warning('The length of y_pred is less than %d',
-                            POINTS_MINUTE)
+            logger.warning('The length of y_pred is less than %d',
+                           POINTS_MINUTE)
             return False
         th = self.params.get('th')
         abnormal = sum([1 for y in y_pred if y > 0]) >= len(y_pred) * th
 
         if abnormal:
-            logging.info('Detects abnormal events by %s!',
-                         {self.__class__.__name__})
+            logger.info('Detects abnormal events by %s!',
+                        {self.__class__.__name__})
 
         return abnormal
 

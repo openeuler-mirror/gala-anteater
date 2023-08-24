@@ -17,7 +17,7 @@ import collections
 from typing import List
 
 from anteater.config import AnteaterConf
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.feature_extraction.feature_portrait import FeaturePortrait
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.datetime import DateTimeManager as dt

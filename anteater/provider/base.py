@@ -23,7 +23,7 @@ from typing import Dict, List
 import requests
 
 from anteater.utils.log import logger
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 
 
 class TimeSeriesProvider:

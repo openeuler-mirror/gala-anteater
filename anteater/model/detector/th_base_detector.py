@@ -16,17 +16,12 @@ from typing import List
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI
 from anteater.model.detector.base import Detector
-from anteater.source.metric_loader import MetricLoader
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
 
 class ThBaseDetector(Detector):
     """The threshold-based anomaly detector"""
-
-    def __init__(self, data_loader: MetricLoader):
-        """The detector base class initializer"""
-        super().__init__(data_loader)
 
     def detect_kpis(self, kpis: List[KPI]):
         """Executes anomaly detection on kpis"""

@@ -28,9 +28,9 @@ from anteater.utils.log import logger
 class TcpEstablishNSigmaDetector(Detector):
     """The anomaly detector base class"""
 
-    def __init__(self, data_loader: MetricLoader):
+    def __init__(self, data_loader: MetricLoader, **kwargs):
         """The detector base class initializer"""
-        super().__init__(data_loader)
+        super().__init__(data_loader, **kwargs)
 
         self.mean = None
         self.std = None

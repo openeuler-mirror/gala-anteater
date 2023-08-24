@@ -1,10 +1,12 @@
 {
-  "name": "jvm_oom",
-  "job_type": "jvm",
+  "name": "JVMOutOfMemoryDetector",
+  "enable": true,
   "keywords": [
     "jvm"
   ],
-  "KPI": [
+  "detector": "jvm",
+  "template": "jvm",
+  "kpis": [
     {
       "metric": "gala_gopher_jvm_info",
       "entity_name": "jvm",

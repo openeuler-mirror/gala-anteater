@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 import os
 import random
 from multiprocessing import Process, Event, Queue
@@ -24,9 +23,9 @@ import scipy.fftpack as spfft
 from cvxpy import SolverError
 from numpy.fft import fft, ifft
 from numpy.linalg import norm
-from numpy.random import randint
 
 from anteater.utils.common import divide
+from anteater.utils.log import logger
 
 
 def p_normalize(x: np.ndarray):
@@ -330,7 +329,7 @@ def reconstruct(n, d, index, value):
 
     # confirm solution
     if not np.allclose(b, x_re.T.flat[ri]):
-        logging.warning('Values at sample indices don\'t match original.')
+        logger.warning('Values at sample indices don\'t match original.')
 
     return x_re
 
@@ -350,13 +349,13 @@ class CycleFeatureProcess(Process):
         self.cluster_threshold = cluster_threshold
 
     def run(self):
-        logging.info('CycleFeatureProcess-%d: start', os.getpid())
+        logger.info('CycleFeatureProcess-%d: start', os.getpid())
         while not self.task_queue.empty():
             group_index, cycle_data = self.task_queue.get()
             self.result_queue.put(
                 (group_index, cluster(cycle_data, self.cluster_threshold)))
 
-        logging.info('CycleFeatureProcess-%d: exit', os.getpid())
+        logger.info('CycleFeatureProcess-%d: exit', os.getpid())
 
 
 class WindowReconstructProcess(Process):
@@ -414,7 +413,7 @@ class WindowReconstructProcess(Process):
     def run(self):
         if self.random_state:
             np.random.seed(self.random_state)
-        logging.info('WindowReconstructProcess-%d: start', os.getpid())
+        logger.info('WindowReconstructProcess-%d: start', os.getpid())
         while not self.task_queue.empty():
             wb, we, group = self.task_queue.get()
             hb = max(0, wb - self.latest_windows)
@@ -430,7 +429,7 @@ class WindowReconstructProcess(Process):
             self.result_queue.put((wb, we, rec_window, retries, sample_score))
             self.task_return_event.set()
 
-        logging.info('WindowReconstructProcess-%d: exit', os.getpid())
+        logger.info('WindowReconstructProcess-%d: exit', os.getpid())
 
     def window_sample_reconstruct(self, data: np.ndarray, groups: list, random_state: int):
         """
@@ -469,7 +468,7 @@ class WindowReconstructProcess(Process):
                 sample_rate += divide(1 - sample_rate, 4)
                 retry_count += 1
 
-                logging.warning(
+                logger.warning(
                     'Reconstruct failed, retry with higher '
                     'sample rate %f, retry times remain %d',
                     sample_rate, self.retry_limit - retry_count)
@@ -657,7 +656,7 @@ class CSAnomalyDetector:
             if reconstructing_weight[i] != needed_weight[i]:
                 mismatch_weights.append('%d' % i)
         if mismatch_weights:
-            logging.error('BUG empty weight')
+            logger.error('BUG empty weight')
         return reconstructed, result_queue.get()
 
     def _get_cycle_feature(self, data: np.ndarray, cycle: int):

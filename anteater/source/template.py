@@ -18,7 +18,7 @@ from anteater.utils.datetime import DateTimeManager as dt
 
 class Template:
     """The anomaly events template"""
-    def __init__(self):
+    def __init__(self, **kwargs):
         self._timestamp = dt.utc_now()
         self._machine_id = ''
         self._metric = ''
@@ -104,9 +104,9 @@ class Template:
 class AppAnomalyTemplate(Template):
     """The app anomaly template"""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """The app anomaly template initializer"""
-        super().__init__()
+        super().__init__(**kwargs)
         self.header = "Application Failure"
         self.event_type = "app"
 
@@ -114,9 +114,9 @@ class AppAnomalyTemplate(Template):
 class SysAnomalyTemplate(Template):
     """The sys anomaly template"""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """The sys anomaly template initializer"""
-        super().__init__()
+        super().__init__(**kwargs)
         self.header = 'System Failure'
         self.event_type = 'sys'
 
@@ -124,8 +124,8 @@ class SysAnomalyTemplate(Template):
 class JVMAnomalyTemplate(Template):
     """The jvm anomaly template"""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """The jvm anomaly template initializer"""
-        super().__init__()
+        super().__init__(**kwargs)
         self.header = "JVM OutOfMemory"
         self.event_type = 'jvm'

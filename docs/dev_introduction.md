@@ -104,8 +104,7 @@ gala-anteater               # gala-anteater 主目录
 以`app_sli_rtt.json`为例，其中主要的参数为：
 
 - name: 异常检测任务的名称;
-- job_type: 任务对应的类型，当前支持两种类型的任务：`app`和`sys`;
-- root_cause_number: 当前任务跟因推荐的最大个数；
+- root_cause_num: 当前任务跟因推荐的最大个数；
 - KPI: 任务对应的`kpi`指标
   - metric: 当前`kpi`对应的`metric name`;
   - kpi_type: kpi类型，如：sli、tcp、process等，没有固定的类型，主要依据模型的具体实现方式；
@@ -117,7 +116,7 @@ gala-anteater               # gala-anteater 主目录
   - metric: 当前特征量对应的`metric name`；
   - description: 当前特征发生异常对应的异常信息模板；
   - atrend: 当前metric发生异常的条件（趋势信息），包括：`rise/fall/default`。其中`rise`表示上升才能导致异常，`fall`表示下降才能导致异常，`default`表示上升和下降均可以导致异常。
-- OnlineModel：在线学习使用的参数信息，当前使用VAE-Based的深度学习模型，进行在线学习
+- model_config：在线学习使用的参数信息，当前使用VAE-Based的深度学习模型，进行在线学习
   - name: 在线学习名称;
   - enable: 是否启动在线学习: `true`或者`false`;
   - params: 模型中使用的参数信息，参数的具体信息依赖于具体实施的模型细节。

@@ -1,11 +1,13 @@
 {
-  "name": "sys_tcp_establish",
-  "job_type": "sys",
+  "name": "SysTcpEstablishDetector",
+  "enable": true,
   "keywords": [
     "tcp"
   ],
-  "root_cause_number": 3,
-  "KPI": [
+  "root_cause_num": 3,
+  "detector": "n-sigma-tcp-establish",
+  "template": "sys",
+  "kpis": [
     {
       "metric": "gala_gopher_tcp_link_syn_srtt",
       "entity_name": "tcp_link",
@@ -18,7 +20,7 @@
       }
     }
   ],
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_endpoint_retran_synacks"
     }

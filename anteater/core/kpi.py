@@ -12,7 +12,7 @@
 # ******************************************************************************/
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 from anteater.core.anomaly import AnomalyTrend
 
@@ -54,7 +54,6 @@ class Feature:
 class ModelConfig:
     """The model config for a specific ML model"""
     name: str
-    enable: bool
     model_path: str
     params: dict = field(default=dict)
 
@@ -63,9 +62,11 @@ class ModelConfig:
 class JobConfig:
     """The Job Config would be passed to an AD job"""
     name: str
-    job_type: str
+    enable: bool
+    detector: str
+    template: str
     keywords: List[str]
-    root_cause_number: int
+    root_cause_num: int
     kpis: List[KPI]
     features: List[Feature]
-    model_config: ModelConfig
+    model_config: Optional[ModelConfig]

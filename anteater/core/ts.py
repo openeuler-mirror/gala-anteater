@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np
