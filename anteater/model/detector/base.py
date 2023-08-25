@@ -12,26 +12,26 @@
 # ******************************************************************************/
 
 from datetime import datetime
-import logging
 import math
 from abc import abstractmethod
 from typing import List, Tuple
 
 from anteater.core.anomaly import Anomaly, RootCause
 from anteater.core.kpi import KPI, Feature, JobConfig
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.algorithms.spectral_residual import SpectralResidual
 from anteater.model.algorithms.slope import check_trend
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import same_intersection_pairs
 from anteater.utils.datetime import DateTimeManager as dt
+from anteater.utils.log import logger
 from anteater.utils.timer import timer
 
 
 class Detector:
     """The kpi anomaly detector base class"""
 
-    def __init__(self, data_loader: MetricLoader) -> None:
+    def __init__(self, data_loader: MetricLoader, **kwargs) -> None:
         """The detector base class initializer"""
         self.data_loader = data_loader
 
@@ -43,11 +43,11 @@ class Detector:
         """The main function of the detector"""
         kpis = job_config.kpis
         features = job_config.features
-        n = job_config.root_cause_number
+        n = job_config.root_cause_num
 
         if not kpis:
-            logging.info('Empty kpi in detector: %s.',
-                         self.__class__.__name__)
+            logger.info('Empty kpi in detector: %s.',
+                        self.__class__.__name__)
             return []
 
         return self._execute(kpis, features, top_n=n)
@@ -78,7 +78,7 @@ class Detector:
             ts_scores = self.cal_metric_ab_score(f.metric, anomaly.machine_id)
             for _ts, _score in ts_scores:
                 if not check_trend(_ts.values, f.atrend):
-                    logging.info('Trends Filtered: %s', f.metric)
+                    logger.info('Trends Filtered: %s', f.metric)
                     break
 
                 if same_intersection_pairs(_ts.labels, anomaly.labels):
@@ -109,7 +109,7 @@ class Detector:
                     continue
 
                 if not check_trend(_ts.values, atrends[metric]):
-                    logging.info('Trends Filtered: %s', metric)
+                    logger.info('Trends Filtered: %s', metric)
                     _anomaly.score = 0
                 else:
                     _anomaly.score = _score
@@ -147,11 +147,11 @@ class Detector:
     @timer
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) \
             -> List[Anomaly]:
-        logging.info('Execute model: %s.', self.__class__.__name__)
+        logger.info('Execute model: %s.', self.__class__.__name__)
         anomalies = self.detect_kpis(kpis)
         if anomalies:
-            logging.info('%d anomalies was detected on %s.',
-                         len(anomalies), self.__class__.__name__)
+            logger.info('%d anomalies was detected on %s.',
+                        len(anomalies), self.__class__.__name__)
             anomalies = self.find_root_causes(anomalies, features, **kwargs)
             anomalies = self.cal_kpi_anomaly_score(anomalies, kpis)
 

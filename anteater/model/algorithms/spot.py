@@ -11,12 +11,13 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 from math import log, floor
 
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+
+from anteater.utils.log import logger
 
 
 class Base:
@@ -221,7 +222,7 @@ class Spot(Base):
         elif isinstance(init_data, pd.Series):
             init_data = init_data.values
         else:
-            logging.error('The initial data cannot be set')
+            logger.error('The initial data cannot be set')
 
         level = level - floor(level)
         n_init = init_data.size
@@ -265,7 +266,7 @@ class Spot(Base):
         elif isinstance(data, pd.Series):
             data = data.values
         else:
-            logging.error('This data format (%s) is not supported', type(data))
+            logger.error('This data format (%s) is not supported', type(data))
 
         # list of the thresholds
         th = []

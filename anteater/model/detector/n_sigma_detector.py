@@ -12,26 +12,21 @@
 # ******************************************************************************/
 
 from itertools import groupby
-import logging
 from typing import List, Tuple
 
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.model.algorithms.smooth import smoothing
 from anteater.model.algorithms.n_sigma import n_sigma
-from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
+from anteater.utils.log import logger
 
 
 class NSigmaDetector(Detector):
     """The n-sigma anomaly detector"""
-
-    def __init__(self, data_loader: MetricLoader):
-        """The detector base class initializer"""
-        super().__init__(data_loader)
 
     def detect_kpis(self, kpis: List[KPI]):
         """Executes anomaly detection on kpis"""
@@ -50,8 +45,8 @@ class NSigmaDetector(Detector):
         ts_scores = self.cal_n_sigma_score(
             kpi.metric, machine_id, **kpi.params)
         if not ts_scores:
-            logging.warning('Key metric %s is null on the target machine %s!',
-                            kpi.metric, machine_id)
+            logger.warning('Key metric %s is null on the target machine %s!',
+                           kpi.metric, machine_id)
             return []
 
         ts_scores = [t for t in ts_scores if t[1] >= outlier_ratio_th]

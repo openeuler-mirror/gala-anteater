@@ -155,6 +155,7 @@ class VAEModel:
         """Start to train model based on training data and validate data"""
         logger.info(f"Using {self.device} device for vae model training")
         self.model = self.model if self.model else self.init_model(x.shape[1])
+        self.model.to(self.device)
 
         x = TSDataset(x, self.k, self.step_size)
         train_size = int(0.7 * len(x))
@@ -194,6 +195,7 @@ class VAEModel:
             val_loss = 0
             val_batch_count = 0
             for x_val_batch in x_val_loader:
+                x_val_batch = x_val_batch.to(self.device)
                 x_val_batch = torch.transpose(x_val_batch, 1, 2)
                 x_val_batch = torch.flatten(x_val_batch, start_dim=1)
                 x_val_batch_hat, means, log_var = self.model(x_val_batch)

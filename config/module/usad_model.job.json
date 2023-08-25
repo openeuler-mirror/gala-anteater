@@ -1,11 +1,13 @@
 {
-  "name": "usad_model",
-  "job_type": "app",
+  "name": "AppSliDetector",
+  "enable": true,
   "keywords": [
     "app"
   ],
-  "root_cause_number": 20,
-  "KPI": [
+  "root_cause_num": 20,
+  "detector": "usad",
+  "template": "sys",
+  "kpis": [
     {
       "metric": "gala_gopher_sli_rtt_nsec",
       "entity_name": "sli",
@@ -23,9 +25,8 @@
       }
     }
   ],
-  "OnlineModel": {
-    "name": "online_usad_model",
-    "enable": true,
+  "model_config": {
+    "name": "usad_model",
     "params": {
       "th": 0.35,
       "max_error_rate": 0.7,
@@ -59,7 +60,7 @@
       }
     }
   },
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_block_count_latency_device",
       "priority": 5

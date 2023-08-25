@@ -25,7 +25,9 @@ LOG_CONFIG_PATH = "/etc/gala-anteater/config"
 LOG_DATA_PATH = "/var/log/gala-anteater/"
 
 
-class Log(object):
+class Log:
+    """The wrapped logging module"""
+
     __flag = None
 
     def __new__(cls, *args, **kwargs):
@@ -44,9 +46,10 @@ class Log(object):
 
         log_filename = os.path.join(log_dir, 'gala-anteater.log')
         logging.config.fileConfig(log_config_file, defaults={'filename': log_filename})
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('anteater')
 
     def get_logger(self):
+        """Gets the wrapped logger object"""
         return self.logger
 
 

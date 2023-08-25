@@ -20,7 +20,7 @@ from pandas import DataFrame
 
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI, ModelConfig
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.algorithms.slope import check_trend
 from anteater.model.online_vae_model import OnlineVAEModel
 from anteater.model.detector.base import Detector
@@ -32,10 +32,10 @@ from anteater.utils.log import logger
 class VAEDetector(Detector):
     """The online vae detector"""
 
-    def __init__(self, data_loader: MetricLoader, conf: ModelConfig):
+    def __init__(self, data_loader: MetricLoader, config: ModelConfig, **kwargs):
         """The detector base class initializer"""
-        super().__init__(data_loader)
-        self.online_model = OnlineVAEModel(conf) if (conf and conf.enable) else None
+        super().__init__(data_loader, **kwargs)
+        self.online_model = OnlineVAEModel(config)
 
     def detect_kpis(self, kpis: List[KPI]):
         """Executes anomaly detection on kpis"""
@@ -83,7 +83,9 @@ class VAEDetector(Detector):
     def get_training_data(self, start: datetime, end: datetime, kpis: List[KPI])\
             -> DataFrame:
         """Get the training data to support model training"""
-        logger.info(f"Get training data during {start} to {end}!")
+        logger.info('Get training data during %s to %s!',
+                    start.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    end.strftime('%Y-%m-%d %H:%M:%S %Z'))
         _, dfs = self.get_dataframe(start, end, kpis)
         if not dfs:
             return pd.DataFrame()
@@ -96,6 +98,9 @@ class VAEDetector(Detector):
     def get_inference_data(self, start: datetime, end: datetime, kpis: List[KPI])\
             -> List[Tuple[str, DataFrame]]:
         """Get data for the model inference and prediction"""
+        logger.info('Get inference data during %s to %s!',
+                    start.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    end.strftime('%Y-%m-%d %H:%M:%S %Z'))
         ids, x_dfs = self.get_dataframe(start, end, kpis)
 
         return list(zip(ids, x_dfs))

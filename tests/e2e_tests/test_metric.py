@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from anteater.config import AnteaterConf
-from anteater.core.time_series import TimeSeries
-from anteater.factory.factory import DataCollectorFactory
+from anteater.core.ts import TimeSeries
+from anteater.factory.clients import DataClientFactory
 from anteater.utils import datetime
 from anteater.utils.common import divide
 from anteater.utils.log import logger
@@ -105,8 +105,8 @@ def combine_ts(time_series_set: List[TimeSeries]) -> Dict[str, List[TimeSeries]]
 class TestMetricLoader:
     def __init__(self, config: AnteaterConf) -> None:
         self.datasets = load_datasets()
-        self.provider = DataCollectorFactory.\
-            get_instance(config.global_conf.data_source, config)
+        self.provider = DataClientFactory.\
+            get_client(config.global_conf.data_source, config)
 
     @staticmethod
     def ts_operate(ts_list, key):

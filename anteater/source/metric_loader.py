@@ -20,9 +20,9 @@ from datetime import datetime
 from typing import List, Union
 
 from anteater.config import AnteaterConf
-from anteater.factory.factory import DataCollectorFactory
+from anteater.factory.clients import DataClientFactory
 from anteater.utils.log import logger
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.utils.timer import timer
 
 
@@ -110,8 +110,8 @@ class MetricLoader:
 
     def __init__(self, config: AnteaterConf) -> None:
         """The Metrics Loader initializer"""
-        self.provider = DataCollectorFactory.\
-            get_instance(config.global_conf.data_source, config)
+        self.provider = DataClientFactory.\
+            get_client(config.global_conf.data_source, config)
 
     def get_metric(self, start: datetime, end: datetime, metric: str, **kwargs) -> List[TimeSeries]:
         """Get target metric time series data

@@ -16,9 +16,9 @@ Author:
 Description: The gala-anteater global configurations.
 """
 
-import logging
 import os.path
 from dataclasses import dataclass, field
+from typing import Optional
 
 import yaml
 
@@ -42,19 +42,20 @@ class KafkaConf(ServiceConf):
     model_topic: str
     meta_topic: str
     group_id: str
-    auth_type: str = None
-    username: str = None
-    password: str = None
+    auth_type: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
 
 
 @dataclass
 class PrometheusConf(ServiceConf):
-    """The prometheus config"""
-    steps: int = None
+    """The prometheus client config"""
+    steps: int
 
 
 @dataclass
 class AomConfig:
+    """The aom client config"""
     base_url: str
     project_id: str
     auth_type: str
@@ -70,7 +71,7 @@ class ScheduleConf:
 class AnteaterConf:
     """The gala-anteater globally configurations"""
 
-    filename = "gala-anteater.yaml"
+    filename = 'gala-anteater.yaml'
 
     def __init__(self):
         """The gala-anteater config initializer"""
@@ -85,17 +86,16 @@ class AnteaterConf:
         data_path = os.path.realpath(data_path)
 
         try:
-            with open(os.path.join(data_path, self.filename), "rb") as f:
+            with open(os.path.join(data_path, self.filename), 'rb') as f:
                 result = yaml.safe_load(f)
         except IOError as e:
-            logging.error(f"Load gala-anteater config file failed {e}")
-            raise e
+            raise ValueError('Load gala-anteater config file failed') from e
 
-        global_conf = result.get("Global")
-        kafka_conf = result.get("Kafka")
-        prometheus_conf = result.get("Prometheus")
-        aom_config = result.get("Aom")
-        schedule_conf = result.get("Schedule")
+        global_conf = result.get('Global')
+        kafka_conf = result.get('Kafka')
+        prometheus_conf = result.get('Prometheus')
+        aom_config = result.get('Aom')
+        schedule_conf = result.get('Schedule')
 
         self.global_conf = GlobalConf(**global_conf)
         self.kafka = KafkaConf(**kafka_conf)

@@ -1,11 +1,13 @@
 {
-  "name": "app_sli_rtt",
-  "job_type": "app",
+  "name": "AppSliDetector",
+  "enable": false,
   "keywords": [
     "app"
   ],
-  "root_cause_number": 20,
-  "KPI": [
+  "root_cause_num": 20,
+  "detector": "vae",
+  "template": "app",
+  "kpis": [
     {
       "metric": "gala_gopher_sli_rtt_nsec",
       "entity_name": "sli",
@@ -39,9 +41,8 @@
       }
     }
   ],
-  "OnlineModel": {
-    "name": "online_vae_model",
-    "enable": false,
+  "model_config": {
+    "name": "vae_model",
     "params": {
       "th": 0.5,
       "max_error_rate": 0.7,
@@ -76,7 +77,7 @@
       }
     }
   },
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_block_count_latency_req"
     },

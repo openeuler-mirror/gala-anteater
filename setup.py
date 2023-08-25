@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="gala_anteater",
-    version="1.0.1",
+    version="1.1.0",
     author="Zhenxing Li",
     author_email="lizhenxing11@huawei.com",
     description="Times Series Anomaly Detection Platform on Operating System",

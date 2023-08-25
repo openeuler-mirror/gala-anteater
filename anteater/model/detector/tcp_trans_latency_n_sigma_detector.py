@@ -16,21 +16,16 @@ from typing import List, Tuple
 
 import numpy as np
 
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.algorithms.smooth import smoothing
 from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.model.detector.n_sigma_detector import NSigmaDetector
-from anteater.source.metric_loader import MetricLoader
 from anteater.utils.common import divide
 from anteater.utils.datetime import DateTimeManager as dt
 
 
 class TcpTransLatencyNSigmaDetector(NSigmaDetector):
     """The three sigma anomaly detector"""
-
-    def __init__(self, data_loader: MetricLoader):
-        """The detector base class initializer"""
-        super().__init__(data_loader)
 
     def cal_n_sigma_score(self, metric, machine_id: str,
                           **kwargs) -> List[Tuple[TimeSeries, int]]:

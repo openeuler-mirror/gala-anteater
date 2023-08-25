@@ -12,10 +12,8 @@
 # ******************************************************************************/
 
 import copy
-import logging
 from datetime import datetime, timedelta
 from functools import reduce
-from multiprocessing import Pool
 from typing import List, Tuple, Union
 
 import pandas as pd
@@ -23,19 +21,20 @@ from pandas import DataFrame
 
 from anteater.core.anomaly import Anomaly
 from anteater.core.kpi import KPI, ModelConfig, Feature
-from anteater.core.time_series import TimeSeries
+from anteater.core.ts import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.model.online_usad_model import OnlineUsadModel
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.datetime import DateTimeManager as dt
+from anteater.utils.log import logger
 
 
 class UsadDetector(Detector):
     """The anomaly detector base class"""
 
-    def __init__(self, data_loader: MetricLoader, config: ModelConfig):
+    def __init__(self, data_loader: MetricLoader, config: ModelConfig, **kwargs):
         """The detector base class initializer"""
-        super().__init__(data_loader)
+        super().__init__(data_loader, **kwargs)
         self.online_model = OnlineUsadModel(config)
         self.config = config
         self.anomaly_scores = None
@@ -53,14 +52,14 @@ class UsadDetector(Detector):
             train_df = self.get_training_data(
                 start - timedelta(hours=hours), end, metrics, machine_id)
             if train_df is None or len(train_df.index) == 0:
-                logging.info('Got empty training data on machine: %s', machine_id)
+                logger.info('Got empty training data on machine: %s', machine_id)
                 return []
             elif len(train_df.index) < hours * 60:
-                logging.info('Less training data on machine: %s', machine_id)
+                logger.info('Less training data on machine: %s', machine_id)
                 return []
             else:
-                logging.info('The shape of training data: %s on machine: %s',
-                             str(train_df.shape), machine_id)
+                logger.info('The shape of training data: %s on machine: %s',
+                            str(train_df.shape), machine_id)
                 self.online_model.train(train_df, machine_id)
 
         anomalies = []
@@ -70,8 +69,8 @@ class UsadDetector(Detector):
                 anomalies.extend(self.find_abnormal_kpis(machine_id, kpis))
 
         if anomalies:
-            logging.info('%d anomalies was detected on %s.',
-                         len(anomalies), self.__class__.__name__)
+            logger.info('%d anomalies was detected on %s.',
+                        len(anomalies), self.__class__.__name__)
             anomalies = self.find_root_causes(anomalies, features, top_n=3)
 
         return anomalies
@@ -124,7 +123,10 @@ class UsadDetector(Detector):
     def get_training_data(self, start: datetime, end: datetime, metrics: List[str], machine_id: str)\
             -> Union[DataFrame, None]:
         """Get the training data to support model training"""
-        logging.info('Get training data during %s to %s on %s!', start, end, machine_id)
+        logger.info('Get training data from %s to %s on %s!',
+                    start.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    end.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    machine_id)
         _, x_dfs = self.get_dataframe(start, end, metrics, machine_ids=[machine_id])
 
         if not x_dfs:
@@ -135,7 +137,10 @@ class UsadDetector(Detector):
     def get_inference_data(self, start: datetime, end: datetime, metrics: List[str], machine_id: str)\
             -> List[Tuple[str, DataFrame]]:
         """Get data for the model inference and prediction"""
-        logging.info('Get inference data during %s to %s on %s!', start, end, machine_id)
+        logger.info('Get inference data during %s to %s on %s!',
+                    start.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    end.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    machine_id)
         ids, x_dfs = self.get_dataframe(start, end, metrics, machine_ids=[machine_id])
 
         return list(zip(ids, x_dfs))
@@ -169,13 +174,13 @@ class UsadDetector(Detector):
 
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) -> List[Anomaly]:
         """Multiple processes detect anomalies on individual machines"""
-        logging.info(f"Execute model: {self.__class__.__name__}!")
+        logger.info(f'Execute model: {self.__class__.__name__}!')
         min_minutes = self.online_model.get_min_predict_minutes()
         start, end = dt.last(minutes=min_minutes)
         metrics = [k.metric for k in kpis]
         machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
         if not machine_ids:
-            logging.warning('Empty machine_id, RETURN!')
+            logger.warning('Empty machine_id, RETURN!')
 
         anomalies = []
         for _id in machine_ids:

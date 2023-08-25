@@ -17,9 +17,10 @@ Description: Some common functions are able to use in this project.
 """
 
 
-import logging
 import re
 from typing import Union
+
+from anteater.utils.log import logger
 
 
 def divide(x, y):
@@ -77,7 +78,7 @@ def to_bytes(letter: Union[str, int]) -> int:
         try:
             num, suffix, _ = re.split('([a-z]+)', letter)
         except ValueError as e:
-            logging.error(f'ValueError: parses "{letter}" to the number of bytes!')
+            logger.error(f'ValueError: parses "{letter}" to the number of bytes!')
             raise e
 
         if suffix not in size_map:

@@ -1,11 +1,13 @@
 {
-  "name": "disk_throughput",
-  "job_type": "sys",
+  "name": "DiskThroughputDetector",
+  "enable": true,
   "keywords": [
     "disk"
   ],
-  "root_cause_number": 1,
-  "KPI": [
+  "root_cause_num": 1,
+  "detector": "n-sigma",
+  "template": "sys",
+  "kpis": [
     {
       "metric": "gala_gopher_disk_r_await",
       "entity_name": "disk",
@@ -37,9 +39,8 @@
       }
     }
   ],
-  "OnlineModel": {
-    "name": "online_vae_model",
-    "enable": false,
+  "model_config": {
+    "name": "vae_model",
     "params": {
       "th": 0.5,
       "max_error_rate": 0.7,
@@ -65,7 +66,7 @@
       "threshold": {}
     }
   },
-  "Features": [
+  "features": [
     {
       "metric": "gala_gopher_disk_rspeed_kB",
       "priority": 0,

@@ -11,12 +11,12 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import logging
 from datetime import datetime, timedelta
 from typing import List, Tuple, Dict
 
 from anteater.core.anomaly import Anomaly
 from anteater.utils.datetime import DateTimeManager as dt
+from anteater.utils.log import logger
 
 
 class AnomalySuppression:
@@ -51,7 +51,7 @@ class AnomalySuppression:
     def suppress(self, anomaly: Anomaly) -> bool:
         """Suppresses reported anomalies if there is a same one recently"""
         if self._check_same_type(anomaly):
-            logging.info("An anomaly was be supressed by AnomalySuppression!")
+            logger.info('An anomaly was be supressed by AnomalySuppression!')
             return True
 
         self._append(anomaly)

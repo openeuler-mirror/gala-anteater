@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # ******************************************************************************
-# Copyright (c) 2022 Huawei Technologies Co., Ltd.
+# Copyright (c) 2023 Huawei Technologies Co., Ltd.
 # gala-anteater is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
@@ -11,23 +11,23 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-import time
-from functools import wraps
+from anteater.source.template import Template, AppAnomalyTemplate, \
+    JVMAnomalyTemplate, SysAnomalyTemplate
 
-from anteater.utils.log import logger
+TEMPLATES = {
+    'app': AppAnomalyTemplate,
+    'sys': SysAnomalyTemplate,
+    'jvm': JVMAnomalyTemplate,
+}
 
 
-def timer(func):
-    """The timer decorator which records the time
-    consumptions of wrapped fuction.
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        clock = time.time()
-        result = func(*args, **kwargs)
-        logger.info('%s.%s costs %.2f seconds!',
-                    args[0].__class__.__name__,
-                    func.__name__,
-                    time.time() - clock)
-        return result
-    return wrapper
+class TemplateFactory:
+    """The template factory"""
+
+    @staticmethod
+    def get_template(name: str, **kwargs) -> Template:
+        """Gets template by name"""
+        if name not in TEMPLATES:
+            raise KeyError(f'Unknown template name \'{name}\'')
+
+        return TEMPLATES[name](**kwargs)
