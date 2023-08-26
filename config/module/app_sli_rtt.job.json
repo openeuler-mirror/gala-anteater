@@ -115,18 +115,6 @@
       "metric": "gala_gopher_cpu_rps_count"
     },
     {
-      "metric": "gala_gopher_fs_Free"
-    },
-    {
-      "metric": "gala_gopher_fs_IUsed"
-    },
-    {
-      "metric": "gala_gopher_fs_UsePer"
-    },
-    {
-      "metric": "gala_gopher_fs_Used"
-    },
-    {
       "metric": "gala_gopher_disk_r_await",
       "atrend": "rise"
     },

@@ -17,10 +17,9 @@ from os import makedirs, path
 from json import JSONDecodeError
 from typing import List
 
-from anteater.core.desc import Description
 from anteater.core.kpi import KPI, ModelConfig, Feature, JobConfig
-from anteater.utils.constants import ANTEATER_CONFIG_PATH, \
-     ANTEATER_MODEL_PATH, ANTEATER_MODULE_PATH
+from anteater.utils.constants import ANTEATER_MODEL_PATH, \
+    ANTEATER_MODULE_PATH
 from anteater.utils.log import logger
 
 
@@ -95,43 +94,3 @@ def load_jobs():
             continue
 
         yield load_job_config(filepath)
-
-
-def load_desc(file_name) -> Description:
-    """Loads metrics' descriptions"""
-    folder_path = path.realpath(ANTEATER_CONFIG_PATH)
-    abs_path = path.join(folder_path, file_name)
-
-    with open(abs_path, 'r', encoding='utf-8') as f_out:
-        try:
-            items = json.load(f_out)
-        except JSONDecodeError as e:
-            logger.error('JSONDecodeError: when parsing file %s',
-                         path.basename(abs_path))
-            raise e
-
-    desc = Description()
-    for item in items:
-        metric = item.get('metric', None)
-        if not metric:
-            raise KeyError('Empty metric name in config file '
-                           f'{path.basename(abs_path)}')
-        if not metric or \
-           desc.in_en(metric) or \
-           desc.in_zh(metric):
-            raise KeyError(f'Duplicated metric \'{metric}\' in config '
-                           f'file {path.basename(abs_path)}')
-
-        desc_en = item.get('en', None)
-        desc_zh = item.get('zh', None)
-
-        if not desc_en and not desc_zh:
-            raise KeyError(f'Empty en and zh desc on \'{metric}\'')
-
-        if desc_en:
-            desc.append_en(metric, desc_en)
-
-        if desc_zh:
-            desc.append_zh(metric, desc_zh)
-
-    return desc

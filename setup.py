@@ -23,9 +23,9 @@ setup(
     description="Times Series Anomaly Detection Platform on Operating System",
     url="https://gitee.com/openeuler/A-Ops/tree/master/gala-anteater",
     keywords=["Anomaly Detection", "Time Series Analysis", "Operating System"],
-    packages=find_packages(where=".", exclude=("tests",)),
+    packages=find_packages(where=".", exclude=("tests", "tests.*")),
     data_files=[
-        ('/etc/gala-anteater/config/', glob('config/descriptions.json')),
+        ('/etc/gala-anteater/config/', glob('config/metricinfo.json')),
         ('/etc/gala-anteater/config/', glob('config/gala-anteater.yaml')),
         ('/etc/gala-anteater/config/', glob('config/log.settings.ini')),
         ('/etc/gala-anteater/module/', glob('config/module/*')),

@@ -15,14 +15,13 @@ import re
 from typing import Dict, List
 
 from anteater.core.anomaly import Anomaly
-from anteater.core.desc import Description
+from anteater.core.info import MetricInfo
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.suppress import AnomalySuppression
 from anteater.source.template import Template
 from anteater.utils.constants import COMM, CONTAINER_ID,\
     DEV_NAME, DEVICE, DISK_NAME, FSNAME, IP, MACHINE_ID,\
     PID, POD_NAME, SERVER_IP, TGID
-from anteater.utils.data_load import load_desc
 from anteater.utils.log import logger
 
 PUNCTUATION_PATTERN = re.compile(r"[^\w_\-:.@()+,=;$!*'%]")
@@ -37,11 +36,12 @@ class AnomalyReport:
     def __init__(
             self,
             provider: KafkaProvider,
-            suppressor: AnomalySuppression):
+            suppressor: AnomalySuppression,
+            metricinfo: MetricInfo):
         """The Anomaly Report class initializer"""
         self.provider = provider
         self.suppressor = suppressor
-        self.desc = load_desc(Description.file_name)
+        self.metricinfo = metricinfo
 
     @staticmethod
     def extract_entity_id(machine_id, entity_name, labels, keys):
@@ -91,9 +91,9 @@ class AnomalyReport:
 
     def get_description(self, metric) -> str:
         """Gets the description based on the metric name"""
-        des = self.desc.get_zh(metric)
+        des = self.metricinfo.get_zh(metric)
         if not des:
-            des = self.desc.get_en(metric)
+            des = self.metricinfo.get_en(metric)
 
         return des
 

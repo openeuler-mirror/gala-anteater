@@ -1,0 +1,2054 @@
+[
+  {
+    "metric": "gala_gopher_block_access_pagecache",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of page cache accesses"
+  },
+  {
+    "metric": "gala_gopher_block_count_latency_device",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of device operation"
+  },
+  {
+    "metric": "gala_gopher_block_count_latency_driver",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of driver operation"
+  },
+  {
+    "metric": "gala_gopher_block_count_latency_req",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of request consumed"
+  },
+  {
+    "metric": "gala_gopher_block_err_code",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Errer code of I/O operation."
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_jitter",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Jitter latency of device operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_last",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "last latency of device operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_max",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Max latency of device operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_sum",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Sum latency of device operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_jitter",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Jitter latency of driver operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_last",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "last latency of driver operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_max",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Max latency of driver operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_sum",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Sum latency of driver operation consumed"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_jitter",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Jitter latency of request consumed, include block queued time"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_last",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Last latency of request consumed, include block queued time"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_max",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Max latency of request consumed, include block queued time"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_sum",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Sum latency of request consumed, include block queued time"
+  },
+  {
+    "metric": "gala_gopher_block_load_page_cache",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of load page to lru"
+  },
+  {
+    "metric": "gala_gopher_block_mark_buffer_dirty",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of mark buffer dirty"
+  },
+  {
+    "metric": "gala_gopher_block_mark_page_dirty",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Count of mark page dirty"
+  },
+  {
+    "metric": "gala_gopher_block_read_bytes",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Bytes of I/O read operations."
+  },
+  {
+    "metric": "gala_gopher_block_write_bytes",
+    "entity_name": "block",
+    "type": "gauge",
+    "en": "Bytes of I/O write operations."
+  },
+  {
+    "metric": "gala_gopher_cgroup_ooms",
+    "entity_name": "cgroup",
+    "type": "gauge",
+    "en": "the times oom occurs in a sampling period"
+  },
+  {
+    "metric": "gala_gopher_cgroup_pages",
+    "entity_name": "cgroup",
+    "type": "gauge",
+    "en": "max pages that memory cgroup is charging in a sampling period"
+  },
+  {
+    "metric": "gala_gopher_container_blkio_device_usage_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "device_usage_total"
+  },
+  {
+    "metric": "gala_gopher_container_bps",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Egress bindwidth of container"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_load_average_10s",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Value of container cpu load average over the last 10 seconds"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_system_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative system cpu time consumed in seconds"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_usage_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative cpu time consumed in seconds"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_user_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative user cpu time consumed in seconds"
+  },
+  {
+    "metric": "gala_gopher_container_fs_inodes_free",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of available Inodes"
+  },
+  {
+    "metric": "gala_gopher_container_fs_inodes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of Inodes"
+  },
+  {
+    "metric": "gala_gopher_container_fs_io_current",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of I/Os currently in progress"
+  },
+  {
+    "metric": "gala_gopher_container_fs_io_time_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of seconds spent doing I/Os"
+  },
+  {
+    "metric": "gala_gopher_container_fs_io_time_weighted_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative weighted I/O time in seconds"
+  },
+  {
+    "metric": "gala_gopher_container_fs_limit_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of bytes that can be consumed by the container on this filesystem"
+  },
+  {
+    "metric": "gala_gopher_container_fs_read_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of seconds spent reading"
+  },
+  {
+    "metric": "gala_gopher_container_fs_reads_bytes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of bytes read"
+  },
+  {
+    "metric": "gala_gopher_container_fs_reads_merged_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of reads merged"
+  },
+  {
+    "metric": "gala_gopher_container_fs_reads_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of reads completed"
+  },
+  {
+    "metric": "gala_gopher_container_fs_sector_reads_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of sector reads completed"
+  },
+  {
+    "metric": "gala_gopher_container_fs_sector_writes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of sector writes completed"
+  },
+  {
+    "metric": "gala_gopher_container_fs_usage_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of bytes that are consumed by the container on this filesystem"
+  },
+  {
+    "metric": "gala_gopher_container_fs_write_seconds_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of seconds spent writing"
+  },
+  {
+    "metric": "gala_gopher_container_fs_writes_bytes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of bytes written"
+  },
+  {
+    "metric": "gala_gopher_container_fs_writes_merged_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of writes merged"
+  },
+  {
+    "metric": "gala_gopher_container_fs_writes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of writes completed"
+  },
+  {
+    "metric": "gala_gopher_container_memory_cache",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of bytes of page cache memory"
+  },
+  {
+    "metric": "gala_gopher_container_memory_failcnt",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of memory usage hits limits"
+  },
+  {
+    "metric": "gala_gopher_container_memory_failures_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of memory allocation failures"
+  },
+  {
+    "metric": "gala_gopher_container_memory_mapped_file",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Size of memory mapped files in bytes"
+  },
+  {
+    "metric": "gala_gopher_container_memory_max_usage_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Maximum memory usage recorded in byte"
+  },
+  {
+    "metric": "gala_gopher_container_memory_rss",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Size of RSS in byte"
+  },
+  {
+    "metric": "gala_gopher_container_memory_swap",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Container swap usage in bytes"
+  },
+  {
+    "metric": "gala_gopher_container_memory_usage_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Current memory usage in bytes, including all memory regardless of when it was accessed"
+  },
+  {
+    "metric": "gala_gopher_container_memory_working_set_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Current working set in bytes"
+  },
+  {
+    "metric": "gala_gopher_container_network_receive_bytes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of bytes received"
+  },
+  {
+    "metric": "gala_gopher_container_network_receive_errors_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of errors encountered while receiving"
+  },
+  {
+    "metric": "gala_gopher_container_network_receive_packets_dropped_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of packets dropped while receiving"
+  },
+  {
+    "metric": "gala_gopher_container_network_receive_packets_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of packets received"
+  },
+  {
+    "metric": "gala_gopher_container_network_transmit_bytes_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of bytes transmitted"
+  },
+  {
+    "metric": "gala_gopher_container_network_transmit_errors_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of errors encountered while transmitting"
+  },
+  {
+    "metric": "gala_gopher_container_network_transmit_packets_dropped_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of packets dropped while transmitting"
+  },
+  {
+    "metric": "gala_gopher_container_network_transmit_packets_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Cumulative count of packets transmitted"
+  },
+  {
+    "metric": "gala_gopher_container_oom_events_total",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Count of out of memory events observed for the container"
+  },
+  {
+    "metric": "gala_gopher_container_spec_cpu_period",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "CPU period of the container"
+  },
+  {
+    "metric": "gala_gopher_container_spec_cpu_shares",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "CPU share of the container"
+  },
+  {
+    "metric": "gala_gopher_container_spec_memory_limit_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Memory limit for the container"
+  },
+  {
+    "metric": "gala_gopher_container_spec_memory_reservation_limit_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Memory reservation limit for the container"
+  },
+  {
+    "metric": "gala_gopher_container_spec_memory_swap_limit_bytes",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Memory swap limit for the container"
+  },
+  {
+    "metric": "gala_gopher_container_start_time_seconds",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Start time of the container since unix epoch in seconds"
+  },
+  {
+    "metric": "gala_gopher_container_tasks_state",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Number of tasks in given state"
+  },
+  {
+    "metric": "gala_gopher_container_value",
+    "entity_name": "container",
+    "type": "gauge",
+    "en": "Fix value"
+  },
+  {
+    "metric": "gala_gopher_cpu_backlog_drops",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Count of dropped packets due to full processing queue"
+  },
+  {
+    "metric": "gala_gopher_cpu_idle_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_idle_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_iowait_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_iowait_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_irq_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_irq_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_mhz",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "CPU MHz"
+  },
+  {
+    "metric": "gala_gopher_cpu_net_rx",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Count of network receive in softirqs"
+  },
+  {
+    "metric": "gala_gopher_cpu_nice_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_nice_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_rcu",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Count of rcu lock in softirqs"
+  },
+  {
+    "metric": "gala_gopher_cpu_rps_count",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "times has been woken up to process packets via Inter-processor Interrupt"
+  },
+  {
+    "metric": "gala_gopher_cpu_sched",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Count of schedules in softirqs"
+  },
+  {
+    "metric": "gala_gopher_cpu_softirq_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_softirq_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_steal_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_steal_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_system_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_system_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_timer",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Count of timer in softirqs"
+  },
+  {
+    "metric": "gala_gopher_cpu_total_used_per",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "Total CPU utilization (%)"
+  },
+  {
+    "metric": "gala_gopher_cpu_user_msec",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "cpu_user_total_second(unit: ms)"
+  },
+  {
+    "metric": "gala_gopher_cpu_util_per",
+    "entity_name": "cpu",
+    "type": "gauge",
+    "en": "CPU utilization (%)"
+  },
+  {
+    "metric": "gala_gopher_disk_aqu",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "aqu-sz"
+  },
+  {
+    "metric": "gala_gopher_disk_r_await",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "r_await"
+  },
+  {
+    "metric": "gala_gopher_disk_rareq",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "rareq-sz"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "r/s"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed_kB",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "rkB/s"
+  },
+  {
+    "metric": "gala_gopher_disk_util",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "util"
+  },
+  {
+    "metric": "gala_gopher_disk_w_await",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "w_await"
+  },
+  {
+    "metric": "gala_gopher_disk_wareq",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "wareq-sz"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "w/s"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed_kB",
+    "entity_name": "disk",
+    "type": "gauge",
+    "en": "wkB/s"
+  },
+  {
+    "metric": "gala_gopher_dns_count",
+    "entity_name": "dns",
+    "type": "gauge",
+    "en": "Number of DNS accesses (successful and non-successful)."
+  },
+  {
+    "metric": "gala_gopher_dns_delay_avg",
+    "entity_name": "dns",
+    "type": "gauge",
+    "en": "Average DNS Access Delay."
+  },
+  {
+    "metric": "gala_gopher_dns_error_ratio",
+    "entity_name": "dns",
+    "type": "gauge",
+    "en": "DNS access error rate."
+  },
+  {
+    "metric": "gala_gopher_dns_max_delay",
+    "entity_name": "dns",
+    "type": "gauge",
+    "en": "Maximum DNS Access Delay."
+  },
+  {
+    "metric": "gala_gopher_endpoint_accept_overflow",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "listen overflows of accepted queue"
+  },
+  {
+    "metric": "gala_gopher_endpoint_active_open",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "active opens of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_active_open_failed",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "failed active opens of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_bind_err",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcv queue drops err code"
+  },
+  {
+    "metric": "gala_gopher_endpoint_bind_rcv_drops",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcv queue drops of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_bind_rcvs",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcvs of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_bind_sends",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "sends of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_listendrop",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "listen drops of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_lost_synacks",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "synack lost"
+  },
+  {
+    "metric": "gala_gopher_endpoint_passive_open",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "passive opens of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_passive_open_failed",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "failed passive opens of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_retran_synacks",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "synack retrans"
+  },
+  {
+    "metric": "gala_gopher_endpoint_syn_overflow",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "listen overflows of syn queue"
+  },
+  {
+    "metric": "gala_gopher_endpoint_udp_err",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcv queue drops err code"
+  },
+  {
+    "metric": "gala_gopher_endpoint_udp_rcv_drops",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcv queue drops of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_udp_rcvs",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "rcvs of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_endpoint_udp_sends",
+    "entity_name": "endpoint",
+    "type": "gauge",
+    "en": "sends of the endpoint"
+  },
+  {
+    "metric": "gala_gopher_fs_Free",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "disk remaining(KB)"
+  },
+  {
+    "metric": "gala_gopher_fs_IFree",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "IFree"
+  },
+  {
+    "metric": "gala_gopher_fs_IUsePer",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "IUse(%)"
+  },
+  {
+    "metric": "gala_gopher_fs_IUsed",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "IUsed"
+  },
+  {
+    "metric": "gala_gopher_fs_UsePer",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "disk usage(%)"
+  },
+  {
+    "metric": "gala_gopher_fs_Used",
+    "entity_name": "fs",
+    "type": "gauge",
+    "en": "disk used(KB)"
+  },
+  {
+    "metric": "gala_gopher_host_value",
+    "entity_name": "host",
+    "type": "gauge",
+    "en": "a fixed num as metric"
+  },
+  {
+    "metric": "gala_gopher_hw_carrier_down_count",
+    "entity_name": "hw",
+    "type": "counter",
+    "en": "Number of times the carrier has been down"
+  },
+  {
+    "metric": "gala_gopher_hw_carrier_up_count",
+    "entity_name": "hw",
+    "type": "counter",
+    "en": "Number of times the carrier has been up"
+  },
+  {
+    "metric": "gala_gopher_hw_error_count",
+    "entity_name": "hw",
+    "type": "gauge",
+    "en": "number of errors of the same type"
+  },
+  {
+    "metric": "gala_gopher_hw_xmit_timeout_count",
+    "entity_name": "hw",
+    "type": "gauge",
+    "en": "interface xmit timeout"
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_capacity_bytes",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Bytes capacity of a given JVM buffer pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_used_buffers",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Used buffers of a given JVM buffer pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_used_bytes",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Used bytes of a given JVM buffer pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_class_current_loaded",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Start time of the process since unix epoch in seconds."
+  },
+  {
+    "metric": "gala_gopher_jvm_class_loaded_total",
+    "entity_name": "jvm",
+    "type": "counter",
+    "en": "Total user and system CPU time spent in seconds."
+  },
+  {
+    "metric": "gala_gopher_jvm_gc_coll_secs_count",
+    "entity_name": "jvm",
+    "type": "summary",
+    "en": "Collection count of a given JVM garbage collector."
+  },
+  {
+    "metric": "gala_gopher_jvm_gc_coll_secs_sum",
+    "entity_name": "jvm",
+    "type": "summary",
+    "en": "Time spent in a given JVM garbage collector in seconds."
+  },
+  {
+    "metric": "gala_gopher_jvm_info",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "a fixed num 1 as metric"
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_commit",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Committed (bytes) of a given JVM memory area."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_init",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Initial bytes of a given JVM memory area."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_max",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Max (bytes) of a given JVM memory area."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_used",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Used bytes of a given JVM memory area."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_bytes_commit",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Committed bytes of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_bytes_max",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Max bytes of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_bytes_used",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Used bytes of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_coll_commit_bytes",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Committed after last collection bytes of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_coll_max_bytes",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Max bytes after last collection of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_coll_used_bytes",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Used bytes after last collection of a given JVM memory pool."
+  },
+  {
+    "metric": "gala_gopher_jvm_proc_cpu_secs_total",
+    "entity_name": "jvm",
+    "type": "counter",
+    "en": "Total user and system CPU time spent in seconds."
+  },
+  {
+    "metric": "gala_gopher_jvm_proc_start_time_secs",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Start time of the process since unix epoch in seconds."
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_current",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Current thread count of a JVM."
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_daemon",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Daemon thread count of a JVM."
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_deadlocked",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Cycles of JVM-threads that are in deadlock waiting to acquire object monitors or ownable synchronizers."
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_peak",
+    "entity_name": "jvm",
+    "type": "gauge",
+    "en": "Peak thread count of a JVM."
+  },
+  {
+    "metric": "gala_gopher_jvm_threads_started_total",
+    "entity_name": "jvm",
+    "type": "counter",
+    "en": "Started thread count of a JVM."
+  },
+  {
+    "metric": "gala_gopher_kafka_num",
+    "entity_name": "kafka",
+    "type": "gauge",
+    "en": "the number of produce/consume topic between sample period"
+  },
+  {
+    "metric": "gala_gopher_l7_bytes_recv",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Number of bytes recv by a l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_bytes_sent",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Number of bytes sent by a l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_err_count",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "L7 session error count."
+  },
+  {
+    "metric": "gala_gopher_l7_err_ratio",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "L7 session error rate."
+  },
+  {
+    "metric": "gala_gopher_l7_latency",
+    "entity_name": "l7",
+    "type": "histogram",
+    "en": "L7 session histogram latency."
+  },
+  {
+    "metric": "gala_gopher_l7_latency_avg",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "L7 session average latency."
+  },
+  {
+    "metric": "gala_gopher_l7_latency_sum",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "L7 session sum latency."
+  },
+  {
+    "metric": "gala_gopher_l7_req_count",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Request num of l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_resp_count",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Response num of l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_segs_recv",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Number of segs recv by a l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_segs_sent",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Number of segs sent by a l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_throughput_req",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Request throughput of l7 session."
+  },
+  {
+    "metric": "gala_gopher_l7_throughput_resp",
+    "entity_name": "l7",
+    "type": "gauge",
+    "en": "Response throughput of l7 session."
+  },
+  {
+    "metric": "gala_gopher_mem_active_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Frequently used cache pagefile size (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_age_limit",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "The age in seconds after which dcache entries can be reclaimed when memory is short"
+  },
+  {
+    "metric": "gala_gopher_mem_available_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Memory available to users (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_buffers_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Physical memory size used by buffer (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_cache_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Physical memory size used by cache (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_dentry",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "The total number of dentries allocated"
+  },
+  {
+    "metric": "gala_gopher_mem_free_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Physical memory not used by the OS (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_inactive_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Infrequently used cache file size indicating recyclable memory (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_slab_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Total size of slab space (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_swap_free_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Unused swap space size (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_swap_total_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Total size of swap space (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_swap_util",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Usage of swap memory (%)"
+  },
+  {
+    "metric": "gala_gopher_mem_total_kB",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Memory size that the OS can control (KB)"
+  },
+  {
+    "metric": "gala_gopher_mem_unused_dentry",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "The number of dentries that are not actively used"
+  },
+  {
+    "metric": "gala_gopher_mem_util",
+    "entity_name": "mem",
+    "type": "gauge",
+    "en": "Usage of OS memory (%)"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_curr_estab",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "tcp_curr_estab"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_in_errs",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "tcp_in_errs"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_in_segs",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "tcp_in_segs"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_out_segs",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "tcp_out_segs"
+  },
+  {
+    "metric": "gala_gopher_net_tcp_retrans_segs",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "tcp_retrans_segs"
+  },
+  {
+    "metric": "gala_gopher_net_udp_indata_grams",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "udp_indata_grams"
+  },
+  {
+    "metric": "gala_gopher_net_udp_outdata_grams",
+    "entity_name": "net",
+    "type": "gauge",
+    "en": "udp_outdata_grams"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_bytes",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "rx_bytes"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_dropped",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "rx_dropped"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_errs",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "rx_errs"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_packets",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "rx_packets"
+  },
+  {
+    "metric": "gala_gopher_nic_rxspeed_KB",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "rx Kbps"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_backlog",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "qdisc backlog count"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_ecn_mark",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "ecn mark"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_sent_drop",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "count of qdisc sent drop packets"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_sent_overlimits",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "count of qdisc sent overlimits packets"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_bytes",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "tx_bytes"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_dropped",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "tx_dropped"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_errs",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "tx_errs"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_packets",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "tx_packets"
+  },
+  {
+    "metric": "gala_gopher_nic_txspeed_KB",
+    "entity_name": "nic",
+    "type": "gauge",
+    "en": "tx Kbps"
+  },
+  {
+    "metric": "gala_gopher_proc_access_pagecache",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of page cache accesses by processes."
+  },
+  {
+    "metric": "gala_gopher_proc_bio_err_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of I/O operation failures at the BIO layer."
+  },
+  {
+    "metric": "gala_gopher_proc_bio_latency",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "I/O operation delay at the BIO layer (unit: ns)."
+  },
+  {
+    "metric": "gala_gopher_proc_cancelled_write_bytes",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "bytes written to disk cancelled by proc"
+  },
+  {
+    "metric": "gala_gopher_proc_cpu",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "ID of the CPU where proc last run"
+  },
+  {
+    "metric": "gala_gopher_proc_cstime_jiffies",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "time of proc waited-for children in kernelspace"
+  },
+  {
+    "metric": "gala_gopher_proc_cutime_jiffies",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "time of proc waited-for children in userspace"
+  },
+  {
+    "metric": "gala_gopher_proc_fd_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "fd counts of the process"
+  },
+  {
+    "metric": "gala_gopher_proc_fd_free_per",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "percent of remaining fd resource(%)"
+  },
+  {
+    "metric": "gala_gopher_proc_flow_perf_rx_delay",
+    "entity_name": "proc_flow_perf",
+    "type": "histogram",
+    "en": "request receive delay(ms) before read by application and after arrive netcard"
+  },
+  {
+    "metric": "gala_gopher_proc_flow_perf_tx_delay",
+    "entity_name": "proc_flow_perf",
+    "type": "histogram",
+    "en": "response send delay(ms) before receive ack and after write by application"
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of big I/O (greater than 4 KB) read operations at the BIO layer."
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of big I/O (greater than 4 KB) write operations at the BIO layer."
+  },
+  {
+    "metric": "gala_gopher_proc_hang_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of process hang times."
+  },
+  {
+    "metric": "gala_gopher_proc_iowait_us",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process IO_wait time (unit: us)."
+  },
+  {
+    "metric": "gala_gopher_proc_lazyfree_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of memory not immediately freed(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of small I/O (less than 4 KB) read operations at the BIO layer."
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of small I/O (less than 4 KB) write operations at the BIO layer."
+  },
+  {
+    "metric": "gala_gopher_proc_load_page_cache",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of page cache loaded by processes."
+  },
+  {
+    "metric": "gala_gopher_proc_major_pagefault_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "count of proc weak pagefault"
+  },
+  {
+    "metric": "gala_gopher_proc_mark_buffer_dirty",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of dirty page buffers marked by processes."
+  },
+  {
+    "metric": "gala_gopher_proc_mark_page_dirty",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of dirty page marked by processes."
+  },
+  {
+    "metric": "gala_gopher_proc_minor_pagefault_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "count of proc cirtical pagefault"
+  },
+  {
+    "metric": "gala_gopher_proc_nice",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Static priority of proc"
+  },
+  {
+    "metric": "gala_gopher_proc_ns_clone",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process clone operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_epoll_pwait",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process epoll_pwait operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_epoll_wait",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process epoll_wait operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_flush",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process flush operation duration in ext4 file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_open",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process open operation duration in ext4 file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process read operation duration in ext4 file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_ext4_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process write operation duration in ext4 file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_fork",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process fork operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_fsync",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process fsync operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_futex",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process futex operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_mount",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process mount operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_flush",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process flush operation duration in overlay file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_open",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process open operation duration in overlay file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process read operation duration in overlay file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_overlay_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process write operation duration in overlay file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process read operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_recvmsg",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process recvmsg operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_sched_yield",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process sched_yield operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_sendmsg",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process sendmsg operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_tmpfs_flush",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process flush operation duration in tmpfs file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_tmpfs_read",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process read operation duration in tmpfs file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_tmpfs_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process write operation duration in tmpfs file-system, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_umount",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process umount operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_vfork",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process vfork operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_ns_write",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process write operation duration, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_num_threads",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of threads in the group"
+  },
+  {
+    "metric": "gala_gopher_proc_pm_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "byte of proc's physical address space(B)"
+  },
+  {
+    "metric": "gala_gopher_proc_pm_util",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "util of proc's physical address used(%)"
+  },
+  {
+    "metric": "gala_gopher_proc_priority",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Dynamic priority of proc"
+  },
+  {
+    "metric": "gala_gopher_proc_private_clean_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of clean pages in private memory(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_private_dirty_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of dirty pages in private memory(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_rchar_bytes",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "bytes of proc system call I/O read operation"
+  },
+  {
+    "metric": "gala_gopher_proc_read_bytes",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "bytes of proc read operation from disk"
+  },
+  {
+    "metric": "gala_gopher_proc_reclaim_ns",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Duration for a process to reclaim virtual memory, in ns."
+  },
+  {
+    "metric": "gala_gopher_proc_referenced_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of memory currently marked as referenced(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_sched_syscall",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Process syscall delay due to scheduling preemption."
+  },
+  {
+    "metric": "gala_gopher_proc_sched_systime",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Duration of the process in the system state due to scheduling delay."
+  },
+  {
+    "metric": "gala_gopher_proc_shared_clean_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of clean pages in shared memory(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_shared_dirty_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of dirty pages in shared memory(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_stime_jiffies",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "time of proc runs in kernelspace"
+  },
+  {
+    "metric": "gala_gopher_proc_swap_data_pss_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of proc swap physical partition(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_swap_data_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "size of data present in proc swap partition(kB)"
+  },
+  {
+    "metric": "gala_gopher_proc_syscall_failed",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "Number of process system call failures."
+  },
+  {
+    "metric": "gala_gopher_proc_syscr_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "count of proc system call I/O read operation"
+  },
+  {
+    "metric": "gala_gopher_proc_syscw_count",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "count of proc system call I/O write operation"
+  },
+  {
+    "metric": "gala_gopher_proc_utime_jiffies",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "time of proc runs in userspace"
+  },
+  {
+    "metric": "gala_gopher_proc_value",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "a fixed num as metric"
+  },
+  {
+    "metric": "gala_gopher_proc_vm_size",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "byte of proc's virtual address space(B)"
+  },
+  {
+    "metric": "gala_gopher_proc_wchar_bytes",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "bytes of proc system call I/O write operation"
+  },
+  {
+    "metric": "gala_gopher_proc_write_bytes",
+    "entity_name": "proc",
+    "type": "gauge",
+    "en": "bytes written to disk by proc (expected)"
+  },
+  {
+    "metric": "gala_gopher_qdisc_backlog",
+    "entity_name": "qdisc",
+    "type": "gauge",
+    "en": "Length of egress backlog"
+  },
+  {
+    "metric": "gala_gopher_qdisc_drops",
+    "entity_name": "qdisc",
+    "type": "counter",
+    "en": "Drops count egress"
+  },
+  {
+    "metric": "gala_gopher_qdisc_overlimits",
+    "entity_name": "qdisc",
+    "type": "counter",
+    "en": "Over limit count egress"
+  },
+  {
+    "metric": "gala_gopher_qdisc_qlen",
+    "entity_name": "qdisc",
+    "type": "gauge",
+    "en": "Length of egress queue"
+  },
+  {
+    "metric": "gala_gopher_qdisc_requeues",
+    "entity_name": "qdisc",
+    "type": "counter",
+    "en": "Requeues count egress"
+  },
+  {
+    "metric": "gala_gopher_redis_client_max_rtt",
+    "entity_name": "redis_client",
+    "type": "gauge",
+    "en": "max rtt(us)"
+  },
+  {
+    "metric": "gala_gopher_redis_client_min_rtt",
+    "entity_name": "redis_client",
+    "type": "gauge",
+    "en": "min rtt(us)"
+  },
+  {
+    "metric": "gala_gopher_redis_client_recent_rtt",
+    "entity_name": "redis_client",
+    "type": "gauge",
+    "en": "recent rtt(us)"
+  },
+  {
+    "metric": "gala_gopher_redis_client_sample_num",
+    "entity_name": "redis_client",
+    "type": "gauge",
+    "en": "sample num"
+  },
+  {
+    "metric": "gala_gopher_redis_client_send_queue_nums",
+    "entity_name": "redis_client",
+    "type": "gauge",
+    "en": "send queue backlog"
+  },
+  {
+    "metric": "gala_gopher_redis_clients_cluster_connections",
+    "entity_name": "redis_clients",
+    "type": "gauge",
+    "en": "cluster_connections"
+  },
+  {
+    "metric": "gala_gopher_redis_clients_connected_clients",
+    "entity_name": "redis_clients",
+    "type": "gauge",
+    "en": "connected_clients"
+  },
+  {
+    "metric": "gala_gopher_redis_latency_intrinsic_latency",
+    "entity_name": "redis_latency",
+    "type": "gauge",
+    "en": "intrinsic_latency"
+  },
+  {
+    "metric": "gala_gopher_redis_memory_used_memory",
+    "entity_name": "redis_memory",
+    "type": "gauge",
+    "en": "used_memory"
+  },
+  {
+    "metric": "gala_gopher_redis_stats_instantaneous_ops_per_sec",
+    "entity_name": "redis_stats",
+    "type": "gauge",
+    "en": "instantaneous_ops_per_sec"
+  },
+  {
+    "metric": "gala_gopher_redis_stats_total_commands_processed",
+    "entity_name": "redis_stats",
+    "type": "gauge",
+    "en": "total_commands_processed"
+  },
+  {
+    "metric": "gala_gopher_redis_stats_total_connections_received",
+    "entity_name": "redis_stats",
+    "type": "gauge",
+    "en": "total_connections_received"
+  },
+  {
+    "metric": "gala_gopher_redis_stats_total_net_input_bytes",
+    "entity_name": "redis_stats",
+    "type": "gauge",
+    "en": "total_net_input_bytes"
+  },
+  {
+    "metric": "gala_gopher_redis_stats_total_net_output_bytes",
+    "entity_name": "redis_stats",
+    "type": "gauge",
+    "en": "total_net_output_bytes"
+  },
+  {
+    "metric": "gala_gopher_redissli_cmd_delay_ns",
+    "entity_name": "redissli",
+    "type": "gauge",
+    "en": "the redis command delay(ns) in application layer of redis client connection"
+  },
+  {
+    "metric": "gala_gopher_sli_max_rtt_nsec",
+    "entity_name": "sli",
+    "type": "gauge",
+    "en": "the rtt(ns) of max rtt req"
+  },
+  {
+    "metric": "gala_gopher_sli_rtt_nsec",
+    "entity_name": "sli",
+    "type": "gauge",
+    "en": "the rtt(ns) of req"
+  },
+  {
+    "metric": "gala_gopher_sli_tps",
+    "entity_name": "sli",
+    "type": "gauge",
+    "en": "Number of transactions in this database that have been committed"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_ato",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Estimated value of delayed ACK(us)"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_avl_snd_wnd",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "TCP available send window."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_backlog_drops",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "drops caused by backlog queue full"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_filter_drops",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "drops caused by socket filter"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_lost_out",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "tcp lost counter"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_notack_bytes",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Number of bytes not ack currently."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_notsent_bytes",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Number of bytes not sent currently."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rcv_rtt",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Receive end RTT (unidirectional measurement)."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rcv_wnd",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Size of TCP receive window."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_receive_rsts",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "receive_rsts"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_reordering",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Segments to be reordered."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_retran_packets",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "retrans packets"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_retrans_ratio",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "retrans ratio"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rmem_scheduls",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "rmem is not enough"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rto",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Retransmission timeOut(us)"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rx_bytes",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "rx bytes"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sacked_out",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "tcp sacked out counter"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_segs_in",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "total number of segments rcvd"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_segs_out",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "total number of segments sent"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_send_rsts",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "send_rsts"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_drops",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "sock drop counter"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_rcvbuf",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Byte length of the RX buffer."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_sndbuf",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Byte length of the TX buffer."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_buf_limit_count",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "counter of limits when allocate wmem"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_cwnd",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Congestion Control Window Size."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_wnd",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Size of TCP send window."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_srtt",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "Smoothed Round Trip Time(us)."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_syn_srtt",
+    "entity_name": "tcp_link",
+    "type": "histogram",
+    "en": "RTT of syn packet(us)."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_syn_srtt_max",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "RTT of syn packet(us)."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_tcp_oom",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "tcp out of memory"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_tmout_count",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "counter of tcp link timeout"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_tx_bytes",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "tx bytes"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_rcv_wnd_count",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "The number of receive window 0 windows."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_snd_wnd_count",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "The number of sending window 0 windows."
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_win_rx_ratio",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "TCP zero receive windows ratio"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_win_tx_ratio",
+    "entity_name": "tcp_link",
+    "type": "gauge",
+    "en": "TCP zero send windows ratio"
+  },
+  {
+    "metric": "gala_gopher_thread_migration_count",
+    "entity_name": "thread",
+    "type": "gauge",
+    "en": "Thread migration count."
+  },
+  {
+    "metric": "gala_gopher_thread_off_cpu_ns",
+    "entity_name": "thread",
+    "type": "gauge",
+    "en": "Thread offcpu times, unit is ns."
+  }
+]

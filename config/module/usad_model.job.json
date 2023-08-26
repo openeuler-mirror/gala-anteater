@@ -126,10 +126,6 @@
       "atrend": "rise"
     },
     {
-      "metric": "gala_gopher_block_mark_buffer_dirty",
-      "priority": 5
-    },
-    {
       "metric": "gala_gopher_block_read_bytes",
       "priority": 2
     },
@@ -232,24 +228,12 @@
       "atrend": "rise"
     },
     {
-      "metric": "gala_gopher_endpoint_udp_rcvs",
+      "metric": "gala_gopher_endpoint_udp_bind_rcvs",
       "priority": 5
     },
     {
-      "metric": "gala_gopher_endpoint_udp_sends",
+      "metric": "gala_gopher_endpoint_udp_bind_sends",
       "priority": 5
-    },
-    {
-      "metric": "gala_gopher_fs_Free",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_fs_UsePer",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_fs_Used",
-      "priority": 0
     },
     {
       "metric": "gala_gopher_mem_active_kB",
@@ -316,10 +300,6 @@
       "priority": 0
     },
     {
-      "metric": "gala_gopher_nic_tc_enc_mark",
-      "priority": 5
-    },
-    {
       "metric": "gala_gopher_nic_tc_sent_drop",
       "priority": 0
     },
@@ -366,10 +346,6 @@
     {
       "metric": "gala_gopher_proc_less_4k_io_write",
       "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_minor_pagefault_count",
-      "priority": 5
     },
     {
       "metric": "gala_gopher_proc_ns_ext4_flush",
