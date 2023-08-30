@@ -20,6 +20,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from anteater.anomaly_detection import AnomalyDetection
 from anteater.config import AnteaterConf
+from anteater.core.info import MetricInfo
 from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.source.metric_loader import MetricLoader
@@ -40,9 +41,10 @@ def main():
     """The gala-anteater main function"""
     conf = init_config()
     kafka_provider = KafkaProvider(conf.kafka)
-    loader = MetricLoader(conf)
+    metricinfo = MetricInfo()
     suppressor = AnomalySuppression()
-    report = AnomalyReport(kafka_provider, suppressor)
+    report = AnomalyReport(kafka_provider, suppressor, metricinfo)
+    loader = MetricLoader(metricinfo, conf)
     anomaly_detection = AnomalyDetection(loader, report)
 
     duration = conf.schedule.duration

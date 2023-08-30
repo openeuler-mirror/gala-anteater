@@ -48,11 +48,11 @@ class TcpEstablishNSigmaDetector(Detector):
             if sum(_ts.values) > 0:
                 filtered_ts_list.append(_ts)
 
-        if not filtered_ts_list:
-            self.mean = 0
-            self.std = 0
-        else:
-            establish_time = reduce(lambda x, y: x + y, [list(set(_ts.values)) for _ts in filtered_ts_list])
+        self.mean = 0
+        self.std = 0
+        values = [list(set(_ts.values)) for _ts in filtered_ts_list]
+        if values:
+            establish_time = reduce(lambda x, y: x + y, values)
             self.mean = np.mean(establish_time)
             self.std = np.std(establish_time)
 
