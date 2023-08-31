@@ -228,11 +228,11 @@
       "atrend": "rise"
     },
     {
-      "metric": "gala_gopher_endpoint_udp_bind_rcvs",
+      "metric": "gala_gopher_endpoint_udp_rcvs",
       "priority": 5
     },
     {
-      "metric": "gala_gopher_endpoint_udp_bind_sends",
+      "metric": "gala_gopher_endpoint_udp_sends",
       "priority": 5
     },
     {
