@@ -11,7 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from typing import Dict, List
+from typing import List
 from anteater.core.anomaly import Anomaly
 from anteater.utils.datetime import DateTimeManager as dt
 
@@ -52,8 +52,8 @@ class Template:
             'Resource': {
                 'metric': self._metric,
                 'labels': self._labels,
-                'score': self._score,
-                'root_causes': str(self._root_causes)
+                'score': f'{self._score:.3f}',
+                'root_causes': [str(x) for x in self._root_causes]
             },
             'SeverityText': 'WARN',
             'SeverityNumber': 13,

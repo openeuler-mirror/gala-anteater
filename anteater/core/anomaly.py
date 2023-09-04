@@ -27,7 +27,7 @@ class RootCause:
         dic = {
             "metric": self.metric,
             "labels": self.labels,
-            "score": self.score
+            "score": f'{self.score:.3f}'
         }
         return str(dic)
 
