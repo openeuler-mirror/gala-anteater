@@ -53,7 +53,7 @@ class Template:
                 'metric': self._metric,
                 'labels': self._labels,
                 'score': f'{self._score:.3f}',
-                'root_causes': [str(x) for x in self._root_causes]
+                'root_causes': self.get_root_causes()
             },
             'SeverityText': 'WARN',
             'SeverityNumber': 13,
@@ -99,6 +99,13 @@ class Template:
                 self.header, self._description, self._details]
 
         return ' - '.join([str(x) for x in body if x])
+
+    def get_root_causes(self) -> List:
+        """Gets root causes"""
+        if not self._root_causes:
+            return []
+
+        return [str(x) for x in self._root_causes]
 
 
 class AppAnomalyTemplate(Template):
