@@ -89,50 +89,48 @@ gala-anteater输出异常检测结果到`Kafka`，如果检测到异常，检测
 
 | 参数 |  参数含义  | 描述 |
 |:---:|:------:|---|
-| Timestamp |  时间戳   | 异常事件上报时间戳(datetime.now(timezone.utc).timestamp()) |
-| Attributes |  属性值   | 主要包括实体ID:entity_id<br>* entity_id命名规则：<machine_id>_<table_name>_<keys> |
-| Resource |   资源   | 异常检测模型输出的信息，主要包括：<br>* metric_id: 异常检测的主指标<br>* labels: 异常metric标签信息（例如：{"machine_id": "xxx", "tgid": "1234", "conn_fd": "xx"}）<br>* cause_metrics: 推荐的 Top N 根因信息 <br>  |
-| SeverityText | 异常事件类型 | INFO WARN ERROR FATAL |
+| Timestamp |  时间戳   | 异常事件上报时间戳 |
+| Attributes |  属性值   | 主要包括：<br>1. entity_id命名规则：\<machine_id\>_\<table_name\>_\<keys\><br>2. entity_id事件ID：\<timestamp\>_\<entity_id\><br>3. event_type: 事件主要类型（APP/SYS/JVM）<br>4. event_source：事件上报来源<br>5. keywords(optional)：事件关键词，用于快速搜索|
+| Resource |   资源   | 异常检测模型输出的信息，主要包括：<br>1. metric: 异常检测的主指标<br>2. labels: 异常metric标签信息（例如：Host/PID/COMM/IP）<br>3. score：事件的异常分数<br>4. root_causes (optional): 推荐的 Top N 根因信息 <br>  |
+| SeverityText | 异常事件类型 | INFO, WARN, ERROR, FATAL |
 | SeverityNumber | 异常事件编号 | 9, 13, 178, 21 ... |
-| Body | 异常事件信息 | 字符串，对当前异常事件的描述信息 |
+| Body | 异常事件信息 | 字符串类型，表示对当前异常事件的描述<br>格式：\<timestamp\> - \<header\> - \<description\> - \<details\>|
 
 #### 输出数据示例
 
+示例一：
 ```json
 {
     "Timestamp": 1669343170074,
     "Attributes": {
-        "entity_id": "7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe_sli_2187425_16859_POSTGRE_0",
-        "event_id": "1669343170074_7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe_sli_2187425_16859_POSTGRE_0",
+        "entity_id": "7c2fbaf8-xxx-xxx-xxx-xxx_sli_xxx_16859_POSTGRE_0",
+        "event_id": "1669343170074_7c2fbaf8-xxx-xxx-xxx-xxx_sli_2187425_16859_POSTGRE_0",
         "event_type": "app",
-        "event_source": "gala-anteater"
+        "event_source": "gala-anteater",
+        "keywords": [
+            "sli",
+            "tcp"
+            ]
     },
     "Resource": {
         "metric": "gala_gopher_sli_tps",
         "labels": {
-            "app": "POSTGRE",
-            "datname": "tpccdb",
-            "ins_id": "16859",
-            "instance": "10.xxx.xxx.xxx:18001",
-            "job": "prometheus-10.xxx.xxx.xxx:8001",
-            "machine_id": "7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe",
-            "method": "0",
-            "server_ip": "172.xxx.xxx.xxx",
-            "server_port": "5432",
-            "tgid": "2187425"
+            "Host": "110f3138-xxx-xxx-xxx-xxxx-xxx",
+			"PID": "1188486",
+			"COMM": "xxx-server",
+			"IP": "xx.xxx.xxx.xxx"
         },
         "score":0.36,
-        "cause_metrics": [
+        "root_causes": [
             {
                 "metric": "gala_gopher_net_tcp_retrans_segs",
                 "labels": {
-                    "instance": "10.xxx.xxx.xxx:18001",
-                    "job": "prometheus-10.xxx.xxx.xxx:8001",
-                    "machine_id": "7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe",
+                    "instance": "xxx.xxx.xxx.xxx:x",
+                    "job": "prometheus-xxx.xxx.xxx.xxx:x",
+                    "machine_id": "7c2fbaf8-xxx-xxx-xxx-xxx",
                     "origin": "/proc/dev/snmp"
                 },
-                "score": 16.982238591106373,
-                "description": "TCP重传的分片数异常"
+                "score": 16.9
             },
             {
                 "metric": "gala_gopher_cpu_user_total_second",
@@ -140,29 +138,42 @@ gala-anteater输出异常检测结果到`Kafka`，如果检测到异常，检测
                     "cpu": "6",
                     "instance": "10.xxx.xxx.xxx:18001",
                     "job": "prometheus-10.xxx.xxx.xxx:8001",
-                    "machine_id": "7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe"
+                    "machine_id": "7c2fbaf8-xxx-xxx-xxx-xxx"
                 },
-                "score": 6.116480503130946,
-                "description": "用户态cpu占用时间（不包括nice）异常"
-            },
-            {
-                "metric": "gala_gopher_disk_w_await",
-                "labels": {
-                    "disk_name": "sda",
-                    "instance": "10.xxx.xxx.xxx:18001",
-                    "job": "prometheus-10.xxx.xxx.xxx:8001",
-                    "machine_id": "7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe"
-                },
-                "score": 5.958243288864987,
-                "description": "写响应时间异常"
+                "score": 6.1
             }
-        ],
-        "description": "sli tps 异常"
+        ]
     },
     "SeverityText": "WARN",
     "SeverityNumber": 13,
-    "Body": "Fri Nov 25 10:26:10 2022 WARN, APP may be impacting sli performance issues.",
-    "event_id": "1669343170074_7c2fbaf8-4528-4aaf-90c1-5c4c46b06ebe_sli_2187425_16859_POSTGRE_0"
+    "Body": "2023-xx-xx xx:xx:xx - System Failure - xxx协议请求RTT"
+}
+```
+
+示例二：
+```json
+{
+    "Timestamp": 1693385669409,
+    "Attributes": {
+        "entity_id": "110f3138-xxx-xxx-xxx-xxx-xxx.xxx.xxx.xxx_jvm_xxx",
+        "event_id": "1693385669409_110f3138-xxx-xxx-xxx-xxx_jvm_xxx",
+        "event_type": "jvm",
+        "event_source": "gala-anteater",
+        "keywords": [
+            "jvm"
+            ]
+    },
+    "Resource": {
+        "metric": "gala_gopher_jvm_mem_pool_bytes_used","labels": {
+            "PID": "xxx",
+            "COMM": "java"
+        },
+        "score": 0.1,
+        "root_causes": []
+    },
+    "SeverityText": "WARN",
+    "SeverityNumber": 13,
+    "Body": "2023-08-30 08:54:29 - JVM OutOfMemory - 给定JVM内存池的已使用字节数 - {'PS Old Gen Usage': 0.99}"
 }
 ```
 
