@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 from anteater.config import AnteaterConf
-from anteater.core.info import MetricInfo, MetricType
+from anteater.core.info import MetricInfo
 from anteater.factory.clients import DataClientFactory
 from anteater.utils.log import logger
 from anteater.core.ts import TimeSeries
@@ -51,7 +51,6 @@ class MetricLoader:
 
         :return List of TimeSeries
         """
-        metric = self._update_metric(metric)
         query = self._get_query(metric, **kwargs)
         time_series = self.provider.range_query(start, end, metric, query)
 
@@ -86,20 +85,6 @@ class MetricLoader:
             return max((end - start) // self.provider.step, 1)
         else:
             return 0
-
-    def _update_metric(self, metric: str) -> str:
-        """Updates the metric name based on the metric type
-
-        * for 'histogram' type, appends '_p90' as the suffix.
-        """
-        if not self.metricinfo.in_type(metric):
-            raise ValueError(f'Unknown type of metric \'{metric}\'')
-
-        name = metric
-        if self.metricinfo.get_type(metric) == MetricType.HISTOGRAM:
-            name = metric + '_p90'
-
-        return name
 
     @staticmethod
     def _get_query(metric: str, operator: Optional[str] = None,
