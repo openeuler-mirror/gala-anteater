@@ -14,12 +14,11 @@
 from typing import List
 from anteater.core.anomaly import Anomaly
 from anteater.utils.datetime import DateTimeManager as dt
-
+import time
 
 class Template:
     """The anomaly events template"""
     def __init__(self, **kwargs):
-        self._timestamp = dt.utc_now()
         self._machine_id = ''
         self._metric = ''
         self._entity_name = ''
@@ -35,16 +34,17 @@ class Template:
 
         self.header = None
         self.event_type = None
-
+        self._timestamp = None
     def get_template(self):
         """Gets the template for app level anomaly events"""
-        timestamp = round(self._timestamp.timestamp() * 1000)
+        self._timestamp = dt.utc_now()
+        round_timestamp = round(self._timestamp.timestamp() * 1000)
 
         result = {
-            'Timestamp': timestamp,
+            'Timestamp': self._timestamp.timestamp(),
             'Attributes': {
                 'entity_id': self._entity_id,
-                'event_id': f'{timestamp}_{self._entity_id}',
+                'event_id': f'{round_timestamp}_{self._entity_id}',
                 'event_type': self.event_type,
                 'event_source': 'gala-anteater',
                 'keywords': self._keywords
@@ -95,7 +95,7 @@ class Template:
         if not self.header:
             raise ValueError('Non-initialized property \'header\' on '
                              f'{self.__class__.__name__}.')
-        body = [self._timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        body = [time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self._timestamp.timestamp())),
                 self.header, self._description, self._details]
 
         return ' - '.join([str(x) for x in body if x])
