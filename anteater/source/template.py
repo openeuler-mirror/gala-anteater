@@ -41,7 +41,7 @@ class Template:
         round_timestamp = round(self._timestamp.timestamp() * 1000)
 
         result = {
-            'Timestamp': self._timestamp.timestamp(),
+            'Timestamp': round_timestamp,
             'Attributes': {
                 'entity_id': self._entity_id,
                 'event_id': f'{round_timestamp}_{self._entity_id}',
