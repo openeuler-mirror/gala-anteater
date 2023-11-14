@@ -22,12 +22,12 @@ from typing import List, Callable, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from anteater.model.algorithms.early_stop import EarlyStopper
 from anteater.model.algorithms.lr_schedulers import WarmupPolyLR
 from anteater.utils.log import logger
 from anteater.utils.timer import timer
 from anteater.utils.ts_dataset import TSDataset
-from torch.utils.data import DataLoader
 
 
 class USADConfig:
