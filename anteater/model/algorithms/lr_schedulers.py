@@ -6,16 +6,6 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 
 class WarmupLR(_LRScheduler):
-    """
-    Learning rate warmup.
-
-    warmup_method (string): Type of warmup used. It can be None(use no warmup),
-        'constant', 'linear' or 'exp'
-    warmup_iters (int): The number of iterations or epochs that warmup lasts
-    warmup_ratio (float): LR used at the beginning of warmup equals to
-        warmup_ratio * initial_lr
-    """
-
     def __init__(
             self,
             optimizer: Optimizer,
@@ -62,48 +52,20 @@ class WarmupLR(_LRScheduler):
     def _get_warmup_ratio_at_iter(
             method: str, iter: int, warmup_iters: int, warmup_ratio: float
     ) -> float:
-        """
-        Return the learning rate warmup factor at a specific iteration.
-        See :paper:`ImageNet in 1h` for more details.
-        Args:
-            method (str): warmup method; either "constant" or "linear".
-            iter (int): iteration at which to calculate the warmup factor.
-            warmup_iters (int): the number of warmup iterations.
-            warmup_ratio (float): the base warmup factor (the meaning changes according
-                to the method used).
-        Returns:
-            float: the effective warmup factor at the given iteration.
-        """
         if iter >= warmup_iters:
             return 1.0
-
         if method == "constant":
             return warmup_ratio
-        elif method == "linear":
+        elif method == "linear" and warmup_iters != 0:
             alpha = iter / warmup_iters
             return warmup_ratio * (1 - alpha) + alpha
-        elif method == 'exp':
+        elif method == 'exp' and warmup_iters != 0:
             return warmup_ratio ** (1 - iter / warmup_iters)
         else:
             raise ValueError("Unknown warmup method: {}".format(method))
 
 
 class WarmupPolyLR(WarmupLR):
-    """
-    Poly learning rate schedule with warmup.
-    Paper: DeepLab: Semantic Image Segmentation with Deep Convolutional Nets,
-        Atrous Convolution, and Fully Connected CRFs.
-    Reference: https://github.com/tensorflow/models/blob/21b73d22f3ed05b650e85ac50849408dd36de32e/research/deeplab/utils/train_utils.py#L337  # noqa
-
-    power (float): the power of poly lr.
-    max_iters (int): when run by epoch, max_iters means number of epochs.
-    warmup_method (string): Type of warmup used. It can be None(use no warmup),
-        'constant', 'linear' or 'exp'
-    warmup_iters (int): The number of iterations or epochs that warmup lasts
-    warmup_ratio (float): LR used at the beginning of warmup equals to
-        warmup_ratio * initial_lr
-    """
-
     def __init__(
             self,
             optimizer: Optimizer,
@@ -123,6 +85,8 @@ class WarmupPolyLR(WarmupLR):
         self.constant_ending = constant_ending
 
     def get_regular_lr(self, iter: int):
+        if self.max_iters <= 0:
+            return None
         coeff = (1.0 - iter / self.max_iters) ** self.power
         # Constant ending lr.
         if coeff < self.constant_ending:
@@ -130,37 +94,4 @@ class WarmupPolyLR(WarmupLR):
         else:
             lr = [(_lr - self.min_lr) * coeff + self.min_lr for _lr in self.base_lrs]
 
-        return lr
-
-
-class WarmupCosineAnnealingLR(WarmupLR):
-    """
-    Cosine annealing learning rate schedule with warmup.
-
-    max_iters (int): when run by epoch, max_iters means number of epochs.
-    warmup_method (string): Type of warmup used. It can be None(use no warmup),
-        'constant', 'linear' or 'exp'
-    warmup_iters (int): The number of iterations or epochs that warmup lasts
-    warmup_ratio (float): LR used at the beginning of warmup equals to
-        warmup_ratio * initial_lr
-    """
-
-    def __init__(
-            self,
-            optimizer: Optimizer,
-            max_iters: int,
-            warmup_method: str = "linear",
-            warmup_iters: int = 1000,
-            warmup_ratio: float = 0.001,
-            min_lr: float = 0.,
-            last_epoch: int = -1,
-    ):
-        super().__init__(optimizer, warmup_method, warmup_iters, warmup_ratio, last_epoch)
-        self.max_iters = max_iters
-        self.min_lr = min_lr
-
-    def get_regular_lr(self, iter: int):
-        factor = iter / self.max_iters
-        cos_out = cos(pi * factor) + 1
-        lr = [self.min_lr + 0.5 * (_lr - self.min_lr) * cos_out for _lr in self.base_lrs]
         return lr
