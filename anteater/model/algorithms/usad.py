@@ -10,11 +10,11 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
-from anteater.model.algorithms.lr_schedulers import WarmupPolyLR
 import copy
 import json
 import os
 import stat
+from collections import OrderedDict
 from itertools import chain
 from os import path
 from typing import List, Callable, Tuple
@@ -22,13 +22,13 @@ from typing import List, Callable, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-
 from anteater.model.algorithms.early_stop import EarlyStopper
+from anteater.model.algorithms.lr_schedulers import WarmupPolyLR
 from anteater.utils.log import logger
 from anteater.utils.timer import timer
 from anteater.utils.ts_dataset import TSDataset
-from collections import OrderedDict
+from torch.utils.data import DataLoader
+
 
 class USADConfig:
     """The USAD model configuration"""
@@ -37,7 +37,7 @@ class USADConfig:
 
     def __init__(self, hidden_sizes: Tuple = (25, 10, 5), latent_size: int = 5,
                  dropout_rate: float = 0.1, batch_size: int = 256,
-                 num_epochs: int = 300, warmup_epoch: int = 5 ,lr: float = 0.001, step_size: int = 60,
+                 num_epochs: int = 300, warmup_epoch: int = 5, lr: float = 0.001, step_size: int = 60,
                  window_size: int = 10, weight_decay: float = 0.01, patience: int = 5,
                  **kwargs):
         """The usad model config initializer"""
@@ -140,6 +140,7 @@ class USADModel:
         )
 
         return model
+
     @staticmethod
     def get_model_gradients(model):
         """
@@ -240,7 +241,7 @@ class USADModel:
                         avg_val_g_loss, avg_val_d_loss)
 
             if early_stopper1.early_stop(avg_val_g_loss) and \
-               early_stopper2.early_stop(avg_val_d_loss):
+                    early_stopper2.early_stop(avg_val_d_loss):
                 logger.info('Early Stopped!')
                 break
 

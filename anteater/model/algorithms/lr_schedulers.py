@@ -1,7 +1,8 @@
 from typing import List
-from torch.optim.lr_scheduler import _LRScheduler
-from torch.optim import Optimizer
+
 from math import cos, pi
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler
 
 
 class WarmupLR(_LRScheduler):
