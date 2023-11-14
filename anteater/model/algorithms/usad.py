@@ -10,7 +10,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
-
+from anteater.model.algorithms.lr_schedulers import WarmupPolyLR
 import copy
 import json
 import os
@@ -28,7 +28,7 @@ from anteater.model.algorithms.early_stop import EarlyStopper
 from anteater.utils.log import logger
 from anteater.utils.timer import timer
 from anteater.utils.ts_dataset import TSDataset
-
+from collections import OrderedDict
 
 class USADConfig:
     """The USAD model configuration"""
@@ -36,8 +36,8 @@ class USADConfig:
     filename = "usad_config.json"
 
     def __init__(self, hidden_sizes: Tuple = (25, 10, 5), latent_size: int = 5,
-                 dropout_rate: float = 0.1, batch_size: int = 128,
-                 num_epochs: int = 100, lr: float = 0.001, step_size: int = 60,
+                 dropout_rate: float = 0.1, batch_size: int = 256,
+                 num_epochs: int = 300, warmup_epoch: int = 5 ,lr: float = 0.001, step_size: int = 60,
                  window_size: int = 10, weight_decay: float = 0.01, patience: int = 5,
                  **kwargs):
         """The usad model config initializer"""
@@ -46,6 +46,7 @@ class USADConfig:
         self.dropout_rate = dropout_rate
         self.batch_size = batch_size
         self.num_epochs = num_epochs
+        self.warmup_epoch = warmup_epoch
         self.lr = lr
         self.activation = nn.ReLU
         self.step_size = step_size
@@ -91,6 +92,7 @@ class USADModel:
         super().__init__()
         self.config = config
         self._num_epochs = config.num_epochs
+        self._warmup_epoch = config.warmup_epoch
         self._batch_size = config.batch_size
         self._window_size = config.window_size
         self._lr = config.lr
@@ -138,6 +140,30 @@ class USADModel:
         )
 
         return model
+    @staticmethod
+    def get_model_gradients(model):
+        """
+        Description:
+            - get norm gradients from model, and store in a OrderDict
+
+        Args:
+            - model: (torch.nn.Module), torch model
+
+        Returns:
+            - grads in OrderDict
+        """
+        grads = OrderedDict()
+        for name, params in model.named_parameters():
+            grad = params.grad
+            if grad is not None:
+                grads[name] = grad
+        return grads
+
+    @staticmethod
+    def update_grads(model, grads):
+        for name, params in model.named_parameters():
+            if name in grads.keys():
+                params.grad = params.grad + grads[name]
 
     @timer
     def train(self, train_values, valid_values):
@@ -157,8 +183,10 @@ class USADModel:
 
         loss_func = nn.MSELoss()
 
-        optimizer_g = torch.optim.Adam(self.model.g_parameters(), lr=self._lr)
-        optimizer_d = torch.optim.Adam(self.model.d_parameters(), lr=self._lr)
+        optimizer_all = torch.optim.AdamW(self.model.parameters_all(), lr=self._lr,
+                                          weight_decay=self._weight_decay)
+
+        scheduler_all = WarmupPolyLR(optimizer_all, self._num_epochs, warmup_iters=self._warmup_epoch)
 
         for epoch in range(self._num_epochs):
             self.model.train()
@@ -176,15 +204,16 @@ class USADModel:
                 train_g_loss.append(loss_g.detach().cpu().numpy())
                 train_d_loss.append(loss_d.detach().cpu().numpy())
 
-                optimizer_g.zero_grad()
-                optimizer_d.zero_grad()
-
+                optimizer_all.zero_grad()
                 loss_g.backward(retain_graph=True)
+
+                g_encoder_grads = self.get_model_gradients(self.model._shared_encoder)
                 loss_d.backward()
+                self.update_grads(self.model._shared_encoder, g_encoder_grads)
 
-                optimizer_g.step()
-                optimizer_d.step()
+                optimizer_all.step()
 
+            scheduler_all.step()
             avg_train_g_loss = np.mean(train_g_loss)
             avg_train_d_loss = np.mean(train_d_loss)
 
@@ -260,6 +289,9 @@ class USAD(nn.Module):
 
     def d_parameters(self):
         return chain(self._shared_encoder.parameters(), self._decoder_d.parameters())
+
+    def parameters_all(self):
+        return chain(self._shared_encoder.parameters(), self._decoder_g.parameters(), self._decoder_d.parameters())
 
     def forward(self, x):
         z = self._shared_encoder(x)
