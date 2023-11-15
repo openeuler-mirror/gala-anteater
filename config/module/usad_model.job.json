@@ -9,20 +9,14 @@
   "template": "sys",
   "kpis": [
     {
-      "metric": "gala_gopher_sli_rtt_nsec",
-      "entity_name": "sli",
-      "atrend": "rise",
-      "enable": true,
-      "params": {
-        "method": "max",
-        "look_back": 10,
-        "obs_size": 25,
-        "outlier_ratio_th": 0.5,
-        "smooth_params": {
-          "method": "conv_smooth",
-          "box_pts": 3
-        }
-      }
+      "metric": "gala_gopher_proc_flow_perf_tx_delay",
+      "entity_name": "proc_flow_perf",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_proc_flow_perf_rx_delay",
+      "entity_name": "proc_flow_perf",
+      "enable": true
     }
   ],
   "model_config": {
@@ -42,7 +36,7 @@
       "postprocessor": {
         "score_type": "common",
         "alpha": 0.01,
-        "q": 0.01,
+        "q": 0.001,
         "level": 0.9
       },
       "usad": {
@@ -54,6 +48,7 @@
         "dropout_rate": 0.1,
         "num_epochs": 300,
         "batch_size": 256,
+        "warmup_epoch": 5,
         "lr": 0.001,
         "window_size": 10,
         "patience": 5
