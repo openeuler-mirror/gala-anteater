@@ -19,6 +19,7 @@ Description: The main function of gala-anteater project.
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from anteater.anomaly_detection import AnomalyDetection
+from anteater.rca import RootCauseAnalysis
 from anteater.config import AnteaterConf
 from anteater.core.info import MetricInfo
 from anteater.provider.kafka import KafkaProvider
@@ -46,12 +47,14 @@ def main():
     report = AnomalyReport(kafka_provider, suppressor, metricinfo)
     loader = MetricLoader(metricinfo, conf)
     anomaly_detection = AnomalyDetection(loader, report)
+    rca = RootCauseAnalysis(loader, report)
 
     duration = conf.schedule.duration
     logger.info('Schedule recurrent job, interval %d minute(s).', duration)
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
     scheduler.add_job(anomaly_detection.run, trigger='interval', minutes=duration)
+    scheduler.add_job(rca.run, trigger='interval', minutes=duration)
     scheduler.start()
 
 
