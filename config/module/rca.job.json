@@ -1,0 +1,19 @@
+{
+  "name": "RootCauseAnalysis",
+  "enable": false,
+  "keywords": [
+    "rca"
+  ],
+  "root_cause_num": 20,
+  "detector": "rca",
+  "template": "sys",
+  "kpis": [
+  ],
+  "model_config": {
+    "name": "rca_model",
+    "params": {
+    }
+  },
+  "features": [
+  ]
+}
