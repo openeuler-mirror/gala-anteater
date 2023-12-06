@@ -16,7 +16,7 @@ Author:
 Description: The implementation of PrometheusAdapter client to fetch time series data.
 """
 
-from anteater.config import AnteaterConf, PrometheusConf
+from anteater.config import PrometheusConf
 from anteater.provider.base import TimeSeriesProvider
 
 
