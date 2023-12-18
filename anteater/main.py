@@ -28,7 +28,16 @@ from anteater.source.metric_loader import MetricLoader
 from anteater.source.suppress import AnomalySuppression
 from anteater.utils.constants import ANTEATER_CONFIG_PATH
 from anteater.utils.log import logger
+import torch
+import numpy as np
+import random
 
+def fix_seed(seed_value=110):
+    """Make nn methods result can reproduce."""
+   torch.manual_seed(seed_value)
+   torch.cuda.manual_seed(seed_value)
+   np.random.seed(seed_value)
+   random.seed(seed_value)
 
 def init_config() -> AnteaterConf:
     """initialize anteater config"""
@@ -40,6 +49,7 @@ def init_config() -> AnteaterConf:
 
 def main():
     """The gala-anteater main function"""
+    fix_seed()
     conf = init_config()
     kafka_provider = KafkaProvider(conf.kafka)
     metricinfo = MetricInfo()
