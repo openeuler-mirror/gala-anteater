@@ -22,7 +22,7 @@
   ],
   "features": [
     {
-      "metric": "gala_gopher_endpoint_retran_synacks"
+      "metric": "gala_gopher_endpoint_tcp_retran_synacks"
     }
   ]
 }
