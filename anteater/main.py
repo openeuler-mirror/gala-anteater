@@ -32,12 +32,14 @@ import torch
 import numpy as np
 import random
 
-def fix_seed(seed_value=110):
+
+def init_nn_seed(seed_value=110):
     """Make nn methods result can reproduce."""
-   torch.manual_seed(seed_value)
-   torch.cuda.manual_seed(seed_value)
-   np.random.seed(seed_value)
-   random.seed(seed_value)
+    torch.manual_seed(seed_value)
+    torch.cuda.manual_seed(seed_value)
+    np.random.seed(seed_value)
+    random.seed(seed_value)
+
 
 def init_config() -> AnteaterConf:
     """initialize anteater config"""
@@ -49,7 +51,7 @@ def init_config() -> AnteaterConf:
 
 def main():
     """The gala-anteater main function"""
-    fix_seed()
+    init_nn_seed()
     conf = init_config()
     kafka_provider = KafkaProvider(conf.kafka)
     metricinfo = MetricInfo()
