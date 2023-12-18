@@ -56,426 +56,305 @@
     }
   },
   "features": [
-    {
-      "metric": "gala_gopher_block_count_latency_device",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_count_latency_driver",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_count_latency_req",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_block_latency_device_jitter",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_device_last",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_device_max",
-      "priority": 3
-    },
-    {
-      "metric": "gala_gopher_block_latency_device_sum",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_driver_jitter",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_driver_last",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_driver_max",
-      "priority": 4
-    },
-    {
-      "metric": "gala_gopher_block_latency_driver_sum",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_block_latency_req_jitter",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_block_latency_req_last",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_block_latency_req_max",
-      "priority": 4,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_block_latency_req_sum",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_block_read_bytes",
-      "priority": 2
-    },
-    {
-      "metric": "gala_gopher_block_write_bytes",
-      "priority": 2
-    },
-    {
-      "metric": "gala_gopher_cpu_iowait_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_irq_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_net_rx",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_nice_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_rcu",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_sched",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_softirq_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_system_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_timer",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_cpu_total_used_per",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_cpu_user_msec",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_disk_aqu",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_disk_r_await",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_rareq",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_rspeed",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_rspeed_kB",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_util",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_w_await",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_wareq",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_wspeed",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_disk_wspeed_kB",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_endpoint_udp_rcvs",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_endpoint_udp_sends",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_active_kB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_available_kB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_cache_kB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_free_kB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_inactive_kB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_mem_util",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_net_tcp_curr_estab",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_net_tcp_in_segs",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_net_tcp_out_segs",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_net_tcp_retrans_segs",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_net_udp_indata_grams",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_net_udp_outdata_grams",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_rx_bytes",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_rx_packets",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_rxspeed_KB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_tc_backlog",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_nic_tc_sent_drop",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_nic_tx_bytes",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_tx_packets",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_nic_txspeed_KB",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_bio_latency",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_cancelled_write_bytes",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_fd_count",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_fd_free_per",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_greater_4k_io_read",
-      "priority": 1
-    },
-    {
-      "metric": "gala_gopher_proc_greater_4k_io_write",
-      "priority": 1
-    },
-    {
-      "metric": "gala_gopher_proc_lazyfree_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_less_4k_io_write",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_ns_ext4_flush",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_ns_ext4_open",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_ns_ext4_read",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_ns_ext4_write",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_ns_read",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_ns_recvmsg",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_ns_write",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_pm_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_private_clean_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_private_dirty_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_rchar_bytes",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_read_bytes",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_proc_shared_clean_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_shared_dirty_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_stime_jiffies",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_swap_data_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_syscr_count",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_syscw_count",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_utime_jiffies",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_proc_vm_size",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_wchar_bytes",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_proc_write_bytes",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_tcp_link_avl_snd_wnd",
-      "priority": 4
-    },
-    {
-      "metric": "gala_gopher_tcp_link_lost_out",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_tcp_link_rcv_rtt",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_tcp_link_rcv_wnd",
-      "priority": 4
-    },
-    {
-      "metric": "gala_gopher_tcp_link_reordering",
-      "priority": 5
-    },
-    {
-      "metric": "gala_gopher_tcp_link_retran_packets",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_tcp_link_sacked_out",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_tcp_link_snd_cwnd",
-      "priority": 0
-    },
-    {
-      "metric": "gala_gopher_tcp_link_snd_wnd",
-      "priority": 4
-    },
-    {
-      "metric": "gala_gopher_tcp_link_srtt",
-      "priority": 0,
-      "atrend": "rise"
-    },
-    {
-      "metric": "gala_gopher_tcp_link_syn_srtt",
-      "priority": 5
-    }
-  ]
+  {
+    "metric": "gala_gopher_block_count_latency_req"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_max"
+  },
+  {
+    "metric": "gala_gopher_block_latency_device_sum"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_max"
+  },
+  {
+    "metric": "gala_gopher_block_latency_driver_sum"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_max"
+  },
+  {
+    "metric": "gala_gopher_block_latency_req_sum"
+  },
+  {
+    "metric": "gala_gopher_disk_aqu"
+  },
+  {
+    "metric": "gala_gopher_disk_r_await"
+  },
+  {
+    "metric": "gala_gopher_disk_rareq"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed"
+  },
+  {
+    "metric": "gala_gopher_disk_rspeed_kB"
+  },
+  {
+    "metric": "gala_gopher_disk_util"
+  },
+  {
+    "metric": "gala_gopher_disk_w_await"
+  },
+  {
+    "metric": "gala_gopher_disk_wareq"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed"
+  },
+  {
+    "metric": "gala_gopher_disk_wspeed_kB"
+  },
+  {
+    "metric": "gala_gopher_cpu_iowait_msec"
+  },
+  {
+    "metric": "gala_gopher_cpu_irq_msec"
+  },
+  {
+    "metric": "gala_gopher_cpu_net_rx"
+  },
+  {
+    "metric": "gala_gopher_cpu_rcu"
+  },
+  {
+    "metric": "gala_gopher_cpu_sched"
+  },
+  {
+    "metric": "gala_gopher_cpu_softirq_msec"
+  },
+  {
+    "metric": "gala_gopher_cpu_system_msec"
+  },
+  {
+    "metric": "gala_gopher_cpu_timer"
+  },
+  {
+    "metric": "gala_gopher_cpu_total_used_per"
+  },
+  {
+    "metric": "gala_gopher_cpu_user_msec"
+  },
+  {
+    "metric": "gala_gopher_mem_active_kB"
+  },
+  {
+    "metric": "gala_gopher_mem_cache_kB"
+  },
+  {
+    "metric": "gala_gopher_mem_free_kB"
+  },
+  {
+    "metric": "gala_gopher_mem_inactive_kB"
+  },
+  {
+    "metric": "gala_gopher_mem_util"
+  },
+  {
+    "metric": "gala_gopher_mem_dentry"
+  },
+  {
+    "metric": "gala_gopher_proc_bio_latency"
+  },
+  {
+    "metric": "gala_gopher_proc_bio_err_count"
+  },
+  {
+    "metric": "gala_gopher_proc_iowait_us"
+  },
+  {
+    "metric": "gala_gopher_proc_fd_count"
+  },
+  {
+    "metric": "gala_gopher_proc_fd_free_per"
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_read"
+  },
+  {
+    "metric": "gala_gopher_proc_greater_4k_io_write"
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_write"
+  },
+  {
+    "metric": "gala_gopher_proc_less_4k_io_read"
+  },
+  {
+    "metric": "gala_gopher_proc_minor_pagefault_count"
+  },
+  {
+    "metric": "gala_gopher_proc_major_pagefault_count"
+  },
+  {
+    "metric": "gala_gopher_proc_rchar_bytes"
+  },
+  {
+    "metric": "gala_gopher_proc_read_bytes"
+  },
+  {
+    "metric": "gala_gopher_proc_pm_size"
+  },
+  {
+    "metric": "gala_gopher_proc_private_clean_size"
+  },
+  {
+    "metric": "gala_gopher_proc_private_dirty_size"
+  },
+  {
+    "metric": "gala_gopher_proc_shared_clean_size"
+  },
+  {
+    "metric": "gala_gopher_proc_shared_dirty_size"
+  },
+  {
+    "metric": "gala_gopher_proc_swap_data_size"
+  },
+  {
+    "metric": "gala_gopher_proc_vm_size"
+  },
+  {
+    "metric": "gala_gopher_proc_wchar_bytes"
+  },
+  {
+    "metric": "gala_gopher_proc_write_bytes"
+  },
+  {
+    "metric": "gala_gopher_proc_offcpu_ns"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rcv_rtt"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_srtt"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_retran_packets"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_avl_snd_wnd"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_lost_out"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_rcv_wnd"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_cwnd"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_snd_wnd"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_snd_wnd_count"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_zero_rcv_wnd_count"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_reordering"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sacked_out"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_sk_drops"
+  },
+  {
+    "metric": "gala_gopher_tcp_link_backlog_drops"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_active_open_failed"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_passive_open_failed"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_rst_sent"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_rst_recv"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_retran_syn"
+  },
+  {
+    "metric": "gala_gopher_endpoint_tcp_retran_synacks"
+  },
+  {
+    "metric": "gala_gopher_dns_max_delay"
+  },
+  {
+    "metric": "gala_gopher_dns_error_ratio"
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_bytes_used"
+  },
+  {
+    "metric": "gala_gopher_jvm_mem_pool_bytes_used"
+  },
+  {
+    "metric": "gala_gopher_jvm_buffer_pool_used_bytes"
+  },
+  {
+    "metric": "gala_gopher_jvm_gc_coll_secs_sum"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_usage_seconds_total"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_system_seconds_total"
+  },
+  {
+    "metric": "gala_gopher_container_cpu_user_seconds_total"
+  },
+  {
+    "metric": "gala_gopher_container_memory_mapped_file"
+  },
+  {
+    "metric": "gala_gopher_container_memory_cache"
+  },
+  {
+    "metric": "gala_gopher_container_memory_rss"
+  },
+  {
+    "metric": "gala_gopher_container_memory_working_set_bytes"
+  },
+  {
+    "metric": "gala_gopher_container_memory_usage_bytes"
+  },
+  {
+    "metric": "gala_gopher_container_fs_reads_bytes_total"
+  },
+  {
+    "metric": "gala_gopher_container_fs_writes_bytes_total"
+  },
+  {
+    "metric": "gala_gopher_container_fs_read_seconds_total"
+  },
+  {
+    "metric": "gala_gopher_container_fs_write_seconds_total"
+  },
+  {
+    "metric": "gala_gopher_container_fs_inodes_free"
+  },
+  {
+    "metric": "gala_gopher_container_fs_inodes_total"
+  },
+  {
+    "metric": "gala_gopher_nic_tx_dropped"
+  },
+  {
+    "metric": "gala_gopher_nic_rx_dropped"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_enc_mark"
+  },
+  {
+    "metric": "gala_gopher_nic_tc_sent_drop"
+  }
+]
 }
