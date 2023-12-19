@@ -52,6 +52,18 @@ class TimeSeriesProvider:
             yield _start, _end
             _start = _end
 
+    @staticmethod
+    def symbol_replace(metric, labels, is_single):
+        if not is_single:
+            return metric
+        for k in labels:
+            new_k = k.replace('/', '#')
+            new_k = new_k.replace(':', '#')
+            new_v = str(labels[k]).replace('/', '#')
+            new_v = new_v.replace(':', '#')
+            metric += '@' + new_k + '=' + new_v
+        return metric
+
     @abstractmethod
     def get_headers(self):
         """Gets the headers of requests"""
@@ -108,6 +120,7 @@ class TimeSeriesProvider:
                 else:
                     labels = item.get('metric')
                     labels.pop('__name__', None)
+                    metric = self.symbol_replace(metric, labels, is_single)
                     time_series = TimeSeries(
                         metric,
                         labels,
