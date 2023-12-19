@@ -42,6 +42,28 @@ class MetricType(Enum):
             raise ValueError(f'Unknown metric type: {label}')
 
 
+class MetricAggregation(Enum):
+    """The metric aggregation"""
+    AVG = 0
+    MAX = 1
+    MIN = 2
+    SUM = 3
+
+    @staticmethod
+    def from_str(label: str):
+        """Trans str to Enum aggregation"""
+        if label.lower() == 'avg':
+            return MetricAggregation.AVG
+        elif label.lower() == 'max':
+            return MetricAggregation.MAX
+        elif label.lower() == 'min':
+            return MetricAggregation.MIN
+        elif label.lower() == 'sum':
+            return MetricAggregation.SUM
+        else:
+            raise ValueError(f'Unknown metric Aggregation: {label}')
+
+
 class MetricInfo:
     """The metric info class
 
@@ -56,8 +78,14 @@ class MetricInfo:
         self.metric2type = {}
         self.metric2en = {}
         self.metric2zh = {}
+        self.metric2aggregation = {}
+        self.metric2classification = {}
 
         self._load_desc()
+
+    def get_type(self, metric) -> MetricType:
+        """Gets metric type base on the metric name"""
+        return self.metric2type.get(metric, None)
 
     def get_en(self, metric: str) -> str:
         """Gets english description"""
@@ -67,9 +95,17 @@ class MetricInfo:
         """Gets chinese description"""
         return self.metric2zh.get(metric, '')
 
-    def get_type(self, metric) -> MetricType:
-        """Gets metric type base on the metric name"""
-        return self.metric2type.get(metric, None)
+    def get_aggregation(self, metric) -> str:
+        """Gets metric aggregation base on the metric name"""
+        return self.metric2aggregation.get(metric, None)
+
+    def get_classification(self, metric) -> str:
+        """Gets metric classification base on the metric name"""
+        return self.metric2classification.get(metric, None)
+
+    def append_type(self, metric: str, typ: MetricType) -> None:
+        """Appends metric and type pair"""
+        self.metric2type[metric] = typ
 
     def append_en(self, metric: str, des: str) -> None:
         """Appends metric and en- desc pair"""
@@ -79,9 +115,17 @@ class MetricInfo:
         """Appends metric and zh- desc pair"""
         self.metric2zh[metric] = des
 
-    def append_type(self, metric: str, typ: MetricType) -> None:
-        """Appends metric and type pair"""
-        self.metric2type[metric] = typ
+    def append_aggregation(self, metric: str, aggregation: MetricAggregation) -> None:
+        """Appends metric and aggregation pair"""
+        self.metric2aggregation[metric] = aggregation
+
+    def append_classification(self, metric: str, classification: str) -> None:
+        """Appends metric and classification pair"""
+        self.metric2classification[metric] = classification
+
+    def in_type(self, metric: str) -> bool:
+        """Whether metric is already in metric2type or not"""
+        return metric in self.metric2type
 
     def in_en(self, metric: str) -> bool:
         """Whether metric is already in en desc or not"""
@@ -91,9 +135,13 @@ class MetricInfo:
         """Whether metric is already in zh desc or not"""
         return metric in self.metric2zh
 
-    def in_type(self, metric: str) -> bool:
-        """Whether metric is already in metric2type or not"""
-        return metric in self.metric2type
+    def in_aggregation(self, metric: str) -> bool:
+        """Whether metric is already in metric2aggregation or not"""
+        return metric in self.metric2aggregation
+
+    def in_classification(self, metric: str) -> bool:
+        """Whether metric is already in metric2classification or not"""
+        return metric in self.metric2classification
 
     def _load_desc(self):
         """Loads metric info from the file"""
@@ -114,29 +162,35 @@ class MetricInfo:
                 raise KeyError('Empty metric name in config file '
                                f'{path.basename(abs_path)}')
 
-            if not metric or self.in_en(metric) or self.in_zh(metric):
+            if self.in_type(metric) or self.in_en(metric) or self.in_zh(metric):
+                raise KeyError(f'Duplicated metric \'{metric}\' in config '
+                               f'file {path.basename(abs_path)}')
+            if self.in_aggregation(metric) or self.in_classification(metric):
                 raise KeyError(f'Duplicated metric \'{metric}\' in config '
                                f'file {path.basename(abs_path)}')
 
-            if self.in_type(metric):
-                raise KeyError(f'Duplicated metric \'{metric}\' in config '
-                               f'file {path.basename(abs_path)}')
+            typ = item.get('data_type', '')
+            if not typ:
+                raise KeyError(f'Empty metric type on \'{metric}\'')
+            typ = MetricType.from_str(typ)
+            self.append_type(metric, typ)
 
             desc_en = item.get('en', '')
             desc_zh = item.get('zh', '')
             if not desc_en and not desc_zh:
                 raise KeyError(f'Empty en and zh desc on \'{metric}\'')
-
             if desc_en:
                 self.append_en(metric, desc_en)
-
             if desc_zh:
                 self.append_zh(metric, desc_zh)
 
-            typ = item.get('type', '')
-            if not typ:
-                raise KeyError(f'Empty metric type on \'{metric}\'')
+            aggregation = item.get('aggregation', '')
+            if not aggregation:
+                raise KeyError(f'Empty metric aggregation on \'{metric}\'')
+            aggregation = MetricAggregation.from_str(aggregation)
+            self.append_aggregation(metric, aggregation)
 
-            typ = MetricType.from_str(typ)
-
-            self.append_type(metric, typ)
+            classification = item.get('data_classification', '')
+            if not classification:
+                raise KeyError(f'Empty metric classification on \'{metric}\'')
+            self.append_classification(metric, classification)
