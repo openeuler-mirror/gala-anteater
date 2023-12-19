@@ -40,6 +40,7 @@ class Anomaly:
     labels: dict
     score: float
     entity_name: str
+    description: str = ""
     details: dict = None
     root_causes: List[RootCause] = None
 
