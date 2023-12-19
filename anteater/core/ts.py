@@ -15,6 +15,7 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+from dataclasses import dataclass
 
 
 class TimeSeries:
@@ -81,3 +82,9 @@ class TimeSeries:
         df = series.to_frame()
 
         return df
+
+@dataclass
+class TimeSeriesScore:
+    ts: TimeSeries
+    score: float
+    description: str

@@ -9,13 +9,63 @@
   "template": "sys",
   "kpis": [
     {
+      "metric": "gala_gopher_sli_rtt_nsec",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_sli_tps",
+      "entity_name": "sli",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_latency_avg",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_latency_sum",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_throughput_req",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_throughput_resp",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_err_ratio",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_err_count",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
       "metric": "gala_gopher_proc_flow_perf_tx_delay",
       "entity_name": "proc_flow_perf",
+      "atrend": "fall",
       "enable": true
     },
     {
       "metric": "gala_gopher_proc_flow_perf_rx_delay",
       "entity_name": "proc_flow_perf",
+      "atrend": "fall",
       "enable": true
     }
   ],
@@ -40,14 +90,27 @@
         "level": 0.9
       },
       "usad": {
+        "smooth_window": 12,
+        "train_data_filter": false,
+        "z_dims": 50,
+        "encoder_nn_size": null,
+        "deocder_nn_size": null,
+        "alpha": 0.1,
+        "get_score_on_dim": false,
+        "do_noise": false,
+        "preprocess_type": "clip",
+        "clip_alpha": 20,
+        "score_type": "common",
+        "q": 1e-3,
+        "level": 0.98,
         "hidden_sizes": [
           50,
           25
         ],
         "latent_size": 7,
         "dropout_rate": 0.1,
-        "num_epochs": 300,
-        "batch_size": 256,
+        "num_epochs": 2,
+        "batch_size": 64,
         "warmup_epoch": 5,
         "lr": 0.001,
         "window_size": 10,

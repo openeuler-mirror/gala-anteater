@@ -40,6 +40,13 @@ class MetricLoader:
 
         self.metricinfo = metricinfo
 
+    def get_single_metric(self, start: datetime, end: datetime, metric: str, **kwargs) -> List[TimeSeries]:
+        """Get target metric time series data with attributes"""
+        query = self._get_query(metric, **kwargs)
+        time_series = self.provider.range_query(start, end, metric, query, is_single=True)
+
+        return time_series
+
     def get_metric(self, start: datetime, end: datetime, metric: str, **kwargs) -> List[TimeSeries]:
         """Get target metric time series data
 
@@ -69,6 +76,19 @@ class MetricLoader:
             logger.debug(f'metrics: {";".join(metrics)}')
         return machine_ids
 
+    @timer
+    def get_unique_pods(self, start: datetime, end: datetime, metrics: List[str]) -> List[str]:
+        """Gets the unique machine ids based on the metrics"""
+        pod_ids = self.get_unique_label(start, end, metrics, label_name="pod_id")
+        if not pod_ids:
+            logger.warning(f'Empty unique pod ids on given metrics!')
+            logger.debug(f'metrics: {";".join(metrics)}')
+        else:
+            logger.info(f'Got {len(pod_ids)} unique pod_ids on given metrics')
+            logger.debug(f'pod ids: {";".join(pod_ids)}')
+            logger.debug(f'metrics: {";".join(metrics)}')
+
+        return pod_ids
     def get_unique_label(self, start: datetime, end: datetime, metrics: List[str], label_name: str) -> List[str]:
         """Gets unique labels of all metrics"""
         unique_labels = set()
@@ -123,3 +143,4 @@ class MetricLoader:
             query = f"{metric}{rule}"
 
         return query
+
