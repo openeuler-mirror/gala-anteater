@@ -42,6 +42,7 @@ class Anomaly:
     entity_name: str
     description: str = ""
     details: dict = None
+    is_anomaly: bool = True
     root_causes: List[RootCause] = None
 
     def __eq__(self, other):

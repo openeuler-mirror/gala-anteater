@@ -116,6 +116,7 @@ class AnomalyReport:
         template.add_keywords(keywords)
         template.add_details(details=anomaly.details)
         template.add_description(description=description)
+        template.add_anomaly_status(anomaly.is_anomaly)
 
         msg = template.get_template()
         self.provider.send_message(msg)
