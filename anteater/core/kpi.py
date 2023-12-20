@@ -65,6 +65,7 @@ class JobConfig:
     """The Job Config would be passed to an AD job"""
     name: str
     enable: bool
+    job_type: str
     detector: str
     template: str
     keywords: List[str]

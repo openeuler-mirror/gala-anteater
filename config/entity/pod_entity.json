@@ -1,0 +1,368 @@
+{
+  "name": "pod_entity",
+  "enable": true,
+  "kpis": [
+    {
+      "metric": "gala_gopher_sli_rtt_nsec",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_sli_tps",
+      "entity_name": "sli",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_latency_avg",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_latency_sum",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_throughput_req",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_throughput_resp",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_err_ratio",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_l7_err_count",
+      "entity_name": "l7",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_proc_flow_perf_tx_delay",
+      "entity_name": "proc_flow_perf",
+      "atrend": "fall",
+      "enable": true
+    },
+    {
+      "metric": "gala_gopher_proc_flow_perf_rx_delay",
+      "entity_name": "proc_flow_perf",
+      "atrend": "fall",
+      "enable": true
+    }
+  ],
+  "features": [
+    {
+      "metric": "gala_gopher_block_count_latency_req"
+    },
+    {
+      "metric": "gala_gopher_block_latency_device_max"
+    },
+    {
+      "metric": "gala_gopher_block_latency_device_sum"
+    },
+    {
+      "metric": "gala_gopher_block_latency_driver_max"
+    },
+    {
+      "metric": "gala_gopher_block_latency_driver_sum"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_max"
+    },
+    {
+      "metric": "gala_gopher_block_latency_req_sum"
+    },
+    {
+      "metric": "gala_gopher_disk_aqu"
+    },
+    {
+      "metric": "gala_gopher_disk_r_await"
+    },
+    {
+      "metric": "gala_gopher_disk_rareq"
+    },
+    {
+      "metric": "gala_gopher_disk_rspeed"
+    },
+    {
+      "metric": "gala_gopher_disk_rspeed_kB"
+    },
+    {
+      "metric": "gala_gopher_disk_util"
+    },
+    {
+      "metric": "gala_gopher_disk_w_await"
+    },
+    {
+      "metric": "gala_gopher_disk_wareq"
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed"
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed_kB"
+    },
+    {
+      "metric": "gala_gopher_cpu_iowait_msec"
+    },
+    {
+      "metric": "gala_gopher_cpu_irq_msec"
+    },
+    {
+      "metric": "gala_gopher_cpu_net_rx"
+    },
+    {
+      "metric": "gala_gopher_cpu_rcu"
+    },
+    {
+      "metric": "gala_gopher_cpu_sched"
+    },
+    {
+      "metric": "gala_gopher_cpu_softirq_msec"
+    },
+    {
+      "metric": "gala_gopher_cpu_system_msec"
+    },
+    {
+      "metric": "gala_gopher_cpu_timer"
+    },
+    {
+      "metric": "gala_gopher_cpu_total_used_per"
+    },
+    {
+      "metric": "gala_gopher_cpu_user_msec"
+    },
+    {
+      "metric": "gala_gopher_mem_active_kB"
+    },
+    {
+      "metric": "gala_gopher_mem_cache_kB"
+    },
+    {
+      "metric": "gala_gopher_mem_free_kB"
+    },
+    {
+      "metric": "gala_gopher_mem_inactive_kB"
+    },
+    {
+      "metric": "gala_gopher_mem_util"
+    },
+    {
+      "metric": "gala_gopher_mem_dentry"
+    },
+    {
+      "metric": "gala_gopher_proc_bio_latency"
+    },
+    {
+      "metric": "gala_gopher_proc_bio_err_count"
+    },
+    {
+      "metric": "gala_gopher_proc_iowait_us"
+    },
+    {
+      "metric": "gala_gopher_proc_fd_count"
+    },
+    {
+      "metric": "gala_gopher_proc_fd_free_per"
+    },
+    {
+      "metric": "gala_gopher_proc_greater_4k_io_read"
+    },
+    {
+      "metric": "gala_gopher_proc_greater_4k_io_write"
+    },
+    {
+      "metric": "gala_gopher_proc_less_4k_io_write"
+    },
+    {
+      "metric": "gala_gopher_proc_less_4k_io_read"
+    },
+    {
+      "metric": "gala_gopher_proc_minor_pagefault_count"
+    },
+    {
+      "metric": "gala_gopher_proc_major_pagefault_count"
+    },
+    {
+      "metric": "gala_gopher_proc_rchar_bytes"
+    },
+    {
+      "metric": "gala_gopher_proc_read_bytes"
+    },
+    {
+      "metric": "gala_gopher_proc_pm_size"
+    },
+    {
+      "metric": "gala_gopher_proc_private_clean_size"
+    },
+    {
+      "metric": "gala_gopher_proc_private_dirty_size"
+    },
+    {
+      "metric": "gala_gopher_proc_shared_clean_size"
+    },
+    {
+      "metric": "gala_gopher_proc_shared_dirty_size"
+    },
+    {
+      "metric": "gala_gopher_proc_swap_data_size"
+    },
+    {
+      "metric": "gala_gopher_proc_vm_size"
+    },
+    {
+      "metric": "gala_gopher_proc_wchar_bytes"
+    },
+    {
+      "metric": "gala_gopher_proc_write_bytes"
+    },
+    {
+      "metric": "gala_gopher_proc_offcpu_ns"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_rcv_rtt"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_srtt"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_retran_packets"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_avl_snd_wnd"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_lost_out"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_rcv_wnd"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_snd_cwnd"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_snd_wnd"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_zero_snd_wnd_count"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_zero_rcv_wnd_count"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_reordering"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sacked_out"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_sk_drops"
+    },
+    {
+      "metric": "gala_gopher_tcp_link_backlog_drops"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_active_open_failed"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_passive_open_failed"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_rst_sent"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_rst_recv"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_retran_syn"
+    },
+    {
+      "metric": "gala_gopher_endpoint_tcp_retran_synacks"
+    },
+    {
+      "metric": "gala_gopher_dns_max_delay"
+    },
+    {
+      "metric": "gala_gopher_dns_error_ratio"
+    },
+    {
+      "metric": "gala_gopher_jvm_mem_bytes_used"
+    },
+    {
+      "metric": "gala_gopher_jvm_mem_pool_bytes_used"
+    },
+    {
+      "metric": "gala_gopher_jvm_buffer_pool_used_bytes"
+    },
+    {
+      "metric": "gala_gopher_jvm_gc_coll_secs_sum"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_usage_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_system_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_user_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_memory_mapped_file"
+    },
+    {
+      "metric": "gala_gopher_container_memory_cache"
+    },
+    {
+      "metric": "gala_gopher_container_memory_rss"
+    },
+    {
+      "metric": "gala_gopher_container_memory_working_set_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_memory_usage_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_fs_reads_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_writes_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_read_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_write_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_free"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_total"
+    },
+    {
+      "metric": "gala_gopher_nic_tx_dropped"
+    },
+    {
+      "metric": "gala_gopher_nic_rx_dropped"
+    },
+    {
+      "metric": "gala_gopher_nic_tc_enc_mark"
+    },
+    {
+      "metric": "gala_gopher_nic_tc_sent_drop"
+    }
+  ]
+}
