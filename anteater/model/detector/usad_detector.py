@@ -28,6 +28,7 @@ from anteater.model.algorithms.pearson import select_relevant_kpi
 from anteater.source.metric_loader import MetricLoader
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
+from anteater.utils.constants import POINTS_HOUR
 
 def smooth_data(df, window=18):
     """Smooths metrics"""
@@ -83,10 +84,11 @@ class UsadDetector(Detector):
             hours = self.online_model.get_min_training_hours()
             train_df = self.get_training_data(
                 start - timedelta(hours=hours), end, detect_kpis, machine_id, key)
+
             if train_df is None or len(train_df.index) == 0:
                 logger.info('Got empty training data on machine: %s', machine_id)
                 return []
-            elif len(train_df.index) < hours * 60 * 12:
+            elif len(train_df.index) < hours * POINTS_HOUR:
                 logger.info('Less training data on machine: %s', machine_id)
                 return []
             else:
@@ -99,7 +101,7 @@ class UsadDetector(Detector):
         for machine_id, x_df in self.get_inference_data(start, end, detect_kpis, machine_id, key):
             if not check_nan(x_df):
                logger.info(f"{machine_id}, Metric empty, exit detection ********************************")
-               return anomalies
+               return anomalies, is_anomaly
 
             _, last_5_min_x_dfs = self.get_inference_data(start - timedelta(minutes=5), end, detect_kpis, machine_id, key)[0]
             y_pred, sli_pred, abnormal_sli_metric = self.online_model.predict(last_5_min_x_dfs, x_df, machine_id,
@@ -107,7 +109,7 @@ class UsadDetector(Detector):
 
             if len(y_pred) == 0:
                 logger.info(f'***** len(y_pred) == 0')
-                return anomalies
+                return anomalies, is_anomaly
 
             if machine_id not in self.machine_training:
                 self.machine_training[machine_id] = True
@@ -123,14 +125,13 @@ class UsadDetector(Detector):
                     logger.info('cause_list is 0')
                 if len(anomaly_scores_list) == 0:
                     logger.info('anomaly_scores_list is 0')
-                return anomalies
+                return anomalies, is_anomaly
 
             self.anomaly_scores = copy.deepcopy(anomaly_scores_list[0])
             self.cause_list = copy.deepcopy(cause_list[0])
             anomalies.extend(self.find_abnormal_kpis(machine_id, key, kpis, features, anomaly_scores_list[0], top_n=1))
 
             new_features = copy.deepcopy(features)
-            # candidates = [c["metric"] for c in cause_list[0]["Resource"]["cause_metrics"][:cause_top]]
             candidates = [c["metric"] for c in cause_list[0]["Resource"]["cause_metrics"]]
             remove_features = [f for f in new_features if f.metric not in candidates]
             for r in remove_features:
@@ -142,7 +143,7 @@ class UsadDetector(Detector):
             for anomaly in anomalies:
                 anomaly.is_anomaly = is_anomaly
 
-        return anomalies
+        return anomalies, is_anomaly
 
     def _get_description(self, metric):
         description = self.data_loader.metricinfo.get_zh(metric)
@@ -312,8 +313,20 @@ class UsadDetector(Detector):
             logger.warning('Empty machine_id, RETURN!')
 
         anomalies = []
+        results = []
         for _id, key in zip(entity_ids, entity_keys):
-            anomalies.extend(self.detect_machine_kpis(kpis, features, _id, key))
+            results.append(self.detect_machine_kpis(kpis, features, _id, key))
             logger.info(f"Finish test machine {_id} ********************")
+
+        is_any_anomaly = False
+        for r in results:
+            if r[1]:
+                is_any_anomaly = True
+                break
+
+        # 任一pod异常上传异常事件
+        if is_any_anomaly:
+            for r in results:
+                anomalies.extend(r[0])
 
         return anomalies

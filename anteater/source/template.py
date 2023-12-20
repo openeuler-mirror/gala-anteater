@@ -11,7 +11,7 @@
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
 
-from typing import List
+from typing import List, Dict
 from anteater.core.anomaly import Anomaly
 from anteater.utils.datetime import DateTimeManager as dt
 import time
@@ -35,11 +35,17 @@ class Template:
         self.header = None
         self.event_type = None
         self._timestamp = None
+
+        # 新增异常字段, 默认调用该模板上传kafka为异常事件
+        self.is_anomaly = True
+        self._cause_metrics_list = []
+
     def get_template(self):
         """Gets the template for app level anomaly events"""
         self._timestamp = dt.utc_now()
         round_timestamp = round(self._timestamp.timestamp() * 1000)
 
+        #
         result = {
             'Timestamp': round_timestamp,
             'Attributes': {
@@ -47,17 +53,20 @@ class Template:
                 'event_id': f'{round_timestamp}_{self._entity_id}',
                 'event_type': self.event_type,
                 'event_source': 'gala-anteater',
-                'keywords': self._keywords
+                'keywords': self._keywords,
+                'cause_metric': self._cause_metrics_list[0] if self._cause_metrics_list else {'description': self._description}
             },
             'Resource': {
                 'metric': self._metric,
                 'labels': self._labels,
                 'score': f'{self._score:.3f}',
-                'root_causes': self.get_root_causes()
+                'root_causes': self._cause_metrics_list,
+                'description': self._description
             },
             'SeverityText': 'WARN',
             'SeverityNumber': 13,
-            'Body': self.get_body()
+            'Body': self.get_body(),
+            "is_anomaly": self.is_anomaly
         }
 
         return result
@@ -69,6 +78,14 @@ class Template:
         self._entity_name = anomaly.metric
         self._score = anomaly.score
         self._root_causes = anomaly.root_causes
+        self._cause_metrics_list = [
+            {
+                'metric': cause.ts.metric,
+                'labels': cause.ts.labels,
+                'score': cause.score,
+                'description': cause.description
+            }
+            for cause in anomaly.root_causes]
 
     def add_labels(self, labels):
         """Adds labels property"""
@@ -77,6 +94,10 @@ class Template:
     def add_entity_id(self, entity_id):
         """Adds entity id property"""
         self._entity_id = entity_id
+
+    def add_anomaly_status(self, is_anomaly):
+        """Adds entity id property"""
+        self.is_anomaly = is_anomaly
 
     def add_keywords(self, keywords: List[str]):
         """Adds keywords property"""
