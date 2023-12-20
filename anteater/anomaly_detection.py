@@ -36,7 +36,7 @@ class AnomalyDetection:
         detectors = []
         stop_count = 0
         for job_config in load_jobs():
-            if job_config.enable and job_config.name != 'rca':
+            if job_config.enable and job_config.job_type == 'anomaly_detection':
                 detectors.append(E2EDetector(self.loader, self.reporter, job_config))
             else:
                 stop_count += 1

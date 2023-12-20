@@ -43,6 +43,7 @@ def load_job_config(filepath) -> JobConfig:
 
     job_name = config.get('name')
     enable = config.get('enable', False)
+    job_type = config.get('job_type', 'anomaly_detection')
     detector = config.get('detector')
     template = config.get('template')
     keywords = config.get('keywords', [])
@@ -74,6 +75,7 @@ def load_job_config(filepath) -> JobConfig:
     return JobConfig(
         name=job_name,
         enable=enable,
+        job_type=job_type,
         detector=detector,
         template=template,
         keywords=keywords,
