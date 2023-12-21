@@ -12,19 +12,19 @@
 # ******************************************************************************/
 
 import os
-import torch
+import numpy as np
+
 from typing import Dict
 from datetime import datetime, timezone
 
-import numpy as np
-
 from anteater.core.kpi import ModelConfig
 from anteater.model.algorithms.usad import USADModel
-from anteater.model.algorithms.usad_data_loader import UsadDataLoader
+from anteater.model.process.usad_data_loader import UsadDataLoader
 from anteater.model.factory import ModelFactory as factory
 from anteater.model.process.post_process import PostProcessor
 from anteater.utils.constants import POINTS_MINUTE
 from anteater.utils.log import logger
+
 
 class OnlineUsadModel:
     """Online Usad model"""
@@ -56,6 +56,7 @@ class OnlineUsadModel:
                 continue
             if np.all(test_processed[:, i] == test_processed[:, i][0]):
                 self.metrics_to_delete.append(self.all_features[i])
+
     @staticmethod
     def concate_data(model_info, test_predict_g, test_predict_g_d, test_processed, test_times):
         train_predict_g_d, valid_predict_g_d = model_info['train_predict_g_d'], model_info['valid_predict_g_d']

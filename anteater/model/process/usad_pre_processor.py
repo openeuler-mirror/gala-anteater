@@ -1,6 +1,19 @@
-import warnings
+#!/usr/bin/python3
+# ******************************************************************************
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
+# gala-anteater is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#          http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+# ******************************************************************************/
 
+import warnings
 import numpy as np
+
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 warnings.filterwarnings('ignore')
@@ -76,7 +89,7 @@ class PreProcessor:
             df_valid = scale.transform(df_valid)
 
         elif pro_type == "minmax_all":
-            df_all = np.concatenate((df_train, df_valid, df_test), axis=0)
+            df_all = np.concatenate((df_train, df_valid), axis=0)
             scale = MinMaxScaler()
             scale = scale.fit(df_all)
             df_train = scale.transform(df_train)

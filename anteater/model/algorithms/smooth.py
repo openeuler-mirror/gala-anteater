@@ -55,13 +55,19 @@ def smoothing(y, *args, method='conv_smooth', **kwargs):
         raise ValueError(f'Unknown smoothing method {method}!')
 
 
-def smooth_data(df: DataFrame, window=3) -> DataFrame:
+def smooth_data(df: DataFrame, window=3, is_filter_ts: bool = False) -> DataFrame:
     """Smooth the dataframe df by column
 
     new values is the mean of the rolling window and backfill by
     the next valid observation
     """
-    df = df.rolling(window=window).mean().bfill()
+    if is_filter_ts:
+        for col in df.columns:
+            if col == "timestamp":
+                continue
+            df[col] = df[col].rolling(window=window).mean().bfill().values
+    else:
+        df = df.rolling(window=window).mean().bfill()
 
     return df
 

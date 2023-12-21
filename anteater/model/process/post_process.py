@@ -20,7 +20,7 @@ from collections import defaultdict
 
 from anteater.model.algorithms.spot import Spot
 from anteater.core.kpi import ModelConfig
-from anteater.model.algorithms.usad_health import HealthMulti
+from anteater.model.process.usad_health import HealthMulti
 from anteater.utils.log import logger
 
 def get_segment_list(anomalies):

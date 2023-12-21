@@ -1,20 +1,21 @@
-import os
-import pickle
-import stat
+#!/usr/bin/python3
+# ******************************************************************************
+# Copyright (c) 2022 Huawei Technologies Co., Ltd.
+# gala-anteater is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#          http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+# ******************************************************************************/
 
 import numpy as np
 import pandas as pd
-from anteater.model.algorithms.usad_pre_processor import PreProcessor
-from anteater.utils.log import logger
 
-
-def smooth_data(df, window=3):
-    """Smooths metrics"""
-    for col in df.columns:
-        if col == "timestamp":
-            continue
-        df[col] = df[col].rolling(window=window).mean().bfill().values
-    return df
+from anteater.model.algorithms.smooth import smooth_data
+from anteater.model.process.usad_pre_processor import PreProcessor
 
 
 class UsadDataLoader:
@@ -76,7 +77,9 @@ class UsadDataLoader:
         metric_candidates = [col for col in metric_raw.columns]
 
         metric = smooth_data(
-            metric_raw, window=self.config.params["usad"]["smooth_window"])
+            metric_raw,
+            window=self.config.params["usad"]["smooth_window"],
+            is_filter_ts=True)
         channels_pd = metric[self.detect_metrics]
         time_stamp_str = metric["timestamp"]
         channels_pd['timestamp'] = pd.to_datetime(time_stamp_str).values
@@ -99,7 +102,9 @@ class UsadDataLoader:
         metric_raw = df
         metric = metric_raw
         metric = smooth_data(
-            metric_raw, window=self.config.params["usad"]["smooth_window"])
+            metric_raw,
+            window=self.config.params["usad"]["smooth_window"],
+            is_filter_ts=True)
 
         channels_pd = metric[self.detect_metrics]
         time_stamp_str = metric["timestamp"]
@@ -117,6 +122,7 @@ class UsadDataLoader:
             self.config.params["usad"]["preprocess_type"],
             clip_alpha=self.config.params["usad"]["clip_alpha"])
 
+    @staticmethod
     def __split_data(self, rawdata_df):
         """"Divides the training and validation data"""
         n = int(len(rawdata_df) * 0.1)
