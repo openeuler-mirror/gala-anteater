@@ -68,6 +68,7 @@ class UsadDetector(Detector):
         detect_kpis = copy.deepcopy(features)
         sli_metrics = [kpi.metric for kpi in kpis]
         detect_kpis.extend(kpis)
+        is_anomaly = False
 
         if key == "machine_id":
             detect_metrics = [kpi.metric for kpi in detect_kpis if "container" not in kpi.metric]
@@ -87,17 +88,16 @@ class UsadDetector(Detector):
 
             if train_df is None or len(train_df.index) == 0:
                 logger.info('Got empty training data on machine: %s', machine_id)
-                return []
+                return [], is_anomaly
             elif len(train_df.index) < hours * POINTS_HOUR:
                 logger.info('Less training data on machine: %s', machine_id)
-                return []
+                return [], is_anomaly
             else:
                 logger.info('The shape of training data: %s on machine: %s',
                             str(train_df.shape), machine_id)
                 self.online_model.train(train_df, machine_id, detect_metrics, sli_metrics)
 
         anomalies = []
-        is_anomaly = False
         for machine_id, x_df in self.get_inference_data(start, end, detect_kpis, machine_id, key):
             if not check_nan(x_df):
                logger.info(f"{machine_id}, Metric empty, exit detection ********************************")
@@ -301,16 +301,16 @@ class UsadDetector(Detector):
 
         entity_ids = []
         entity_keys = []
-        # machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
-        # entity_keys.extend(['machine_id'] * len(machine_ids))
-        # entity_ids.extend(machine_ids)
+        machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
+        entity_keys.extend(['machine_id'] * len(machine_ids))
+        entity_ids.extend(machine_ids)
 
-        pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
-        entity_keys.extend(['pod_id'] * len(pod_ids))
-        entity_ids.extend(pod_ids)
+        # pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
+        # entity_keys.extend(['pod_id'] * len(pod_ids))
+        # entity_ids.extend(pod_ids)
 
         if not entity_ids:
-            logger.warning('Empty machine_id, RETURN!')
+            logger.warning('Empty entity_ids, RETURN!')
 
         anomalies = []
         results = []

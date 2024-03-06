@@ -123,7 +123,7 @@ class UsadDataLoader:
             clip_alpha=self.config.params["usad"]["clip_alpha"])
 
     @staticmethod
-    def __split_data(self, rawdata_df):
+    def __split_data(rawdata_df):
         """"Divides the training and validation data"""
         n = int(len(rawdata_df) * 0.1)
         train_df, valid_df = rawdata_df[:-n], rawdata_df[-n:]
