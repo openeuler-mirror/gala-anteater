@@ -61,7 +61,7 @@ class TimeSeriesProvider:
             new_k = new_k.replace(':', '#')
             new_v = str(labels[k]).replace('/', '#')
             new_v = new_v.replace(':', '#')
-            metric += '@' + new_k + '=' + new_v
+            metric = f"{metric}@{new_k}={new_v}"
         return metric
 
     @abstractmethod
