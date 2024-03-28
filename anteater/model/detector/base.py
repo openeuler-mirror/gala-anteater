@@ -86,6 +86,7 @@ class Detector:
         metrics = [_kpi.metric for _kpi in kpis]
         machine_ids = self.data_loader.get_unique_pods(start, end, metrics)
         return machine_ids
+
     def find_root_causes(self, anomalies: List[Anomaly],
                          features: List[Feature], top_n=3) -> List[Anomaly]:
         """Finds root causes for each anomaly events"""
@@ -97,6 +98,30 @@ class Detector:
 
         return result
 
+    def cal_top_rac(self, anomaly: Anomaly,
+                    features: List[Feature], top_n=3) -> List[RootCause]:
+        """calculates the top n root causes for the anomaly events"""
+        root_causes = []
+        for f in features:
+            ts_scores = self.cal_metric_ab_score(f.metric, anomaly.machine_id)
+            for _ts, _score in ts_scores:
+                if not check_trend(_ts.values, f.atrend):
+                    logger.info('Trends Filtered: %s', f.metric)
+                    break
+
+                if same_intersection_pairs(_ts.labels, anomaly.labels):
+                    root_causes.append(RootCause(
+                        metric=_ts.metric,
+                        labels=_ts.labels,
+                        score=_score))
+
+        priorities = {f.metric: f.priority for f in features}
+        root_causes.sort(key=lambda x: x.score, reverse=True)
+        root_causes = root_causes[: top_n]
+        root_causes.sort(key=lambda x: priorities[x.metric])
+
+        return root_causes
+        
     def recommend_cause_features(
             self,
             features: List[Feature],
