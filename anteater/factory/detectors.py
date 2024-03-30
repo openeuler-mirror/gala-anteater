@@ -21,7 +21,6 @@ from anteater.model.detector.tcp_trans_latency_n_sigma_detector import \
 from anteater.model.detector.th_base_detector import ThBaseDetector
 from anteater.model.detector.usad_detector import UsadDetector
 from anteater.model.detector.vae_detector import VAEDetector
-from anteater.model.detector.rca_detector import RcaDetector
 
 
 DETECTORS = {
@@ -31,8 +30,7 @@ DETECTORS = {
     'th-base': ThBaseDetector,
     'usad': UsadDetector,
     'vae': VAEDetector,
-    'jvm': JVMOOMDetector,
-    'rca': RcaDetector
+    'jvm': JVMOOMDetector
 }
 
 

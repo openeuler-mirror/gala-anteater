@@ -9,12 +9,268 @@
   "detector": "rca",
   "template": "sys",
   "kpis": [
+   ],
+  "meta_graph": {
+    "a7d32826-2566-40f0-8cd4-feb1a925f4c0": [
+      "9a571dfa-8fa3-4b08-ab8f-e86357e1c135",
+      "ebfde89e-5679-42c2-bc13-39f2a7c6a952"
+    ],
+    "ebfde89e-5679-42c2-bc13-39f2a7c6a952": [
+      "9a571dfa-8fa3-4b08-ab8f-e86357e1c135",
+      "63487c96-d466-4fd7-9579-7599a73c222a",
+      "a7d32826-2566-40f0-8cd4-feb1a925f4c0"
+    ],
+    "63487c96-d466-4fd7-9579-7599a73c222a": [
+      "9a571dfa-8fa3-4b08-ab8f-e86357e1c135",
+      "ebfde89e-5679-42c2-bc13-39f2a7c6a952"
+    ],
+    "6ed6ac36-3469-4ae8-a859-10256deda463": [
+      "a7d32826-2566-40f0-8cd4-feb1a925f4c0",
+      "ebfde89e-5679-42c2-bc13-39f2a7c6a952",
+      "63487c96-d466-4fd7-9579-7599a73c222a"
+    ],
+    "7f47acbd-33b3-4b0c-a9bd-2d6b456d1b5b": [
+      "a7d32826-2566-40f0-8cd4-feb1a925f4c0",
+      "ebfde89e-5679-42c2-bc13-39f2a7c6a952",
+      "63487c96-d466-4fd7-9579-7599a73c222a"
+    ],
+    "8fec3e5c-8475-403f-8a09-9639f69cdbb3": [
+      "6ed6ac36-3469-4ae8-a859-10256deda463",
+      "7f47acbd-33b3-4b0c-a9bd-2d6b456d1b5b"
+    ],
+    "2489c586-b9d2-4759-b433-a6b4f7639389": [
+      "8fec3e5c-8475-403f-8a09-9639f69cdbb3"
+    ],
+    "69712ca8-8e96-4a41-a84b-c693d8d79555": [
+      "8fec3e5c-8475-403f-8a09-9639f69cdbb3"
+    ]
+  },
+  "cause_root": [
+    "nic",
+    "cpu",
+    "disk",
+    "bulk",
+    "mem",
+    "tcp"
   ],
-  "model_config": {
-    "name": "rca_model",
-    "params": {
+  "topology": {
+    "29a54915-7c9f-479a-9ec7-c1e2de78daf1": {
+      "front_end_metric": "gala_gopher_sli_rtt_nsec",
+      "type": "pod",
+      "point_to": [
+        "0d25f2f2-b19b-4b24-b12e-94091ce4009c-192.168.122.18"
+      ]
+    },
+    "02fa4f55-72bd-4c94-ba92-961bef614b63": {
+      "front_end_metric": "gala_gopher_sli_tps",
+      "type": "pod",
+      "point_to": [
+        "0d25f2f2-b19b-4b24-b12e-94091ce4009c-192.168.122.18"
+      ]
+    },
+    "3031c552-e6b0-43cf-9b2c-770d9c7fdfde": {
+      "front_end_metric": "gala_gopher_l7_latency_avg",
+      "type": "pod",
+      "point_to": [
+        "9bd76d8e-25d7-43d1-adba-5230c5f7618c-192.168.122.17"
+      ]
+    },
+    "e375c612-22a6-401e-928e-f076b56cdd0e": {
+      "front_end_metric": "gala_gopher_l7_latency_avg",
+      "type": "pod",
+      "point_to": [
+        "1ea59cbc-f1e8-41a5-8684-eb04451cfefc-192.168.122.19"
+      ]
     }
   },
-  "features": [
+  "special_sli_metrics": [
+    "gala_gopher_proc_vm_size",
+    "gala_gopher_sli_rtt_nsec",
+    "gala_gopher_sli_tps",
+    "gala_gopher_l7_latency_avg",
+    "gala_gopher_l7_latency_sum",
+    "gala_gopher_l7_throughput_req",
+    "gala_gopher_l7_throughput_resp",
+    "gala_gopher_l7_err_ratio",
+    "gala_gopher_l7_err_count",
+    "gala_gopher_proc_flow_perf_tx_delay",
+    "gala_gopher_proc_flow_perf_rx_delay"
+  ],
+  "host_proc_mapping": {
+    "cpu": [
+      "gala_gopher_proc_utime_jiffies",
+      "gala_gopher_proc_stime_jiffies",
+      "gala_gopher_proc_syscall_failed",
+      "gala_gopher_proc_sched_syscall"
+    ],
+    "mem": [
+      "gala_gopher_proc_vm_size",
+      "gala_gopher_proc_pm_size",
+      "gala_gopher_proc_minor_pagefault_count",
+      "gala_gopher_proc_referenced_size"
+    ],
+    "disk": [
+      "gala_gopher_proc_major_pagefault_count",
+      "gala_gopher_proc_syscr_count",
+      "gala_gopher_proc_syscw_count",
+      "gala_gopher_proc_write_bytes",
+      "gala_gopher_proc_read_bytes",
+      "gala_gopher_proc_greater_4k_io_write",
+      "gala_gopher_proc_less_4k_io_write",
+      "gala_gopher_proc_iowait_us"
+    ],
+    "nic": [
+      "gala_gopher_proc_ns_sendmsg",
+      "gala_gopher_proc_ns_recvmsg"
+    ],
+    "tcp": [],
+    "fs": [
+      "gala_gopher_proc_fd_count",
+      "gala_gopher_proc_rchar_bytes",
+      "gala_gopher_proc_wchar_bytes"
+    ]
+  },
+  "args": {
+    "data_dir": "dataset",
+    "anomaly_topn": 10,
+    "smooth_window": 12,
+    "forward_extended_time": 480,
+    "backward_extended_time": 120,
+    "maxlag": 2,
+    "p_threshold": 0.05,
+    "front_end_metric": "kafka_topic_partition_current_offset",
+    "corr_type": "pearson",
+    "corr_prop": 0.3,
+    "r": 0.8,
+    "beta": 1,
+    "num_loop": 5000,
+    "remove_kpi": "True",
+    "ac_k": 3
+  },
+  "metrics": [
+    "gala_gopher_sli_rtt_nsec",
+    "gala_gopher_sli_tps",
+    "gala_gopher_l7_latency_avg",
+    "gala_gopher_l7_latency_sum",
+    "gala_gopher_l7_throughput_req",
+    "gala_gopher_l7_throughput_resp",
+    "gala_gopher_l7_err_ratio",
+    "gala_gopher_l7_err_count",
+    "gala_gopher_proc_flow_perf_tx_delay",
+    "gala_gopher_proc_flow_perf_rx_delay",
+    "gala_gopher_block_count_latency_req",
+    "gala_gopher_block_latency_device_max",
+    "gala_gopher_block_latency_device_sum",
+    "gala_gopher_block_latency_driver_max",
+    "gala_gopher_block_latency_driver_sum",
+    "gala_gopher_block_latency_req_max",
+    "gala_gopher_block_latency_req_sum",
+    "gala_gopher_disk_aqu",
+    "gala_gopher_disk_r_await",
+    "gala_gopher_disk_rareq",
+    "gala_gopher_disk_rspeed",
+    "gala_gopher_disk_rspeed_kB",
+    "gala_gopher_disk_util",
+    "gala_gopher_disk_w_await",
+    "gala_gopher_disk_wareq",
+    "gala_gopher_disk_wspeed",
+    "gala_gopher_disk_wspeed_kB",
+    "gala_gopher_cpu_iowait_msec",
+    "gala_gopher_cpu_irq_msec",
+    "gala_gopher_cpu_net_rx",
+    "gala_gopher_cpu_rcu",
+    "gala_gopher_cpu_sched",
+    "gala_gopher_cpu_softirq_msec",
+    "gala_gopher_cpu_system_msec",
+    "gala_gopher_cpu_timer",
+    "gala_gopher_cpu_total_used_per",
+    "gala_gopher_cpu_user_msec",
+    "gala_gopher_mem_active_kB",
+    "gala_gopher_mem_cache_kB",
+    "gala_gopher_mem_free_kB",
+    "gala_gopher_mem_inactive_kB",
+    "gala_gopher_mem_util",
+    "gala_gopher_mem_dentry",
+    "gala_gopher_proc_bio_latency",
+    "gala_gopher_proc_iowait_us",
+    "gala_gopher_proc_bio_err_count",
+    "gala_gopher_proc_fd_count",
+    "gala_gopher_proc_fd_free_per",
+    "gala_gopher_proc_greater_4k_io_read",
+    "gala_gopher_proc_greater_4k_io_write",
+    "gala_gopher_proc_less_4k_io_write",
+    "gala_gopher_proc_less_4k_io_read",
+    "gala_gopher_proc_minor_pagefault_count",
+    "gala_gopher_proc_major_pagefault_count",
+    "gala_gopher_proc_rchar_bytes",
+    "gala_gopher_proc_read_bytes",
+    "gala_gopher_proc_pm_size",
+    "gala_gopher_proc_private_clean_size",
+    "gala_gopher_proc_private_dirty_size",
+    "gala_gopher_proc_shared_clean_size",
+    "gala_gopher_proc_shared_dirty_size",
+    "gala_gopher_proc_swap_data_size",
+    "gala_gopher_proc_vm_size",
+    "gala_gopher_proc_wchar_bytes",
+    "gala_gopher_proc_write_bytes",
+    "gala_gopher_proc_offcpu_ns",
+    "gala_gopher_proc_usr_cpu_ratio",
+    "gala_gopher_proc_sys_cpu_ratio",
+    "gala_gopher_tcp_link_rcv_rtt",
+    "gala_gopher_tcp_link_srtt",
+    "gala_gopher_tcp_link_retran_packets",
+    "gala_gopher_tcp_link_avl_snd_wnd",
+    "gala_gopher_tcp_link_lost_out",
+    "gala_gopher_tcp_link_rcv_wnd",
+    "gala_gopher_tcp_link_snd_cwnd",
+    "gala_gopher_tcp_link_snd_wnd",
+    "gala_gopher_tcp_link_zero_snd_wnd_count",
+    "gala_gopher_tcp_link_zero_rcv_wnd_count",
+    "gala_gopher_tcp_link_reordering",
+    "gala_gopher_tcp_link_sacked_out",
+    "gala_gopher_tcp_link_sk_drops",
+    "gala_gopher_tcp_link_backlog_drops",
+    "gala_gopher_endpoint_tcp_active_open_failed",
+    "gala_gopher_endpoint_tcp_passive_open_failed",
+    "gala_gopher_endpoint_tcp_rst_sent",
+    "gala_gopher_endpoint_tcp_rst_recv",
+    "gala_gopher_endpoint_tcp_retran_syn",
+    "gala_gopher_endpoint_tcp_retran_synacks",
+    "gala_gopher_dns_max_delay",
+    "gala_gopher_dns_error_ratio",
+    "gala_gopher_jvm_mem_bytes_used",
+    "gala_gopher_jvm_mem_pool_bytes_used",
+    "gala_gopher_jvm_buffer_pool_used_bytes",
+    "gala_gopher_jvm_gc_coll_secs_sum",
+    "gala_gopher_container_cpu_usage_seconds_total",
+    "gala_gopher_container_cpu_system_seconds_total",
+    "gala_gopher_container_cpu_user_seconds_total",
+    "gala_gopher_container_memory_mapped_file",
+    "gala_gopher_container_memory_cache",
+    "gala_gopher_container_memory_rss",
+    "gala_gopher_container_memory_working_set_bytes",
+    "gala_gopher_container_memory_usage_bytes",
+    "gala_gopher_container_fs_reads_bytes_total",
+    "gala_gopher_container_fs_writes_bytes_total",
+    "gala_gopher_container_fs_read_seconds_total",
+    "gala_gopher_container_fs_write_seconds_total",
+    "gala_gopher_container_fs_inodes_free",
+    "gala_gopher_container_fs_inodes_total",
+    "gala_gopher_nic_tx_dropped",
+    "gala_gopher_nic_rx_dropped",
+    "gala_gopher_nic_tc_enc_mark",
+    "gala_gopher_nic_tc_sent_drop",
+    "gala_gopher_jvm_info",
+    "gala_gopher_jvm_mem_bytes_max",
+    "gala_gopher_jvm_gc_coll_secs_count",
+    "gala_gopher_jvm_mem_bytes_commit",
+    "gala_gopher_jvm_mem_pool_bytes_max",
+    "gala_gopher_jvm_buffer_pool_capacity_bytes",
+    "gala_gopher_jvm_class_current_loaded",
+    "gala_gopher_jvm_threads_current",
+    "gala_gopher_block_read_bytes",
+    "gala_gopher_block_write_bytes",
+    "gala_gopher_tcp_link_notsent_bytes",
+    "gala_gopher_tcp_link_notack_bytes"
   ]
 }
