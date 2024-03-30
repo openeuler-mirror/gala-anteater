@@ -20,9 +20,11 @@ import collections
 import json
 import threading
 import time
-from typing import Any, Dict
 
-from kafka import KafkaConsumer, KafkaProducer
+from typing import Any, Dict
+from datetime import datetime
+
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition
 
 from anteater.config import KafkaConf
 from anteater.utils.log import logger
@@ -44,7 +46,8 @@ class KafkaProvider:
     def __init__(self, conf: KafkaConf) -> None:
         self.conf = conf
         producer_configs = {
-            "bootstrap_servers": f"{conf.server}:{conf.port}"
+            "bootstrap_servers": f"{conf.server}:{conf.port}",
+            "api_version": (0, 10, 2)
         }
         consumer_configs = {
             "bootstrap_servers": f"{conf.server}:{conf.port}",
@@ -52,6 +55,7 @@ class KafkaProvider:
             "enable_auto_commit": False,
             "consumer_timeout_ms": 1000,
             "group_id": conf.group_id,
+            "api_version": (0, 10, 2)
         }
 
         if conf.auth_type == 'sasl_plaintext':
@@ -62,7 +66,8 @@ class KafkaProvider:
         self.meta_topic = conf.meta_topic
 
         self.producer = KafkaProducer(**producer_configs)
-        self.consumer = KafkaConsumer(self.meta_topic, **consumer_configs)
+        self.consumer_meta = KafkaConsumer(self.meta_topic, **consumer_configs)
+        self.consumer_model = KafkaConsumer(self.model_topic, **consumer_configs)
 
         self.metadata = collections.deque(maxlen=200)
         self.updating()
@@ -80,7 +85,7 @@ class KafkaProvider:
 
     def fetch_metadata(self):
         while True:
-            for msg in self.consumer:
+            for msg in self.consumer_meta:
                 data = json.loads(msg.value)
                 metadata = {}
                 metadata.update(data)
@@ -99,3 +104,27 @@ class KafkaProvider:
         logger.info(f"Sending the abnormal message to Kafka: {str(message)}")
         self.producer.send(self.model_topic, json.dumps(message).encode('utf-8'))
         self.producer.flush()
+
+    def range_query(self, start_time: datetime, end_time: datetime) -> list:
+        start_ms = round(start_time.timestamp()*1000)
+        end_ms = round(end_time.timestamp()*1000)
+
+        result = []
+        for p in self.consumer_model.partitions_for_topic(self.model_topic):
+            start_offset = self.consumer_model.offsets_for_times({TopicPartition(self.model_topic, p): start_ms})
+
+            if not start_offset or not start_offset[TopicPartition(self.model_topic, p)]:
+                continue
+
+            start_offset = start_offset[TopicPartition(self.model_topic, p)].offset
+            end_offset = self.consumer_model. \
+                end_offsets([TopicPartition(self.model_topic, p)])[TopicPartition(self.model_topic, p)]
+
+            self.consumer_model.seek(TopicPartition(self.model_topic, p), start_offset)
+
+            for record in self.consumer_model:
+                if record.offset >= end_offset or record.timestamp > end_ms:
+                    break
+                data = json.loads(record.value)
+                result.append(data)
+        return result

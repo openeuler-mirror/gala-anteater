@@ -15,11 +15,13 @@ Time: 2023-06-12
 Author: Zhenxing
 Description: The main function of gala-anteater project.
 """
+import datetime
+import torch
+import numpy as np
+import random
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from anteater.anomaly_detection import AnomalyDetection
-from anteater.rca import RootCauseAnalysis
 from anteater.config import AnteaterConf
 from anteater.core.info import MetricInfo
 from anteater.provider.kafka import KafkaProvider
@@ -28,9 +30,9 @@ from anteater.source.metric_loader import MetricLoader
 from anteater.source.suppress import AnomalySuppression
 from anteater.utils.constants import ANTEATER_CONFIG_PATH
 from anteater.utils.log import logger
-import torch
-import numpy as np
-import random
+from anteater.anomaly_detection import AnomalyDetection
+from anteater.root_cause_analysis import RootCauseAnalysis
+
 
 
 def init_nn_seed(seed_value=110):
@@ -58,15 +60,15 @@ def main():
     suppressor = AnomalySuppression()
     report = AnomalyReport(kafka_provider, suppressor, metricinfo)
     loader = MetricLoader(metricinfo, conf)
-    anomaly_detection = AnomalyDetection(loader, report)
-    rca = RootCauseAnalysis(loader, report)
+    ad = AnomalyDetection(loader, report)
+    rca = RootCauseAnalysis(kafka_provider, report)
 
     duration = conf.schedule.duration
     logger.info('Schedule recurrent job, interval %d minute(s).', duration)
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
-    scheduler.add_job(anomaly_detection.run, trigger='interval', minutes=duration)
-    scheduler.add_job(rca.run, trigger='interval', minutes=duration)
+    scheduler.add_job(ad.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
+    scheduler.add_job(rca.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
     scheduler.start()
 
 
