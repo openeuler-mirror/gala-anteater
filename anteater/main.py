@@ -68,7 +68,7 @@ def main():
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
     scheduler.add_job(ad.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
-    scheduler.add_job(rca.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
+    # scheduler.add_job(rca.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
     scheduler.start()
 
 
