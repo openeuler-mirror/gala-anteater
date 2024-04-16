@@ -73,14 +73,14 @@
   "model_config": {
     "name": "usad_model",
     "params": {
-      "th": 0.35,
+      "th": 0.5,
       "max_error_rate": 0.7,
       "min_train_hours": 24,
       "min_predict_minutes": 5,
       "top_n": 20,
       "preprocessor": {
         "smooth_type": "rolling",
-        "smooth_window": 18,
+        "smooth_window": 12,
         "scale_type": "clip",
         "clip_alpha": 20
       },
@@ -105,16 +105,14 @@
         "q": 1e-3,
         "level": 0.98,
         "hidden_sizes": [
-          50,
-          25
         ],
-        "latent_size": 7,
+        "latent_size": 64,
         "dropout_rate": 0.1,
-        "num_epochs": 2,
+        "num_epochs": 30,
         "batch_size": 64,
         "warmup_epoch": 5,
         "lr": 0.001,
-        "window_size": 10,
+        "window_size": 32,
         "patience": 5
       }
     }
