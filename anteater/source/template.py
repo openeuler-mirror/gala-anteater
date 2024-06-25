@@ -80,10 +80,9 @@ class Template:
         self._root_causes = anomaly.root_causes
         self._cause_metrics_list = [
             {
-                'metric': cause.ts.metric,
-                'labels': cause.ts.labels,
-                'score': cause.score,
-                'description': cause.description
+                'metric': cause.metric,
+                'labels': cause.labels,
+                'score': f'{cause.score:.3f}',
             }
             for cause in anomaly.root_causes]
 

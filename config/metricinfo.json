@@ -18,6 +18,15 @@
     "data_classification": "sli"
   },
   {
+    "metric": "gala_gopher_sli_container_cpu_rundelay",
+    "entity_name": "sli",
+    "data_type": "gauge",
+    "en": "sli container cpu rundelay.",
+    "zh": "cpu 平调度时延",
+    "aggregation": "max",
+    "data_classification": "sli"
+  },
+  {
     "metric": "gala_gopher_l7_latency_avg",
     "entity_name": "l7",
     "data_type": "gauge",
