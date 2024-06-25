@@ -23,10 +23,10 @@ from anteater.provider.base import TimeSeriesProvider
 class PrometheusAdapter(TimeSeriesProvider):
     """The PrometheusAdapter client to consume time series data"""
 
-    def __init__(self, server, port):
+    def __init__(self, server, port, step):
         """The PrometheusAdapter client initializer"""
         self.query_url = f"http://{server}:{port}/api/v1/query_range"
-        super().__init__(self.query_url)
+        super().__init__(self.query_url, int(step))
 
     def get_headers(self):
         """Gets the requests headers of prometheus"""
@@ -37,6 +37,7 @@ def load_prometheus_client(config: PrometheusConf) -> PrometheusAdapter:
     """Load and initialize the prometheus client"""
     server = config.server
     port = config.port
-    client = PrometheusAdapter(server, port)
+    step = config.steps
+    client = PrometheusAdapter(server, port, step)
 
     return client

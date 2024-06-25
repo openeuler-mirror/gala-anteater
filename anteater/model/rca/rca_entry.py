@@ -29,7 +29,7 @@ class RCA:
         self.job_config = job_config
         self.init_time = datetime.now(timezone.utc).astimezone().astimezone() - timedelta(days=1)
 
-    def _execute(self):
+    def execute(self):
         logger.info(f'Run rca model: {self.__class__.__name__}!')
 
         now_time = datetime.now(timezone.utc).astimezone().astimezone()

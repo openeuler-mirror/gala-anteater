@@ -66,7 +66,7 @@ class AnomalyReport:
         machine_id = labels.get(MACHINE_ID, '')
         ip = labels.get(IP, '') or labels.get(SERVER_IP, '')
 
-        keys = ['Host', 'PID', 'COMM', 'IP', 'ContainerID', 'POD', 'Device']
+        keys = ['Host', 'PID', 'COMM', 'IP', 'ContainerID', 'POD', 'Device', 'ContainerName']
         values = [
             f'{machine_id}-{ip}' if machine_id and ip else '',
             labels.get(TGID, '') or labels.get(PID, ''),
@@ -75,7 +75,8 @@ class AnomalyReport:
             labels.get(CONTAINER_ID, ''),
             labels.get(POD_NAME, ''),
             (labels.get(DEVICE, '') or labels.get(DEV_NAME, '') or
-             labels.get(DISK_NAME, '') or labels.get(FSNAME, ''))
+             labels.get(DISK_NAME, '') or labels.get(FSNAME, '')),
+            labels.get('container_image', '')
         ]
 
         return dict([(k, v) for k, v in zip(keys, values) if v])
