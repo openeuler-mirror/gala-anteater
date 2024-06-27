@@ -156,3 +156,45 @@ class JVMAnomalyTemplate(Template):
         super().__init__(**kwargs)
         self.header = "JVM OutOfMemory"
         self.event_type = 'jvm'
+
+
+class SimpleAnomalyTemplate(Template):
+    """The jvm anomaly template"""
+
+    def __init__(self, **kwargs):
+        """The simple anomaly template initializer"""
+        super().__init__(**kwargs)
+        self.header = "app metric anomaly"
+        self.event_type = "simple"
+
+    def get_template(self):
+        """Gets the template for app level anomaly events"""
+        self._timestamp = dt.utc_now()
+        round_timestamp = round(self._timestamp.timestamp() * 1000)
+
+        event_source = self._details.get('event_source', 'gala-anteater')
+
+        #
+        result = {
+            'Timestamp': round_timestamp,
+            'Attributes': {
+                'entity_id': self._entity_id,
+                'event_id': f'{round_timestamp}_{self._entity_id}',
+                'event_type': self.event_type,
+                'event_source': event_source,
+                'keywords': self._keywords,
+            },
+            'Resource': {
+                'metric': self._metric,
+                'labels': self._labels,
+                'score': f'{self._score:.3f}',
+                'root_causes': self._cause_metrics_list,
+                'description': self._description
+            },
+            'SeverityText': 'WARN',
+            'SeverityNumber': 13,
+            'Body': self.get_body(),
+            "is_anomaly": self.is_anomaly
+        }
+
+        return result

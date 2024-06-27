@@ -12,12 +12,13 @@
 # ******************************************************************************/
 
 from anteater.source.template import Template, AppAnomalyTemplate, \
-    JVMAnomalyTemplate, SysAnomalyTemplate
+    JVMAnomalyTemplate, SysAnomalyTemplate, SimpleAnomalyTemplate
 
 TEMPLATES = {
     'app': AppAnomalyTemplate,
     'sys': SysAnomalyTemplate,
     'jvm': JVMAnomalyTemplate,
+    'simple': SimpleAnomalyTemplate,
 }
 
 
