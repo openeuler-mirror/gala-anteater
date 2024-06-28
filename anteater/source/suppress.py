@@ -85,12 +85,14 @@ class AnomalySuppression:
         machine_id = anomaly.machine_id
         metric = anomaly.metric
         labels = anomaly.labels
+        details = anomaly.details
 
         filtered_queue = []
         for _, x in self.ab_queue:
             if machine_id == x.machine_id and \
                metric == x.metric and \
-               labels == x.labels:
+               labels == x.labels and \
+               details == x.details:
                 filtered_queue.append(x)
 
         if filtered_queue:

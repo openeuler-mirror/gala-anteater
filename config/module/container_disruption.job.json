@@ -7,7 +7,7 @@
   ],
   "root_cause_num": 20,
   "detector": "container-disruption",
-  "template": "sys",
+  "template": "simple",
   "kpis": [
     {
       "metric": "gala_gopher_sli_container_cpu_rundelay",
@@ -59,7 +59,7 @@
         "clip_alpha": 20,
         "score_type": "common",
         "q": 1e-3,
-        "level": 0.98,
+        "level": 0.95,
         "hidden_sizes": [
           50,
           25
