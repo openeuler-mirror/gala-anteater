@@ -27,7 +27,7 @@ from anteater.model.algorithms.smooth import smoothing
 from anteater.model.algorithms.n_sigma import n_sigma
 from anteater.model.algorithms.normalization import Normalization
 from anteater.model.algorithms.spot import Spot
-from anteater.utils.common import divide
+from anteater.utils.common import divide, GlobalVariable
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.log import logger
 
@@ -38,7 +38,7 @@ class ContainerDisruptionDetector(Detector):
         super().__init__(data_loader, **kwargs)
         self.config = config
         self.q = 1e-3
-        self.level = 0.95
+        self.level = 0.98
         self.smooth_win = 3
 
     def detect_kpis(self, kpis: List[KPI]):
@@ -96,11 +96,15 @@ class ContainerDisruptionDetector(Detector):
         smooth_params = kwargs.get('smooth_params')
         obs_size = kwargs.get('obs_size')
         n = kwargs.get('n', 3)
-        start, end = dt.last(minutes=look_back)
+        if GlobalVariable.is_test_model:
+            start, end = GlobalVariable.start_time, GlobalVariable.end_time
+        else:
+            start, end = dt.last(minutes=look_back)
         point_count = self.data_loader.expected_point_length(start, end)
         ts_list = self.data_loader.get_metric(
             start, end, metric, machine_id=machine_id)
         ts_scores = []
+        outlier = []
         for _ts in ts_list:
             dedup_values = [k for k, g in groupby(_ts.values)]
             if sum(_ts.values) == 0 or \
@@ -115,6 +119,10 @@ class ContainerDisruptionDetector(Detector):
                 outlier, _, _ = n_sigma(
                     smoothed_val, obs_size=obs_size, n=n, method=method)
                 score = divide(len(outlier), obs_size)
+            print('data: ', _ts.values)
+            print('n-sigma result: ', outlier)
+            logger.info('n-sigma detected: %d , total: %d , metric: %s, image: %s',
+                           score*obs_size, obs_size, _ts.metric, _ts.labels['container_image'])
 
             ts_scores.append((_ts, score))
 
@@ -151,7 +159,10 @@ class ContainerDisruptionDetector(Detector):
         smooth_params = kwargs.get('smooth_params')
         obs_size = kwargs.get('obs_size')
         n = kwargs.get('n', 3)
-        start, end = dt.last(minutes=look_back)
+        if GlobalVariable.is_test_model:
+            start, end = GlobalVariable.start_time, GlobalVariable.end_time
+        else:
+            start, end = dt.last(minutes=look_back)
         point_count = self.data_loader.expected_point_length(start, end)
         ts_list = self.data_loader.get_metric(
             start, end, metric, machine_id=machine_id)
@@ -194,7 +205,9 @@ class ContainerDisruptionDetector(Detector):
                 bound_result = np.array(_ts_series_test > thr_with_alarms["thresholds"], dtype=np.int32)
                 result += bound_result
             output = np.sum(result)
-            logger.warning('detected: %d , total: %d , metric: %s, image: %s',
+            print('data: ', _ts.values)
+            print('spot result: ', result)
+            logger.warning('spot detected: %d , total: %d , metric: %s, image: %s',
                            output, obs_size, _ts.metric, _ts.labels['container_image'])
 
             score = divide(output, obs_size)
