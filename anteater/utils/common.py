@@ -16,9 +16,9 @@ Author:
 Description: Some common functions are able to use in this project.
 """
 
-
 import re
 from typing import Union
+from datetime import datetime, timedelta
 
 from anteater.utils.log import logger
 
@@ -88,3 +88,9 @@ def to_bytes(letter: Union[str, int]) -> int:
 
     else:
         raise ValueError("The type of letter is neither str nor int!")
+
+
+class GlobalVariable:
+    is_test_model = False
+    end_time = datetime.utcnow()
+    start_time = end_time - timedelta(minutes=15)
