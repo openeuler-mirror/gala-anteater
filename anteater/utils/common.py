@@ -92,5 +92,8 @@ def to_bytes(letter: Union[str, int]) -> int:
 
 class GlobalVariable:
     is_test_model = False
-    end_time = datetime.utcnow()
-    start_time = end_time - timedelta(minutes=15)
+    test_end_time = datetime.utcnow()
+    test_start_time = test_end_time - timedelta(minutes=5)
+    train_end_time = test_end_time - timedelta(minutes=5)
+    train_start_time = test_end_time - timedelta(minutes=15)
+
