@@ -54,8 +54,10 @@ def disruption_main():
     time_curr = time_start + timedelta(minutes=15)
     while time_curr < time_end:
         logger.info(f'Run anomaly detection in timestamp {time_curr}')
-        GlobalVariable.start_time = time_curr - timedelta(minutes=15)
-        GlobalVariable.end_time = time_curr
+        GlobalVariable.train_start_time = time_curr - timedelta(minutes=15)
+        GlobalVariable.train_end_time = time_curr - timedelta(minutes=5)
+        GlobalVariable.test_start_time = time_curr - timedelta(minutes=5)
+        GlobalVariable.test_end_time = time_curr
 
         ad.run()
 
