@@ -83,6 +83,15 @@ class TimeSeries:
 
         return df
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "metric": self.metric,
+            "labels": self.labels,
+            "time_stamps": self.time_stamps,
+            "values": self.values
+        }
+
 @dataclass
 class TimeSeriesScore:
     ts: TimeSeries
