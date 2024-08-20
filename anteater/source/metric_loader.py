@@ -35,7 +35,7 @@ class MetricLoader:
 
     def __init__(self, metricinfo: MetricInfo, config: AnteaterConf) -> None:
         """The Metrics Loader initializer"""
-        self.provider = DataClientFactory.\
+        self.provider = DataClientFactory. \
             get_client(config.global_conf.data_source, config)
 
         self.metricinfo = metricinfo
@@ -46,6 +46,39 @@ class MetricLoader:
         time_series = self.provider.range_query(start, end, metric, query, is_single=True)
 
         return time_series
+
+    def check_and_fill_data(self, ts_list, start, end):
+        """Check whether the number of data records is normal."""
+        start, end = round(start.timestamp()), round(end.timestamp())
+        standard_time = list(range(start, end + self.provider.step, self.provider.step))
+        # 将列表 data 转换为字典，方便查找和补充缺失的元素
+        for i, ts_data in enumerate(ts_list):
+            values = ts_data.values
+            time_stamps = ts_data.time_stamps
+            value_dict = dict(zip(time_stamps, values))
+            if time_stamps != standard_time:
+                # time_stamps = standard_time
+                # 初始化结果列表
+                result = []
+
+                for index, time in enumerate(standard_time):
+                    if time in value_dict:
+                        # 如果 container_data 中存在相应的元素，直接添加到结果列表
+                        result.append(value_dict[time])
+                    else:
+                        # 如果 container_data 中不存在相应的元素，进行补充
+                        if index == 0:
+                            # 如果是第一个元素缺失，用后一个元素填充
+                            next_value = values[0]
+                            result.append(next_value)
+                        else:
+                            # 如果不是第一个元素缺失，用前一个元素填充
+                            next_value = result[-1]
+                            result.append(next_value)
+                ts_list[i].time_stamps = standard_time
+                ts_list[i].values = result
+
+        return ts_list
 
     def get_metric(self, start: datetime, end: datetime, metric: str, **kwargs) -> List[TimeSeries]:
         """Get target metric time series data
@@ -60,7 +93,7 @@ class MetricLoader:
         """
         query = self._get_query(metric, **kwargs)
         time_series = self.provider.range_query(start, end, metric, query)
-
+        time_series = self.check_and_fill_data(time_series, start, end)
         return time_series
 
     @timer
@@ -89,6 +122,7 @@ class MetricLoader:
             logger.debug(f'metrics: {";".join(metrics)}')
 
         return pod_ids
+
     def get_unique_label(self, start: datetime, end: datetime, metrics: List[str], label_name: str) -> List[str]:
         """Gets unique labels of all metrics"""
         unique_labels = set()
@@ -101,8 +135,8 @@ class MetricLoader:
     def expected_point_length(self, start: datetime, end: datetime) -> int:
         """Gets expected length of time series during a period"""
         start, end = round(start.timestamp()), round(end.timestamp())
-        if self.provider.step >= 0:
-            return max((end - start) // self.provider.step, 1)
+        if self.provider.step > 0:
+            return (end - start) // self.provider.step + 1
         else:
             return 0
 
@@ -143,4 +177,3 @@ class MetricLoader:
             query = f"{metric}{rule}"
 
         return query
-

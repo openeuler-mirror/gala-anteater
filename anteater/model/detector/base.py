@@ -121,7 +121,7 @@ class Detector:
         root_causes.sort(key=lambda x: priorities[x.metric])
 
         return root_causes
-        
+
     def recommend_cause_features(
             self,
             features: List[Feature],
@@ -219,17 +219,19 @@ class Detector:
 
         single_metric_dfs = [timestamp_df]
         single_metrics_list = []
+        single_metrics_set = set()
         if len(ts_list):
             for _ts in ts_list:
-                if _ts.to_df().columns[0] not in single_metrics_list:
-                    single_metrics_list.append(_ts.to_df().columns[0])
-                    single_metric_dfs.append(_ts.to_df())
+                df = _ts.to_df()
+                column_name = df.columns[0]
 
-            single_df = reduce(lambda left, right: pd.DataFrame(
-                left).join(right, how='outer'), single_metric_dfs)
+                if column_name not in single_metrics_set:
+                    single_metrics_set.add(column_name)
+                    single_metrics_list.append(column_name)
+                    single_metric_dfs.append(df)
+
+            single_df = pd.concat(single_metric_dfs, axis=1, join='outer')
             single_df = single_df.fillna(0)
-
-
 
             record = pearson_correlation(
                 target_metric, single_df, standard_series, top_n=1)

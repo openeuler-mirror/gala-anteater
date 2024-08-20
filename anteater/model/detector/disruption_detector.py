@@ -10,7 +10,9 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # ******************************************************************************/
-
+import json
+import os.path
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -20,7 +22,6 @@ from math import floor
 
 from anteater.core.anomaly import Anomaly, RootCause
 from anteater.core.kpi import KPI, ModelConfig, Feature
-from anteater.core.ts import TimeSeries
 from anteater.model.detector.base import Detector
 from anteater.source.metric_loader import MetricLoader
 from anteater.model.algorithms.smooth import smoothing
@@ -31,6 +32,8 @@ from anteater.utils.common import divide, GlobalVariable
 from anteater.utils.datetime import DateTimeManager as dt
 from anteater.utils.timer import timer
 from anteater.utils.log import logger
+from anteater.model.algorithms.ts_dbscan import TSDBSCAN
+from anteater.core.ts import TimeSeries
 
 
 class ContainerDisruptionDetector(Detector):
@@ -46,17 +49,11 @@ class ContainerDisruptionDetector(Detector):
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) \
             -> List[Anomaly]:
         logger.info('Execute cdt model: %s.', self.__class__.__name__)
-        anomalies = self.detect_and_rca(kpis, features, **kwargs)
-        # anomalies = self.detect_kpis(kpis)
-        # if anomalies:
-        #     logger.info('%d cdc anomalies was detected on %s.',
-        #                 len(anomalies), self.__class__.__name__)
-        #     anomalies = self.find_root_causes(anomalies, features, **kwargs)
-        #     anomalies = self.cal_kpi_anomaly_score(anomalies, kpis)
+        anomalies = self.detect_and_rca(kpis)
 
         return anomalies
 
-    def detect_and_rca(self, kpis: List[KPI], features: List[Feature], **kwargs):
+    def detect_and_rca(self, kpis: List[KPI]):
         start, end = dt.last(minutes=1)
         machine_ids = self.get_unique_machine_id(start, end, kpis)
         anomalies = []
@@ -94,18 +91,12 @@ class ContainerDisruptionDetector(Detector):
     def get_kpi_ts_list(self, metric, machine_id: str, look_back):
 
         if GlobalVariable.is_test_model:
-            test_start_time, test_end_time = GlobalVariable.test_start_time, GlobalVariable.test_end_time
-            train_start_time, train_end_time = GlobalVariable.train_start_time, GlobalVariable.train_end_time
+            strat_time, end_time = GlobalVariable.start_time, GlobalVariable.end_time
 
-            test_point_count = self.data_loader.expected_point_length(test_start_time, test_end_time)
-            train_point_count = self.data_loader.expected_point_length(train_start_time, train_end_time)
-            test_ts_list = self.data_loader.get_metric(
-                test_start_time, test_end_time, metric, machine_id=machine_id)
-            train_ts_list = self.data_loader.get_metric(
-                train_start_time, train_end_time, metric, machine_id=machine_id)
+            ts_list = self.data_loader.get_metric(
+                strat_time, end_time, metric, machine_id=machine_id)
+            point_count = self.data_loader.expected_point_length(strat_time, end_time)
 
-            point_count = train_point_count + test_point_count
-            ts_list = train_ts_list.extend(test_ts_list)
         else:
             start, end = dt.last(minutes=look_back)
             point_count = self.data_loader.expected_point_length(start, end)
@@ -143,32 +134,40 @@ class ContainerDisruptionDetector(Detector):
         """Calculates metrics' ab score based on n-sigma method"""
         method = kwargs.get('method', 'abs')
         look_back = kwargs.get('look_back')
-        smooth_params = kwargs.get('smooth_params')
         obs_size = kwargs.get('obs_size')
         n = kwargs.get('n', 3)
         point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
-
+        ts_dbscan_detector = TSDBSCAN(kwargs)
         ts_scores = []
         outlier = []
         outlier_idx = []
         for _ts in ts_list:
-            dedup_values = [k for k, g in groupby(_ts.values)]
+
+            detect_result = ts_dbscan_detector.detect(_ts.values)
+            if len(detect_result) != len(_ts.values):
+                raise ""
+            train_data = [_ts.values[i] for i in range(len(detect_result)) if detect_result[i] == 0]
+            test_data = _ts.values[-obs_size:]
+            dedup_values = [k for k, g in groupby(test_data)]
             if sum(_ts.values) == 0 or \
-               len(_ts.values) < point_count * 0.6 or \
-               len(_ts.values) > point_count * 1.5 or \
-               all(x == _ts.values[0] for x in _ts.values):
+                    len(_ts.values) < point_count * 0.6 or \
+                    len(_ts.values) > point_count * 1.5 or \
+                    all(x == _ts.values[0] for x in _ts.values):
                 score = 0
-            elif len(dedup_values) < point_count * 0.6:
+            elif len(dedup_values) < obs_size * 0.8:
                 score = 0
             else:
-                smoothed_val = smoothing(_ts.values, **smooth_params)
-                outlier, outlier_idx, _, _ = n_sigma_ex(
-                    smoothed_val, obs_size=obs_size, n=n, method=method)
+                # smoothed_val = smoothing(_ts.values, **smooth_params)
+                # smoothed_train = smoothing(train_data, **smooth_params)
+                smoothed_train = pd.Series(train_data)
+                smoothed_val = pd.Series(_ts.values)
+                outlier, outlier_idx, _, _ = n_sigma_ex(smoothed_train,
+                                                        smoothed_val, obs_size=obs_size, n=n, method=method)
                 score = divide(len(outlier), obs_size)
             print('data: ', _ts.values)
             print('n-sigma result: ', outlier, outlier_idx)
             logger.info('n-sigma detected: %d , total: %d , metric: %s, image: %s',
-                           score*obs_size, obs_size, _ts.metric, _ts.labels['container_image'])
+                        score * obs_size, obs_size, _ts.metric, _ts.labels['container_id'])
 
             # to do here, 如果_ts异常，直接从ts_list中找最相关的容器_ts,作为返回的根因
             root_causes = self.find_discruption_source(_ts, ts_list)
@@ -203,34 +202,38 @@ class ContainerDisruptionDetector(Detector):
     def cal_spot_score(self, metric, machine_id: str, **kwargs) \
             -> List[Tuple[TimeSeries, int, List[RootCause]]]:
         """Calculates metrics' ab score based on n-sigma method"""
-        method = kwargs.get('method', 'abs')
         look_back = kwargs.get('look_back')
-        smooth_params = kwargs.get('smooth_params')
         obs_size = kwargs.get('obs_size')
-        n = kwargs.get('n', 3)
+        ts_dbscan_detector = TSDBSCAN(kwargs)
 
         point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
         ts_scores = []
         for _ts in ts_list:
-            dedup_values = [k for k, g in groupby(_ts.values)]
+            detect_result = ts_dbscan_detector.detect(_ts.values)
+            if len(detect_result) != len(_ts.values):
+                raise ""
+            train_data = [_ts.values[i] for i in range(len(detect_result)) if detect_result[i] == 0]
+            test_data = _ts.values[-obs_size:]
+            dedup_values = [k for k, g in groupby(test_data)]
             if sum(_ts.values) == 0 or \
                     len(_ts.values) < point_count * 0.6 or \
                     len(_ts.values) > point_count * 1.5 or \
                     all(x == _ts.values[0] for x in _ts.values):
                 score = 0
-            elif len(dedup_values) < point_count * 0.6:
+            elif len(dedup_values) < obs_size * 0.8:
                 score = 0
             else:
                 ts_series = pd.Series(_ts.values)
+                ts_series_train = pd.Series(train_data)
                 ts_series_list = self._check_bound_type('bi_bound', ts_series)
+                ts_series_train_list = self._check_bound_type('bi_bound', ts_series_train)
                 result = np.zeros((obs_size,), dtype=np.int32)
-                for _ts_series in ts_series_list:
-                    _ts_series_train = _ts_series[:-obs_size]
+                for _ts_series, _ts_series_train in zip(ts_series_list, ts_series_train_list):
                     _ts_series_test = _ts_series[-obs_size:]
-
                     # fit model
-                    smooth_win = self._check_smooth(_ts_series_train)
-                    _ts_series_train = _ts_series_train.rolling(window=smooth_win).mean().bfill().ffill().values
+                    # smooth_win = self._check_smooth(_ts_series_train)
+                    # _ts_series_train = _ts_series_train.rolling(window=smooth_win).mean().bfill().ffill().values
+                    _ts_series_train = _ts_series_train.values
 
                     if self._is_peak_empty(_ts_series_train):
                         if np.max(_ts_series_train) == 0:
@@ -249,8 +252,9 @@ class ContainerDisruptionDetector(Detector):
                     spot.initialize(_ts_series_train, level=level)
 
                     # predict
-                    smooth_win = self._check_smooth(_ts_series_test)
-                    _ts_series_test = _ts_series_test.rolling(window=smooth_win).mean().bfill().ffill().values
+                    # smooth_win = self._check_smooth(_ts_series_test)
+                    # _ts_series_test = _ts_series_test.rolling(window=smooth_win).mean().bfill().ffill().values
+                    _ts_series_test = _ts_series_test.values
                     _ts_series_test, _, _ = Normalization.clip_transform(
                         _ts_series_test[np.newaxis, :], mean=mean, std=std, is_clip=False)
                     _ts_series_test = _ts_series_test[0]
@@ -260,8 +264,8 @@ class ContainerDisruptionDetector(Detector):
                 output = np.sum(result)
                 print('data: ', _ts.values)
                 print('spot result: ', result)
-                logger.warning('spot detected: %d , total: %d , metric: %s, image: %s',
-                               output, obs_size, _ts.metric, _ts.labels['container_image'])
+                logger.info('spot detected: %d , total: %d , metric: %s, image: %s',
+                            output, obs_size, _ts.metric, _ts.labels['container_id'])
 
                 score = divide(output, obs_size)
 
@@ -339,7 +343,7 @@ class ContainerDisruptionDetector(Detector):
         data_size = len(metric_data)
         sort_data = np.sort(metric_data)
         level = self.level - floor(self.level)
-        peak_num = int(level*data_size)
+        peak_num = int(level * data_size)
 
         if peak_num == 0:
             peak_num = min(2, data_size)
@@ -357,4 +361,3 @@ class ContainerDisruptionDetector(Detector):
             smooth_win = self.smooth_win
 
         return smooth_win
-
