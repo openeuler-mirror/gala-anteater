@@ -176,6 +176,5 @@ def output(cause_outputs, anomaly_outputs, all_anomaly_results, pod_states, pod_
         cause_metrics_param.append(cause_metric)
 
     res = get_template(anomaly_timestamp, anomaly_event_id, abnormal_kpi, cause_metrics_param, keywords)
-    import pdb; pdb.set_trace()
     kafka_provider = KafkaProvider()
     kafka_provider.send_message(res)

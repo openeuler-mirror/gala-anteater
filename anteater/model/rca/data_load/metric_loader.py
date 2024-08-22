@@ -24,8 +24,6 @@ from anteater.model.rca.data_load.utils.timer import timer
 from anteater.utils.log import logger
 
 
-
-
 def get_query(metric: str,
               label_name: Union[str, List] = None, label_value: Union[str, List] = None,
               operator_name: str = None, operator_value: float = None):
@@ -39,7 +37,8 @@ def get_query(metric: str,
     """
     rule = ""
     if label_value:
-        if type(label_name) != type(label_value):
+        if (isinstance(label_name, str) and isinstance(label_value, list)) or (
+                isinstance(label_name, list) and isinstance(label_value, str)):
             raise ValueError(f"The label_name and label_value are of different types,"
                              f"type(label_name): {type(label_name)},"
                              f"type(label_value): {type(label_value)}.")

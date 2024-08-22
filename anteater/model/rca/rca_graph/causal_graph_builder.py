@@ -136,7 +136,7 @@ class CausalGraphBuilder:
                     try:
                         test_result = grangercausalitytests(
                             self._data[[tar_metric, src_metric]], maxlag=maxlag, verbose=False)
-                    except:
+                    except Exception:
                         logger.error(f"grangercausalitytests：{tar_metric}, {src_metric}.")
                         if tar_metric == self.fv_metric_with_machine and (src_metric, tar_metric) not in \
                                 causality_test_info['backup_edge']:
