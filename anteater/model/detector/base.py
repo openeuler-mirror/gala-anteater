@@ -148,6 +148,35 @@ class Detector:
 
         return ts_scores
 
+    def cal_anomaly_score(
+            self,
+            metric: str,
+            description: str,
+            machine_id: str)\
+            -> List[TimeSeriesScore]:
+        """Calculates metric anomaly scores based on sr model"""
+        start, end = dt.last(minutes=10)
+        point_count = self.data_loader.expected_point_length(start, end)
+        model = SpectralResidual(12, 24, 50)
+        ts_scores = []
+        ts_list = self.data_loader.get_metric(start, end, metric, machine_id=machine_id)
+        for _ts in ts_list:
+            if sum(_ts.values) == 0 or \
+               len(_ts.values) < point_count * 0.9 or\
+               len(_ts.values) > point_count * 1.5 or \
+               all(x == _ts.values[0] for x in _ts.values):
+                score = 0
+            else:
+                score = model.compute_score(_ts.values)
+                score = max(score[-25:])
+
+            if math.isnan(score) or math.isinf(score):
+                score = 0
+
+            ts_scores.append(TimeSeriesScore(ts=_ts, score=score, description=description))
+
+        return ts_scores
+
     def get_usad_root_causes(self, anomalies: List[Anomaly], features: List[Feature], anomaly_scores, key="machine_id")\
             -> List[Anomaly]:
         """Finds root causes for each anomaly events in the Usad model"""

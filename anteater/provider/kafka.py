@@ -54,7 +54,6 @@ class KafkaProvider:
             "auto_offset_reset": "earliest",
             "enable_auto_commit": False,
             "consumer_timeout_ms": 1000,
-            "group_id": conf.group_id,
             "api_version": (0, 10, 2)
         }
 
@@ -63,6 +62,7 @@ class KafkaProvider:
             self.config_kafka_sasl(consumer_configs)
 
         self.model_topic = conf.model_topic
+        self.rca_topic = conf.rca_topic
         self.meta_topic = conf.meta_topic
 
         self.producer = KafkaProducer(**producer_configs)
@@ -101,13 +101,18 @@ class KafkaProvider:
 
     def send_message(self, message: Dict[str, Any]):
         """Sent the message to Kafka"""
-        logger.info(f"Sending the abnormal message to Kafka: {str(message)}")
         self.producer.send(self.model_topic, json.dumps(message).encode('utf-8'))
         self.producer.flush()
 
+    def send_rca_message(self, message: Dict[str, Any]):
+        """Sent the message to Kafka"""
+        # logger.info(f"Sending the abnormal message to Kafka: {str(message)}")
+        self.producer.send(self.rca_topic, json.dumps(message).encode('utf-8'))
+        self.producer.flush()
+
     def range_query(self, start_time: datetime, end_time: datetime) -> list:
-        start_ms = round(start_time.timestamp()*1000)
-        end_ms = round(end_time.timestamp()*1000)
+        start_ms = round(start_time.timestamp() * 1000)
+        end_ms = round(end_time.timestamp() * 1000)
 
         result = []
         for p in self.consumer_model.partitions_for_topic(self.model_topic):

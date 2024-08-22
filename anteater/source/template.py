@@ -54,7 +54,8 @@ class Template:
                 'event_type': self.event_type,
                 'event_source': 'gala-anteater',
                 'keywords': self._keywords,
-                'cause_metric': self._cause_metrics_list[0] if self._cause_metrics_list else {'description': self._description}
+                'cause_metric': self._cause_metrics_list[0] if self._cause_metrics_list else {
+                    'description': self._description}
             },
             'Resource': {
                 'metric': self._metric,
@@ -136,6 +137,31 @@ class AppAnomalyTemplate(Template):
         super().__init__(**kwargs)
         self.header = "Application Failure"
         self.event_type = "app"
+
+
+class NetAnomalyTemplate(Template):
+    """The app anomaly template"""
+
+    def __init__(self, **kwargs):
+        """The app anomaly template initializer"""
+        super().__init__(**kwargs)
+        self.header = "Neural network Detection"
+        self.event_type = "net"
+
+    def parse_anomaly(self, anomaly: Anomaly):
+        """Parses the anomaly object properties"""
+        self._machine_id = anomaly.machine_id
+        self._metric = anomaly.metric
+        self._entity_name = anomaly.metric
+        self._score = anomaly.score
+        self._root_causes = anomaly.root_causes
+        self._cause_metrics_list = [
+            {
+                'metric': cause.ts.metric,
+                'labels': cause.ts.labels,
+                'score': f'{cause.score:.3f}',
+            }
+            for cause in anomaly.root_causes]
 
 
 class SysAnomalyTemplate(Template):

@@ -22,7 +22,10 @@ def pearson_relevant_degree(df, standard_series):
     for col in df.columns:
         if col == "timestamp":
             continue
-        correlation_coef = pearsonr(standard_series, df[col])[0]
+        if len(standard_series) == len(df[col]):
+            correlation_coef = pearsonr(standard_series, df[col])[0]
+        else:
+            correlation_coef = 0.0
         relevant_degree.append((col, correlation_coef))
     relevant_degree.sort(key=lambda x: -abs(x[1]))
     return relevant_degree
@@ -32,6 +35,7 @@ def pearson_correlation(metric, df, standard_series, top_n=1):
     """Calculates the Pearson correlation coefficient with a given standard series"""
     kpi_record = collections.defaultdict(list)
     relevant_degree = pearson_relevant_degree(df, standard_series)
+
     for idx, item in enumerate(relevant_degree, 1):
         if idx <= top_n:
             kpi_record[metric].append(item)
