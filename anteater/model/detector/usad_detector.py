@@ -301,19 +301,21 @@ class UsadDetector(Detector):
 
         entity_ids = []
         entity_keys = []
-        machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
-        entity_keys.extend(['machine_id'] * len(machine_ids))
-        entity_ids.extend(machine_ids)
+        # machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
+        # entity_keys.extend(['machine_id'] * len(machine_ids))
+        # entity_ids.extend(machine_ids)
 
-        # pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
-        # entity_keys.extend(['pod_id'] * len(pod_ids))
-        # entity_ids.extend(pod_ids)
+        pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
+        entity_keys.extend(['pod_id'] * len(pod_ids))
+        entity_ids.extend(pod_ids)
 
         if not entity_ids:
             logger.warning('Empty entity_ids, RETURN!')
 
         anomalies = []
         results = []
+
+        logger.info(f"Detected entity number {len(entity_ids)}: {entity_ids}")
         for _id, key in zip(entity_ids, entity_keys):
             results.append(self.detect_machine_kpis(kpis, features, _id, key))
             logger.info(f"Finish test machine {_id} ********************")

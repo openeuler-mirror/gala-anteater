@@ -35,11 +35,17 @@ class ServiceConf:
     server: str
     port: str
 
+@dataclass
+class ArangodbConf:
+    """The Arangodb config"""
+    url: str
+    db_name: str
 
 @dataclass
 class KafkaConf(ServiceConf):
     """The kafka config"""
     model_topic: str
+    rca_topic: str
     meta_topic: str
     group_id: str
     auth_type: Optional[str] = None
@@ -80,6 +86,7 @@ class AnteaterConf:
         self.prometheus: PrometheusConf = None
         self.aom: AomConfig = None
         self.schedule: ScheduleConf = None
+        self.arangodb: ArangodbConf = None
 
     def load_from_yaml(self, data_path: str):
         """Loads config from yaml file"""
@@ -96,9 +103,11 @@ class AnteaterConf:
         prometheus_conf = result.get('Prometheus')
         aom_config = result.get('Aom')
         schedule_conf = result.get('Schedule')
+        arangodb_conf = result.get('Arangodb')
 
         self.global_conf = GlobalConf(**global_conf)
         self.kafka = KafkaConf(**kafka_conf)
         self.prometheus = PrometheusConf(**prometheus_conf)
         self.aom = AomConfig(**aom_config)
         self.schedule = ScheduleConf(**schedule_conf)
+        self.arangodb = ArangodbConf(**arangodb_conf)

@@ -49,20 +49,23 @@ def load_job_config(filepath) -> JobConfig:
     keywords = config.get('keywords', [])
     root_cause_num = config.get('root_cause_num', 0)
 
-    kpis = [KPI.from_dict(**_conf) for _conf in config.get('kpis')]
+    kpis = [KPI.from_dict(**_conf) for _conf in config.get('kpis', [])]
     features = [Feature.from_dict(**_conf) for _conf in config.get('features', [])]
 
     model_config = None
     if 'model_config' in config:
-        name = config['model_config']['name']
-        params = config['model_config']['params']
-        root_model_path = path.realpath(ANTEATER_MODEL_PATH)
-        model_path = path.join(root_model_path, path.basename(filepath))
+        if job_name == "RootCauseAnalysis":
+            model_config = config.get('model_config', {})
+        else:
+            name = config['model_config']['name']
+            params = config['model_config']['params']
+            root_model_path = path.realpath(ANTEATER_MODEL_PATH)
+            model_path = path.join(root_model_path, path.basename(filepath))
 
-        if not path.exists(model_path):
-            makedirs(model_path)
+            if not path.exists(model_path):
+                makedirs(model_path)
 
-        model_config = ModelConfig(name=name, params=params, model_path=model_path)
+            model_config = ModelConfig(name=name, params=params, model_path=model_path)
 
     if validate_dup([kpi.metric for kpi in kpis]) or \
        validate_dup([f.metric for f in features]):

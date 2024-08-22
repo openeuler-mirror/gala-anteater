@@ -7,7 +7,7 @@
   ],
   "root_cause_num": 20,
   "detector": "usad",
-  "template": "sys",
+  "template": "net",
   "kpis": [
     {
       "metric": "gala_gopher_sli_rtt_nsec",
