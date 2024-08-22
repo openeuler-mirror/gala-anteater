@@ -1,10 +1,15 @@
 Global:
   data_source: "prometheus"
 
+Arangodb:
+  url: "http://localhost:8529"
+  db_name: "spider"
+
 Kafka:
-  server: "localhost"
+  server: "192.168.122.100"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
+  rca_topic: "gala_cause_inference"
   meta_topic: "gala_gopher_metadata"
   group_id: "gala_anteater_kafka"
   # auth_type: plaintext/sasl_plaintext, please set "" for no auth

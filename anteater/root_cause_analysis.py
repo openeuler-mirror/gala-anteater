@@ -18,25 +18,24 @@ from anteater.provider.kafka import KafkaProvider
 from anteater.source.anomaly_report import AnomalyReport
 from anteater.utils.data_load import load_jobs
 from anteater.utils.log import logger
-
+from anteater.config import ArangodbConf
 
 class RootCauseAnalysis:
     """The root cause analysis class"""
 
-    def __init__(self, provider: KafkaProvider, reporter: AnomalyReport):
+    def __init__(self, provider: KafkaProvider, reporter: AnomalyReport, arangodb: ArangodbConf):
         """The root cause analysis initializer"""
         self.provider = provider
         self.reporter = reporter
 
-        self.rca = self.load_rca()
+        self.rca = self.load_rca(arangodb)
 
-    def load_rca(self) -> RCA:
+    def load_rca(self, arangodb) -> RCA:
         """load rca from config file"""
         rca = None
-
         for job_config in load_jobs():
             if job_config.enable and job_config.job_type == 'root_cause_analysis':
-                rca = RCA(self.provider, self.reporter, job_config)
+                rca = RCA(self.provider, self.reporter, job_config, arangodb)
 
         job_count = 1 if rca else 0
 

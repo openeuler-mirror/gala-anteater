@@ -51,7 +51,11 @@ setup(
         "requests",
         "scikit_learn",
         "scipy",
-        "torch"
+        "torch",
+        "networkx==2.6.3",
+        "pyArango",
+        "pingouin"
+        "statsmodels==0.13.5"
     ],
     entry_points={
         "console_scripts": [

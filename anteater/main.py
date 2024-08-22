@@ -34,7 +34,6 @@ from anteater.anomaly_detection import AnomalyDetection
 from anteater.root_cause_analysis import RootCauseAnalysis
 
 
-
 def init_nn_seed(seed_value=110):
     """Make nn methods result can reproduce."""
     torch.manual_seed(seed_value)
@@ -61,14 +60,16 @@ def main():
     report = AnomalyReport(kafka_provider, suppressor, metricinfo)
     loader = MetricLoader(metricinfo, conf)
     ad = AnomalyDetection(loader, report)
-    rca = RootCauseAnalysis(kafka_provider, report)
+    rca = RootCauseAnalysis(kafka_provider, report, conf.arangodb)
 
     duration = conf.schedule.duration
     logger.info('Schedule recurrent job, interval %d minute(s).', duration)
+    ad.run()
+    rca.run()
 
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
     scheduler.add_job(ad.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
-    # scheduler.add_job(rca.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
+    scheduler.add_job(rca.run, trigger='interval', minutes=duration, next_run_time=datetime.datetime.now())
     scheduler.start()
 
 

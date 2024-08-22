@@ -1,0 +1,161 @@
+# coding=utf-8
+"""
+Copyright (c) Huawei Technologies Co., Ltd. 2020-2028. All rights reserved.
+Description:
+FileName：prune_bidirected_graph.py
+Author: h00568282/huangbin 
+Create Date: 2023/11/11 10:56
+Notes:
+
+"""
+import os
+import json
+from typing import Dict
+import networkx as nx
+import matplotlib.pyplot as plt
+from anteater.model.rca.rca_graph.utils import create_meta_graph
+from anteater.utils.log import logger
+
+
+class PrunedMetaGraph:
+    def __init__(self, meta_graph: nx.DiGraph, machine_anomaly_scores: Dict):
+        self._meta_graph = meta_graph
+        
+        self.total_anomaly_scores = self._process_anomaly_scores(machine_anomaly_scores)
+        self.bidirected_edges = self._find_bidirected_edges()
+        self.searched_edges = []
+        self.pruned_edges = []
+
+    @staticmethod
+    def _process_anomaly_scores(all_anomaly_scores):
+        values_dict = dict()
+        for key, raw_value in all_anomaly_scores.items():
+            metric_len = len(raw_value)
+            if metric_len:
+                value = sum(raw_value.values())
+            else:
+                value = 0
+            
+            values_dict[key] = value
+        
+        values_dict = dict(sorted(values_dict.items(), key=lambda x: -x[1]))
+
+        return values_dict
+
+    def _find_bidirected_edges(self):
+        bidirected_edges = []
+        for src_node, tar_node in self._meta_graph.edges():
+            if (tar_node, src_node) in self._meta_graph.edges():
+                bidirected_edges.append((src_node, tar_node))
+
+        return bidirected_edges
+
+    def _get_edge_score(self, cur_edge):
+        return self.total_anomaly_scores.get(cur_edge[0], 0)
+
+    def _iter_prune(self, front_end_metric):
+        selected_edges = []
+        for edge in self._meta_graph.edges():
+            if front_end_metric == edge[1]:
+                if edge in self.searched_edges:
+                    continue
+                else:
+                    selected_edges.append(edge)
+                    self.searched_edges.append(edge)
+
+        self._cache_pruned_biedges(selected_edges)
+
+        # 23-12-11 插入选择节点的重要性, 异常分数越高排名越靠前，指向它的边保留
+        sorted_selected_edges = []
+        for cur_edge in selected_edges:
+            cur_edge_score = self._get_edge_score(cur_edge)
+            if not sorted_selected_edges:
+                sorted_selected_edges.append((cur_edge, cur_edge_score))
+            else:
+                for index, (sorted_edge, sorted_score) in enumerate(sorted_selected_edges):
+                    if cur_edge_score > sorted_score:
+                        sorted_selected_edges.insert(index, (cur_edge, cur_edge_score))
+                        break
+                else:
+                    sorted_selected_edges.append((cur_edge, cur_edge_score))
+ 
+        for edge, _ in sorted_selected_edges:
+            self._iter_prune(edge[0])
+
+    def print_graph(self):
+        for edge in self._meta_graph.edges():
+            logger.info(f"Cur edge is {edge} ....")
+
+    def _cache_pruned_biedges(self, deleted_edges):
+        for edge in deleted_edges:
+            reversed_edge = (edge[1], edge[0])
+            if reversed_edge in self.bidirected_edges and reversed_edge not in self.searched_edges:
+                self.pruned_edges.append(reversed_edge)
+
+    def _delete_upstream_edges(self, front_end_metric):
+        ''' search edge between front_end_metric and its neighbors
+            add function: split all next pods to upstream node of fv node.
+        '''
+        selected_edges = []
+        for edge in self._meta_graph.edges():
+            if front_end_metric == edge[0]:
+                selected_edges.append(edge)
+
+        # seach next pods to upstream node
+        up_nodes = set([edge[1] for edge in selected_edges])
+        for edge in self._meta_graph.edges():
+            for up_node in up_nodes:
+                if edge not in selected_edges and edge[1] == up_node:
+                    selected_edges.append(edge)
+
+        self._meta_graph.remove_edges_from(selected_edges)
+
+    def _delete_biedges(self):
+        self._meta_graph.remove_edges_from(self.pruned_edges)
+
+    @property
+    def meta_graph(self):
+        return self._meta_graph
+
+    def run(self, front_end_metric, pruned_front=True):
+        self._iter_prune(front_end_metric)
+        self._delete_biedges()
+
+        if pruned_front:
+            self._delete_upstream_edges(front_end_metric)
+
+        return self._meta_graph
+
+def plot_network(graph, front_end_metric=None):
+    # 绘制图
+    pos = nx.circular_layout(graph)  # 圆形布局，起到美化作用
+    color_values = []
+    for node in graph.nodes():
+        if node == front_end_metric:
+            color_values.append(1.0)
+        else:
+            color_values.append(0.25)
+    nx.draw(graph, pos, with_labels=True, font_weight="bold", node_color=color_values, cmap=plt.get_cmap('viridis'))
+    plt.title("DiGraph")
+    plt.show()
+
+if __name__ == "__main__":
+    config_path = './config/9pods.json'
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+
+    config_dict.get("args")["data_dir"] = "./"
+    data_dir = config_dict.get("args").get("data_dir")
+    # 构建元图
+    meta_graph = create_meta_graph(config_dict.get("meta_graph"))
+
+    plot_network(meta_graph)
+
+    machine_id = "2b9f846a-a9f4-42c2-b7c3-d8d67edb579f"
+    # machine_id = "4c74d2fb-2a87-4bd1-9acd-19321a51ff59"
+    machine_anomaly_scores = {}
+    graph_pruner = PrunedMetaGraph(meta_graph, machine_anomaly_scores)
+    meta_graph = graph_pruner.run(machine_id)
+    plot_network(meta_graph)
+    logger.info(f"before meta graph edges: {len(meta_graph.edges())}")
+    pass
