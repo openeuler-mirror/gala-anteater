@@ -84,8 +84,8 @@ class RCA:
         end = datetime.fromtimestamp(end_timestamp).astimezone()
         metrics_df = get_data(start, end, kpis, machine_id)
         metrics_df.to_csv(os.path.join(data_path, 'metric.csv'), index=False)
-        json_file = open(os.path.join(data_path, 'result.json'), mode="w")
-        json.dump([anomaly_result], json_file, indent=4)
+        with open(os.path.join(data_path, 'result.json'), mode="w") as json_file:
+            json.dump([anomaly_result], json_file, indent=4)
 
     @staticmethod
     def get_single_machine_metrics(machine_id, end_timestamp, kpis):

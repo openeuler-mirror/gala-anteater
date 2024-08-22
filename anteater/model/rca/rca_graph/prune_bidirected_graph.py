@@ -139,23 +139,3 @@ def plot_network(graph, front_end_metric=None):
     plt.title("DiGraph")
     plt.show()
 
-if __name__ == "__main__":
-    config_path = './config/9pods.json'
-    with open(config_path, "r") as f:
-        config_dict = json.load(f)
-
-    config_dict.get("args")["data_dir"] = "./"
-    data_dir = config_dict.get("args").get("data_dir")
-    # 构建元图
-    meta_graph = create_meta_graph(config_dict.get("meta_graph"))
-
-    plot_network(meta_graph)
-
-    machine_id = "2b9f846a-a9f4-42c2-b7c3-d8d67edb579f"
-    # machine_id = "4c74d2fb-2a87-4bd1-9acd-19321a51ff59"
-    machine_anomaly_scores = {}
-    graph_pruner = PrunedMetaGraph(meta_graph, machine_anomaly_scores)
-    meta_graph = graph_pruner.run(machine_id)
-    plot_network(meta_graph)
-    logger.info(f"before meta graph edges: {len(meta_graph.edges())}")
-    pass

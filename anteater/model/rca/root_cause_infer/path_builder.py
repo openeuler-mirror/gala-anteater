@@ -28,8 +28,10 @@ class MinPathSearcher():
         self.has_hint_pods = []
         self.filter_kpis = ['gala_gopher_sli_rtt_nsec', 'gala_gopher_sli_tps']
 
-    def _filter_kpis(self, location_result, filter_kpis=[]):
+    def _filter_kpis(self, location_result, filter_kpis=None):
         delete_results = []
+        if not filter_kpis:
+            return
         for kpi in filter_kpis:
             for result in location_result:
                 root_cause_metric = result[0]
@@ -118,7 +120,7 @@ class MinPathSearcher():
         metric_scores = sorted(metric_scores.items(), key=lambda x: -x[1])
         try:
             raw_metric = metric_scores[0][0].split("*")[0]
-        except:
+        except Exception:
             raw_metric = ""
 
         return raw_metric

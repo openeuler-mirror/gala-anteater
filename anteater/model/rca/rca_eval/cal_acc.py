@@ -40,73 +40,72 @@ def parse_top_root(parts):
     return root_cause_info
 
 
-def insert_top_result(fv_info, right, key="top1"):
-    if key in fv_info.keys():
-        fv_info[key] += right
+def insert_top_result(fv_info, right, top_key="top1"):
+    if top_key in fv_info.keys():
+        fv_info[top_key] += right
     else:
-        fv_info[key] = right
+        fv_info[top_key] = right
 
     return fv_info
 
 
-def cal_tp(valid_data, true_pod='2b9f846a-a9f4-42c2-b7c3-d8d67edb579f'):
-    results = dict()
-    for data in valid_data:
-        result = dict()
+def cal_tp(cal_data, pod_name='2b9f846a-a9f4-42c2-b7c3-d8d67edb579f'):
+    final_results = dict()
+    for data in cal_data:
+        tmp_result = dict()
         fv_pod = data.fv_pod
         top_n = data.top_n
-        result[fv_pod] = dict()
+        tmp_result[fv_pod] = dict()
 
-        if data.root_machine == true_pod:
+        if data.root_machine == pod_name:
             right = 1
         else:
             right = 0
-        result[fv_pod] = insert_top_result(result[fv_pod], right, top_n)
+        tmp_result[fv_pod] = insert_top_result(tmp_result[fv_pod], right, top_n)
 
-        if fv_pod not in results.keys():
-            results.update(result)
+        if fv_pod not in final_results.keys():
+            final_results.update(tmp_result)
         else:
-            if top_n not in results[fv_pod].keys():
-                results[fv_pod].update(result[fv_pod])
+            if top_n not in final_results[fv_pod].keys():
+                final_results[fv_pod].update(tmp_result[fv_pod])
             else:
-                results[fv_pod][top_n] += result[fv_pod][top_n]
+                final_results[fv_pod][top_n] += tmp_result[fv_pod][top_n]
 
-    return results
+    return final_results
 
 
-def parse_single_data(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
+def parse_single_data(_file_path):
+    with open(_file_path, 'r', encoding='utf-8') as f:
         data = f.readlines()
 
-    valid_data = []
+    _valid_data = []
     for line in data:
-        for i in range(3):
-            result_key = f'top{i + 1}, fv_pod'
+        for index in range(3):
+            result_key = f'top{index + 1}, fv_pod'
             if result_key in line:
                 line_infos = split_by_keywords(line, [':', ',', '*'])
-                # print(line_infos)
                 root_cause_info = parse_top_root(line_infos)
-                valid_data.append(root_cause_info)
+                _valid_data.append(root_cause_info)
                 break
 
-    return valid_data
+    return _valid_data
 
 
-def update_test_tops(test_set_results, single_result):
+def update_test_tops(test_results, single_result):
     top1_flag = single_result.get('top1', 0) > 0
     top2_flag = single_result.get('top2', 0) > 0
     top3_flag = single_result.get('top3', 0) > 0
 
     if top1_flag:
-        test_set_results['top1'] += 1
+        test_results['top1'] += 1
 
     if top1_flag or top2_flag:
-        test_set_results['top2'] += 1
+        test_results['top2'] += 1
 
     if top1_flag > 0 or top2_flag or top3_flag > 0:
-        test_set_results['top3'] += 1
+        test_results['top3'] += 1
 
-    return test_set_results
+    return test_results
 
 
 if __name__ == "__main__":
