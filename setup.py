@@ -44,7 +44,7 @@ setup(
     ],
     install_requires=[
         "APScheduler",
-        "kafka-python>=2.0.2",
+        "kafka-python",
         "joblib",
         "numpy",
         "pandas",
@@ -52,10 +52,10 @@ setup(
         "scikit_learn",
         "scipy",
         "torch",
-        "networkx==2.6.3",
+        "networkx",
         "pyArango",
-        "pingouin"
-        "statsmodels==0.13.5"
+        "pingouin",
+        "statsmodels"
     ],
     entry_points={
         "console_scripts": [

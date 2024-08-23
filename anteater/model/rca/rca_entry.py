@@ -35,7 +35,7 @@ class RCA:
         self.provider = provider
         self.reporter = reporter
         self.job_config = job_config.model_config
-        self.init_time = datetime.now(timezone.utc).astimezone().astimezone() - timedelta(days=1)
+        self.init_time = datetime.now(timezone.utc).astimezone().astimezone() - timedelta(hours=12)
         self.arangodb_config = arangodb
 
         self.entity_topo_dict = {}
@@ -140,8 +140,9 @@ class RCA:
                 machine_ids = []
                 anomaly_results = {}
                 all_machines_metric_df = {}
-                if not anomaly_data[i]["is_anomaly"]:
+                if not anomaly_data[i].get("is_anomaly", False):
                     continue
+
                 event_id = anomaly_data[i]["Attributes"]["event_id"]
                 if event_id in last_event_id:
                     continue
@@ -167,12 +168,14 @@ class RCA:
                     all_machines_metric_df[_machine_id] = metrics_df
                     anomaly_results[_machine_id] = _anomaly_data
                     machine_ids.append(_machine_id)
-                # 定界-定位
-                root_cause_infer = RootCauseInfer(self.job_config, anomaly_data[i], anomaly_results, machine_ids,
-                                                  all_machines_metric_df, self.entity_topo_dict)
-                res = root_cause_infer.excute(seed=100)
-                logger.info(f"[Info] RCA End, final output message: {res}.")
-                self.provider.send_rca_message(res)
+                try:
+                    root_cause_infer = RootCauseInfer(self.job_config, anomaly_data[i], anomaly_results, machine_ids,
+                                                      all_machines_metric_df, self.entity_topo_dict)
+                    res = root_cause_infer.excute(seed=100)
+                    logger.info(f"[Info] RCA End, final output message: {res}.")
+                    self.provider.send_rca_message(res)
+                except Exception:
+                    logger.error(f"Anomaly data has wrong format. Please check!")
 
     def execute(self):
         logger.info(f'Run rca model: {self.__class__.__name__}!')

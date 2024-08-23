@@ -28,7 +28,8 @@ class MinPathSearcher():
         self.has_hint_pods = []
         self.filter_kpis = ['gala_gopher_sli_rtt_nsec', 'gala_gopher_sli_tps']
 
-    def _filter_kpis(self, location_result, filter_kpis=None):
+    @staticmethod
+    def _filter_kpis(location_result, filter_kpis=None):
         delete_results = []
         if not filter_kpis:
             return
