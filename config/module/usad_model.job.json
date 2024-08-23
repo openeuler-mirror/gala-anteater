@@ -75,7 +75,7 @@
     "params": {
       "th": 0.5,
       "max_error_rate": 0.7,
-      "min_train_hours": 24,
+      "min_train_hours": 12,
       "min_predict_minutes": 5,
       "top_n": 20,
       "preprocessor": {
