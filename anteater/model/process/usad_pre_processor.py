@@ -25,7 +25,7 @@ class PreProcessor:
         if mean is None:
             mean = np.mean(value, axis=0)
         if std is None:
-            std = np.std(value, axis=0)
+            std = np.std(value.astype(np.float64), axis=0).astype(np.float32)
             for x in std:
                 if x < 1e-4:
                     x = 1
