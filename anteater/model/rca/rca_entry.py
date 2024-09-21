@@ -40,6 +40,8 @@ class RCA:
 
         self.entity_topo_dict = {}
 
+        self.last_event_id = []
+
     @staticmethod
     def extract_pod_id(label):
         pod_id = label.split("_pod_")[-1]
@@ -131,10 +133,8 @@ class RCA:
                 logger.info(f"[Info] RCA End, final output message: {res}.")
 
     def trigger_rca(self, anomaly_data):
-        last_event_id = []
-        last_timestamps = []
         metric_candidates = self.job_config["metrics"]
-
+        self.last_event_id = self.last_event_id[-100:]
         if len(anomaly_data):
             for i in range(len(anomaly_data)):
                 machine_ids = []
@@ -142,20 +142,15 @@ class RCA:
                 all_machines_metric_df = {}
                 if not anomaly_data[i].get("is_anomaly", False):
                     continue
-
                 event_id = anomaly_data[i]["Attributes"]["event_id"]
-                if event_id in last_event_id:
+                if event_id in self.last_event_id:
+                    logger.info(f"************ i={i}, event_id={event_id} has detected.")
                     continue
 
                 logger.info(f'********* i={i}, {anomaly_data[i]["Attributes"]}.')
-                if event_id in last_event_id and cur_timestamp // 1000 in last_timestamps:
-                    logger.info(f"************ i={i}, event_id={event_id} has detected.")
-                    continue
-                last_event_id.append(event_id)
+                self.last_event_id.append(event_id)
                 cur_timestamp = anomaly_data[i]["Timestamp"]
                 cur_datetime = datetime.fromtimestamp(cur_timestamp // 1000)
-                last_timestamps.append(cur_timestamp // 1000)
-
                 machine_id = anomaly_data[i]["Attributes"]["event_id"].split("_")[1]
                 metrics_df = self.get_single_machine_metrics(machine_id, cur_timestamp // 1000, metric_candidates)
                 all_machines_metric_df[machine_id] = metrics_df
@@ -180,12 +175,11 @@ class RCA:
     def execute(self):
         logger.info(f'Run rca model: {self.__class__.__name__}!')
         now_time = datetime.now(timezone.utc).astimezone().astimezone()
-        anomaly_data = self.provider.range_query(self.init_time, now_time)
+        try:
+            anomaly_data = self.provider.range_query(now_time - timedelta(minutes=10), now_time)
+        except Exception:
+            anomaly_data = []
 
-        '''
-        debug 
-        anomaly_data = self.provider.range_query(now_time - timedelta(minutes=120), now_time)
-        '''
         logger.info(f"[Info] Current time: {now_time} has anomaly data: {len(anomaly_data)}.")
         if len(anomaly_data) < 1:
             self.init_time = now_time
