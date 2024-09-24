@@ -24,7 +24,7 @@ from anteater.utils.log import logger
 
 class E2EDetector:
     """The E2E anomaly detection for a specific scenario base class,
-    including: data preparation, anomaly detection, adn result reporting.
+    including: data preparation, anomaly detection, and result reporting.
     """
 
     config_file = None
