@@ -15,6 +15,9 @@ Time: 2023-06-12
 Author: Zhenxing
 Description: The main function of gala-anteater project.
 """
+import os
+import sys
+import signal
 import datetime
 import torch
 import numpy as np
@@ -32,6 +35,17 @@ from anteater.utils.constants import ANTEATER_CONFIG_PATH
 from anteater.utils.log import logger
 from anteater.anomaly_detection import AnomalyDetection
 from anteater.root_cause_analysis import RootCauseAnalysis
+
+PID_FILE = '/var/run/gala-anteater.pid'
+
+
+def is_running(pid_name):
+    try:
+        os.kill(pid_name, 0)
+    except OSError:
+        return False
+    else:
+        return True
 
 
 def init_nn_seed(seed_value=110):
@@ -74,4 +88,22 @@ def main():
 
 
 if __name__ == '__main__':
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, 'r') as f:
+            pid = int(f.read().strip())
+        if is_running(pid):
+            logger.info(f"Another instance of Gala-anteater is already running with PID {pid}.")
+            sys.exit(1)
+
+    pid = os.getpid()
+    f = os.open(PID_FILE, os.O_RDWR | os.O_CREAT, 0o640)
+    os.write(f, bytes(str(pid), encoding="utf-8"))
+    os.close(f)
+
+    def cleanup(signum, frame):
+        os.remove(PID_FILE)
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, cleanup)
+    signal.signal(signal.SIGTERM, cleanup)
     main()
