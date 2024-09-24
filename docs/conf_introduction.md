@@ -18,7 +18,7 @@ gala-anteater               # gala-anteater 主目录
   - data_source: 时序数据的来源，目前支持`"prometheus"`（Prometheus）和`"aom"`（AOM）两种数据来源；
 
 - Kafka: 配置中间件Kafka所需的参数
-  - server: Kafak对应的`server ip`，如："10.xxx.xxx.xxx"；
+  - server: Kafka对应的`server ip`，如："10.xxx.xxx.xxx"；
   - port: Kafka对应的`server port`，如："9092"；
   - model_topic: gala-anteater异常数据数据上报至Kafka，所需的`Topic`；
   - meta_topic: gala-anteater所依赖的`metadata`数据，在Kafka中所对应的`Topic`。

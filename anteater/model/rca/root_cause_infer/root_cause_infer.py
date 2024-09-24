@@ -52,7 +52,7 @@ class RootCauseInfer():
         # 加载metric序列和异常分数
         self.all_metrics_df, self.all_metric_top, self.machine_anomaly_scores, self.all_front_end_metrics = self.load_metrics_ts_and_scores(
             all_machines_df)
-        # 生辰entity graph和causal graph
+        # 生成entity graph和causal graph
         self.entity_graph, self.causal_graph = self.generate_graphs()
 
         # 初始化pods信息
