@@ -23,7 +23,7 @@ gala-anteater
 └─ tests/         # 单元测试
 ```
 
-其中，各个子目录的详细介绍介绍，如下：
+其中，各个子目录的详细介绍，如下：
 
 1. `anteater/main.py`: 执行的主入口，调用AnomalyDetection模块，并周期性执行AnomalyDetection中的run方法。
 2. `anteater/core/`: 数据结构类，主要用于存储各组件输入、输出的数据类型。
