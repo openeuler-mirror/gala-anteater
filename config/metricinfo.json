@@ -22,7 +22,7 @@
     "entity_name": "sli",
     "data_type": "gauge",
     "en": "sli container cpu rundelay.",
-    "zh": "cpu 平调度时延",
+    "zh": "cpu 调度时延",
     "aggregation": "max",
     "data_classification": "sli"
   },
