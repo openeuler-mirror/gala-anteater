@@ -29,7 +29,7 @@ ANTEATER_DATA_PATH = "D:\\project\\os\\gala-anteater\\"  # '/etc/gala-anteater/'
 class FeatureExtract(object):
     """The feature extract entry class.
 
-    anaylze method can portrait single metric and
+    analyze method can portrait single metric and
     get relevance between key metric and other metrics.
     """
     def __init__(self, data_loader: MetricLoader, metric_list: []):

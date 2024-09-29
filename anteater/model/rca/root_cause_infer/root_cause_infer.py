@@ -137,7 +137,7 @@ class RootCauseInfer():
                 node: {"timelist": self.all_metrics_df[sli_metric + "*" + node].tolist(),
                        "anomaly_score": self.all_metric_top.get(sli_metric + "*" + node, 0)}})
 
-    def excute(self, seed=100):
+    def execute(self, seed=100):
         """
             运行根因定位算法核心
         """

@@ -101,7 +101,7 @@ class PrunedMetaGraph:
             if front_end_metric == edge[0]:
                 selected_edges.append(edge)
 
-        # seach next pods to upstream node
+        # search next pods to upstream node
         up_nodes = set([edge[1] for edge in selected_edges])
         for edge in self._meta_graph.edges():
             for up_node in up_nodes:
