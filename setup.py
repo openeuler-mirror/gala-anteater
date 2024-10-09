@@ -28,7 +28,7 @@ if os.path.isfile(ser):
 
 setup(
     name="gala_anteater",
-    version="1.1.0",
+    version="2.0.1",
     author="Zhenxing Li",
     author_email="lizhenxing11@huawei.com",
     description="Times Series Anomaly Detection Platform on Operating System",
@@ -40,6 +40,7 @@ setup(
         ('/etc/gala-anteater/config/', glob('config/gala-anteater.yaml')),
         ('/etc/gala-anteater/config/', glob('config/log.settings.ini')),
         ('/etc/gala-anteater/module/', glob('config/module/*')),
+        ('/etc/gala-anteater/entity/', glob('config/entity/*')),
         ('/usr/lib/systemd/system/', glob('service/*')),
     ],
     install_requires=[
