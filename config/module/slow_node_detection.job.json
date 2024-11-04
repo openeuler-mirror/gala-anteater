@@ -1,0 +1,352 @@
+{
+  "name": "SlowNodeDetector",
+  "enable": true,
+  "job_type": "anomaly_detection",
+  "keywords": [
+    "app"
+  ],
+  "root_cause_num": 20,
+  "detector": "slow-node-detection",
+  "template": "slow_node",
+  "model_config": {
+    "name": "disruption_model",
+    "params": {
+      "record_kpi": false,
+      "max_num_normal_results": 16,
+      "look_back": 20,
+      "obs_size": 5,
+      "outlier_ratio_th": 0.6,
+      "hccl_domain_json": "./hccl_domain.json",
+      "rank_table_json": "./hccl_domain.json"
+    }
+  },
+  "kpis": [
+    {
+      "metric": "gala_gopher_cpu_total_used_per",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "host",
+        "method": "avg",
+        "priority": 30,
+        "alarm_filter_window_size": 5,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.01,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 70,
+            "max_expert_upper_bound": 80
+          }
+        },
+        "type": "compute"
+      }
+    },
+    {
+      "metric": "gala_gopher_mem_util",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "host",
+        "method": "sum",
+        "priority": 20,
+        "alarm_filter_window_size": 5,
+        "space_detector": {
+          "first_gap_rate": 0.3,
+          "second_gap_rate": 0.2,
+          "base_threshold": 150,
+          "discrete_rate": 1.5,
+          "nsigma_coefficient": 2,
+          "discrete_point_suppression_ratio": 0.03,
+          "non_major_anomaly_suppression": 0.1,
+          "type": "OuterDataDetector"
+        },
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.1,
+            "abs_bias": 5,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 50,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "compute"
+      }
+    },
+    {
+      "metric": "gala_gopher_disk_wspeed_kB",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "host",
+        "method": "sum",
+        "priority": 5,
+        "alarm_filter_window_size": 30,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 60,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.3,
+            "abs_bias": 0,
+            "nsigma_coefficient": 3,
+            "detect_type": "lower_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": null,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "storage"
+      }
+    },
+    {
+      "metric": "gala_gopher_nic_tx_dropped",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "host",
+        "method": "sum",
+        "priority": 5,
+        "alarm_filter_window_size": 5,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.05,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 10,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "network"
+      }
+    },
+    {
+      "metric": "gala_gopher_nic_tx_errs",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "host",
+        "method": "sum",
+        "priority": 5,
+        "alarm_filter_window_size": 5,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.05,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 10,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "network"
+      }
+    },
+    {
+      "metric": "npu_chip_info_temperature",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "device",
+        "method": "max",
+        "priority": 25,
+        "alarm_filter_window_size": 12,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.01,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 70,
+            "max_expert_upper_bound": 100
+          }
+        },
+        "type": "compute"
+      }
+    },
+    {
+      "metric": "npu_chip_info_hbm_used_memory",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "device",
+        "method": "max",
+        "priority": 30,
+        "alarm_filter_window_size": 5,
+        "space_detector": {
+          "dist_metric": "euclidean",
+          "eps": 0.4,
+          "cv_threshold": 0.03,
+          "min_samples": 2,
+          "window_size": 100,
+          "scaling": false,
+          "type": "SlidingWindowDBSCAN"
+        },
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.02,
+            "abs_bias": 5,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": null,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "compute"
+      }
+    },
+    {
+      "metric": "npu_chip_info_aicore_current_freq",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "device",
+        "method": "max",
+        "priority": 30,
+        "alarm_filter_window_size": 5,
+        "space_detector": {
+          "dist_metric": "euclidean",
+          "eps": 0.4,
+          "cv_threshold": 0.03,
+          "min_samples": 2,
+          "window_size": 100,
+          "scaling": true,
+          "type": "SlidingWindowDBSCAN"
+        },
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.05,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "lower_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 10,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "compute"
+      }
+    },
+    {
+      "metric": "npu_chip_roce_tx_err_pkt_num",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "metric_type": "device",
+        "method": "max",
+        "priority": 30,
+        "alarm_filter_window_size": 5,
+        "space_detector": null,
+        "time_detector": {
+          "preprocess_eps": 0.1,
+          "preprocess_min_samples": 10,
+          "type": "SlidingWindowKSigmaDetector",
+          "n_sigma_method": {
+            "type": "SlidingWindowNSigma",
+            "training_window_size": 40,
+            "min_update_window_size": 10,
+            "min_std_val": 0.0001,
+            "bias": 0.05,
+            "abs_bias": 0,
+            "nsigma_coefficient": 4,
+            "detect_type": "upper_bound",
+            "min_expert_lower_bound": null,
+            "max_expert_lower_bound": null,
+            "min_expert_upper_bound": 10,
+            "max_expert_upper_bound": null
+          }
+        },
+        "type": "network"
+      }
+    }
+  ],
+  "features": [
+    {
+      "metric": "gala_gopher_container_cpu_usage_seconds_total"
+    }
+  ]
+}

@@ -47,6 +47,7 @@ class RootCauseAnalysis:
         """Executes root cause analysis task"""
         logger.info('START: A new gala-anteater rca task is scheduling!')
 
-        self.rca.execute()
+        if self.rca:
+            self.rca.execute()
 
         logger.info('END!: rca task')

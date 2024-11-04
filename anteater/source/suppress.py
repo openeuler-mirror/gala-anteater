@@ -27,12 +27,12 @@ class AnomalySuppression:
     The AnomalySuppression aims to reduce the num of identical anomaly events.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, supression_time: int = 5) -> None:
         """The Anomaly Suppression class initializer"""
-        self.look_back = 5    # time to backtrace (minutes)
+        self.look_back = supression_time    # time to backtrace (minutes)
         self.max_len = 10000  # max length of the queue
         self.ab_queue: List[Tuple[datetime, Anomaly]] = []
-
+        
     @property
     def ab_machine_ids(self) -> List[str]:
         """Gets recent anomalies' machine ids"""

@@ -97,6 +97,25 @@ class MetricLoader:
         return time_series
 
     @timer
+    def get_topo(self, start: datetime, end: datetime, metrics: List[str], label_name: str = 'device_id') -> dict:
+        """Gets unique labels of all metrics"""
+        unique_labels = set()
+        for metric in metrics:
+            time_series = self.get_metric(start, end, metric)
+            unique_labels.update(
+                [(item.labels.get(label_name, ""), item.labels.get('instance', "")) for item in time_series])
+        topo_info = dict()
+        for lbl in unique_labels:
+            pod, machine = lbl
+            if machine not in topo_info.keys():
+                pod_list = [pod]
+                topo_info[machine] = pod_list
+            else:
+                topo_info[machine].append(pod)
+
+        return topo_info
+
+    @timer
     def get_unique_machines(self, start: datetime, end: datetime, metrics: List[str]) -> List[str]:
         """Gets the unique machine ids based on the metrics"""
         machine_ids = self.get_unique_label(start, end, metrics, label_name="machine_id")

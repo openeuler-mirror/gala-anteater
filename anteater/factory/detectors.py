@@ -22,6 +22,7 @@ from anteater.model.detector.th_base_detector import ThBaseDetector
 from anteater.model.detector.usad_detector import UsadDetector
 from anteater.model.detector.vae_detector import VAEDetector
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
+from anteater.model.detector.slow_node_detector import SlowNodeDetector
 
 
 DETECTORS = {
@@ -32,7 +33,8 @@ DETECTORS = {
     'usad': UsadDetector,
     'vae': VAEDetector,
     'jvm': JVMOOMDetector,
-    'container-disruption': ContainerDisruptionDetector
+    'container-disruption': ContainerDisruptionDetector,
+    'slow-node-detection': SlowNodeDetector
 }
 
 

@@ -19,7 +19,7 @@ class SlidingWindowNSigma(object):
         self.lower_bound = None
         self.upper_bound = None
         self.mean = None
-        
+
         self.detect_type = cfg.get("detect_type")
 
         # 设置专家阈值

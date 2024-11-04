@@ -87,6 +87,7 @@ class AnteaterConf:
         self.aom: AomConfig = None
         self.schedule: ScheduleConf = None
         self.arangodb: ArangodbConf = None
+        self.suppression_time: int = 5
 
     def load_from_yaml(self, data_path: str):
         """Loads config from yaml file"""
@@ -104,6 +105,7 @@ class AnteaterConf:
         aom_config = result.get('Aom')
         schedule_conf = result.get('Schedule')
         arangodb_conf = result.get('Arangodb')
+        suppression = result.get('Suppression', {})
 
         self.global_conf = GlobalConf(**global_conf)
         self.kafka = KafkaConf(**kafka_conf)
@@ -111,3 +113,4 @@ class AnteaterConf:
         self.aom = AomConfig(**aom_config)
         self.schedule = ScheduleConf(**schedule_conf)
         self.arangodb = ArangodbConf(**arangodb_conf)
+        self.suppression_time = suppression.get("interval", 5)

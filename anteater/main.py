@@ -70,7 +70,7 @@ def main():
     conf = init_config()
     kafka_provider = KafkaProvider(conf.kafka)
     metricinfo = MetricInfo()
-    suppressor = AnomalySuppression()
+    suppressor = AnomalySuppression(conf.suppression_time)
     report = AnomalyReport(kafka_provider, suppressor, metricinfo)
     loader = MetricLoader(metricinfo, conf)
     ad = AnomalyDetection(loader, report)
