@@ -55,6 +55,9 @@ class SlowNodeDetector(Detector):
                     hccl_domain = json.load(f_out)
             except Exception:
                 logger.error(f"Read hccl domain info fail!")
+        if not hccl_domain:
+            # 增加手动设置hccl_domain
+            hccl_domain = params.get("hccl_domain", {})
         if os.path.exists(rank_table_path):
             try:
                 with open(rank_table_path, 'r', encoding='utf-8') as f_out:
@@ -110,10 +113,11 @@ class SlowNodeDetector(Detector):
         group_ranks: list = group_dataloader.get_group_ranks()
         all_results = []
         for kpi in kpis:
-            for ranks in group_ranks:
+            for index, ranks in enumerate(group_ranks):
+                logger.info(f"Groups-{index}, metric: {kpi.metric}, start detection.")
                 machine_ids: dict = group_dataloader.rank_table_loader.get_group_nodes_by_ranks(ranks)
                 host_ids: list = self.get_host_ids_by_npu_ids(machine_ids, npu_id2host_id, hosts_ids)
-                group_result = self.group_detect_single_kpi(kpi, machine_ids, host_ids)
+                group_result = self.group_detect_single_kpi(kpi, machine_ids, host_ids, ranks)
                 all_results.extend(group_result)
 
         response, all_anomaly_nodes = self.gen_final_alarm(kpis, all_results)
@@ -147,19 +151,26 @@ class SlowNodeDetector(Detector):
 
         return response, all_anomaly_nodes
 
-    def group_detect_single_kpi(self, kpi: KPI, machine_ids: dict, host_ids: list) -> list:
+    def group_detect_single_kpi(self, kpi: KPI, machine_ids: dict, host_ids: list, ranks) -> list:
         """Detects kpi based on signal time series anomaly detection model"""
         # 普罗会一次性抓到所有的数据，需要根据machine_id, device_id去对数据作分组
-        # get数据
         metric_name: str = kpi.metric
 
         all_machines_ts = []
         for machine_id in machine_ids:
             single_machine_ts_list = self.get_kpi_ts_list(metric_name, machine_id, kpi.params)
-            all_machines_ts.extend(single_machine_ts_list)
+            if single_machine_ts_list:
+                # 根据ranks匹配组内device的指标
+                local_ranks = [int(rank) % 8 for rank in ranks]
+                for single_machine_ts in single_machine_ts_list:
+                    ts_id = int(single_machine_ts.labels.get("id", -1))
+                    if ts_id in local_ranks:
+                        all_machines_ts.append(single_machine_ts)
+
         for host_id in host_ids:
             single_machine_ts_list = self.get_kpi_ts_list(metric_name, host_id, kpi.params)
             all_machines_ts.extend(single_machine_ts_list)
+        logger.info(f"Metric-{metric_name} single group has data {len(all_machines_ts)}. ranks: {ranks}")
 
         anomaly_devices = []
         anomaly_locations = {}
@@ -194,7 +205,7 @@ class SlowNodeDetector(Detector):
                 logger.info(
                     f"space_nodes_compare result: {self.output_anomaly_devices(metric_name, space_anomaly_locations)}.")
             else:
-                logger.info(f"Skip space nodes compare, due to nodes number{len(all_machines_ts)} is smaller than 4.")
+                logger.info(f"Skip space nodes compare, due to nodes number {len(all_machines_ts)} is smaller than 4.")
         else:
             logger.info(f"Skip space nodes compare.")
 
