@@ -102,6 +102,7 @@ class KafkaProvider:
     def send_message(self, message: Dict[str, Any]):
         """Sent the message to Kafka"""
         self.producer.send(self.model_topic, json.dumps(message).encode('utf-8'))
+        logger.info(f"send anomaly message to kafka.")
         self.producer.flush()
 
     def send_rca_message(self, message: Dict[str, Any]):

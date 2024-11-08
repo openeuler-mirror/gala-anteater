@@ -47,7 +47,16 @@ class SlidingWindowKSigmaDetector():
         for device_info, normal_data in normal_datas.items():
             n_sigma_method = N_SigmaMethod[self.cfg["n_sigma_method"]["type"]](self.cfg["n_sigma_method"],
                                                                                self.metric_name)
+
             self.detectors[device_info] = n_sigma_method
+
+    @staticmethod
+    def check_ws_metric(label, data_point, upper_bound):
+        # 超过3倍的边界值，则认为是ckpt时刻，过滤
+        if data_point > upper_bound * 2:
+            return 0
+        else:
+            return label
 
     def predict(self, infer_datas):
         locations = {}
@@ -55,6 +64,7 @@ class SlidingWindowKSigmaDetector():
         for device_label, infer_data in infer_datas.items():
             locations[device_label] = {}
             detector = self.detectors.get(device_label, None)
+
             if not detector:
                 continue
             infer_metric_data = infer_data[self.metric_name].values
@@ -70,8 +80,11 @@ class SlidingWindowKSigmaDetector():
                              "min_update_window_size in config/config.json to meet the requirements or "
                              "gather more data.",
                              detector.min_update_window_size, len(infer_metric_data))
+
             for i, data_point in enumerate(infer_metric_data):
                 label, lower_bound, upper_bound = detector.online_detecting(data_point, noisy_labels[i])
+                # if label and self.metric_name == "gala_gopher_disk_wspeed_kB":
+                #     label = self.check_ws_metric(label, data_point, upper_bound)
                 detect_result[i] = label
                 lower_bounds[i] = lower_bound
                 upper_bounds[i] = upper_bound

@@ -74,6 +74,14 @@ class Detector:
 
         return self._execute(kpis, features, top_n=n)
 
+    def get_machines_to_devices(self, start: datetime, end: datetime,
+                              kpis: List[KPI]) -> List[str]:
+        """Gets unique machine ids during past minutes"""
+        metrics = [_kpi.metric for _kpi in kpis]
+        machines_to_devices_id = self.data_loader.get_topo(start, end, metrics, label_name="id")
+
+        return machines_to_devices_id
+
     def get_unique_machine_id(self, start: datetime, end: datetime,
                               kpis: List[KPI]) -> List[str]:
         """Gets unique machine ids during past minutes"""

@@ -12,7 +12,7 @@
 # ******************************************************************************/
 
 from anteater.source.template import Template, AppAnomalyTemplate, \
-    JVMAnomalyTemplate, SysAnomalyTemplate, SimpleAnomalyTemplate, NetAnomalyTemplate
+    JVMAnomalyTemplate, SysAnomalyTemplate, SimpleAnomalyTemplate, NetAnomalyTemplate, SlowNodeTemplate
 
 TEMPLATES = {
     'app': AppAnomalyTemplate,
@@ -20,6 +20,7 @@ TEMPLATES = {
     'sys': SysAnomalyTemplate,
     'jvm': JVMAnomalyTemplate,
     'simple': SimpleAnomalyTemplate,
+    "slow_node": SlowNodeTemplate
 }
 
 

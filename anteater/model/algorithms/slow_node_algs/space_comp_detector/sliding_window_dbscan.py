@@ -47,21 +47,67 @@ class SlidingWindowDBSCAN():
         if self.buffer_size >= self.window_size:
             self.buffer_size = self.window_size
 
+    def cal_sim_matrix(self, nodes_data):
+        '''计算单指标节点间的相似度矩阵
+            @params:
+                nodes_data: list(np.ndarray), [arr1, arr2, ...]
+                dist_func_name: str, "euclid_dist"|"consine_dist"|"dtw_dist"
+            @return:
+                dists: np.ndarray, 节点间的两两相似度矩阵
+        '''
+        fake_data_len = len(nodes_data)
+        dists = np.zeros((fake_data_len, fake_data_len))
+        dist_func = getattr(self, self.dist_metric)
+
+        for out_idx, data in enumerate(nodes_data):
+            for inner_idx in range(out_idx + 1, fake_data_len):
+                try:
+                    cal_dist = dist_func(nodes_data[inner_idx], data)
+                except Exception:
+                    cal_dist = 0.
+
+                if np.isnan(cal_dist):
+                    dist = 0.
+                else:
+                    dist = cal_dist
+                dist = round(dist, 6)
+                dists[out_idx, inner_idx] = dist
+                dists[inner_idx, out_idx] = dist
+
+        logger.debug(dists)
+
+        return dists
+
+    @staticmethod
+    def euclidean(vec1, vec2):
+        vec_len = vec1.shape[0]
+        return math.sqrt(sum((vec1 - vec2) ** 2)) / vec_len
+
+    @staticmethod
+    def consine(vec1, vec2):
+        if np.unique(vec1).size > 1 and np.unique(vec2).size > 1:
+            return 1. - vec1.dot(vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+        elif np.unique(vec1).size == 1 and np.unique(vec2).size > 1:
+            return 1
+        elif np.unique(vec1).size > 1 and np.unique(vec2).size == 1:
+            return 1
+        else:
+            return 0
+
     def _db_scan(self, data) -> np.ndarray:
         data = np.swapaxes(data, 0, 1)
         # 对data取均值
         compute_data = np.mean(data, axis=-1)
-        if self.scaling:
-            # 这里是针对processMEM专门调的规则，其他指标空间对比设置scaling为false，不走这里的逻辑，保持原样，从而限制影响只有processMEM
-            compute_data = np.mean(data, axis=-1)
-            rate = abs(np.max(compute_data) - np.min(compute_data)) / max(2 * abs(np.median(compute_data)), 1e-8)
-            if rate > 0.2:
-                compute_data = compute_data / max(np.mean(compute_data), 1e-8)
-            else:
-                compute_data = compute_data / max(2 * np.max(compute_data), 1e-8)
+
         if len(compute_data.shape) == 1:
             compute_data = np.expand_dims(compute_data, axis=-1)
-        labels = DBSCAN(eps=self.eps, min_samples=self.min_samples, metric=self.dist_metric).fit_predict(compute_data)
+
+        # raw detection
+        # labels = DBSCAN(eps=self.eps, min_samples=self.min_samples, metric=self.dist_metric).fit_predict(compute_data)
+        dbscan = DBSCAN(eps=self.eps, min_samples=self.min_samples)
+        sim_scores = self.cal_sim_matrix(data)
+        labels = dbscan.fit_predict(sim_scores)
+        logger.info(f"dnscan labels: {labels}")
         label_counts = Counter(labels)
         # 找到样本数量最多的类别
         most_common_label, _ = label_counts.most_common(1)[0]
@@ -84,16 +130,19 @@ class SlidingWindowDBSCAN():
         self.buffer = np.zeros((obj_num, self.window_size))
         self.buffer_size = 0
         self.cursor = 0
+
         if self.smooth:
             test_data = np.apply_along_axis(
                 lambda m: np.convolve(m, np.ones(self.window_size) / self.window_size, mode='same'), axis=0,
                 arr=test_data)
         ret_values = np.zeros(test_data.shape)
+
+        if self.scaling:
+            test_data = self._scaling_normalization(test_data)
         for i in range(test_data.shape[0], 0, -self.window_size):
             start_index = max(0, i - self.window_size)
             detect_data = test_data[start_index:start_index + self.window_size]
-            if self.scaling:
-                test_data = self._scaling_normalization(test_data)
+
             if len(detect_data) < self.window_size:
                 continue
             label_de_scan = self._db_scan(detect_data)

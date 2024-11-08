@@ -35,3 +35,7 @@ Aom:
 
 Schedule:
   duration: 1
+
+# 告警抑制时间
+Suppression:
+  interval: 10

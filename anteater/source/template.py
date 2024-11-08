@@ -40,6 +40,11 @@ class Template:
         self.is_anomaly = True
         self._cause_metrics_list = []
 
+        self.anomaly_cluster_info = {}
+
+    def add_anomaly_cluster_info(self, ab_info: str):
+        self.anomaly_cluster_info = ab_info
+
     def get_template(self):
         """Gets the template for app level anomaly events"""
         self._timestamp = dt.utc_now()
@@ -110,6 +115,8 @@ class Template:
     def add_details(self, details: dict):
         """Adds details property in the body"""
         self._details = details
+
+
 
     def get_body(self) -> str:
         """Gets the template body property"""
@@ -220,6 +227,41 @@ class SimpleAnomalyTemplate(Template):
             'SeverityText': 'WARN',
             'SeverityNumber': 13,
             'Body': self.get_body(),
+            "is_anomaly": self.is_anomaly
+        }
+
+        return result
+
+
+class SlowNodeTemplate(Template):
+    """The jvm anomaly template"""
+
+    def __init__(self, **kwargs):
+        """The simple anomaly template initializer"""
+        super().__init__(**kwargs)
+        self.header = "slow node"
+        self.event_type = "slow_node"
+
+
+    def parse_anomaly(self, anomaly: Anomaly):
+        """Parses the anomaly object properties"""
+        self._machine_id = anomaly.machine_id
+        self._metric = anomaly.metric
+        self._entity_name = anomaly.metric
+        self._score = anomaly.score
+        self._root_causes = anomaly.root_causes
+
+
+    def get_template(self):
+        """Gets the template for app level anomaly events"""
+        self._timestamp = dt.utc_now()
+        round_timestamp = round(self._timestamp.timestamp() * 1000)
+
+        result = {
+            'Timestamp': round_timestamp,
+            'Attributes': self.anomaly_cluster_info,
+            'SeverityText': 'WARN',
+            'SeverityNumber': 13,
             "is_anomaly": self.is_anomaly
         }
 
