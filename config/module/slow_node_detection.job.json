@@ -17,7 +17,12 @@
       "obs_size": 5,
       "outlier_ratio_th": 0.6,
       "hccl_domain_json": "./hccl_domain.json",
-      "rank_table_json": "./hccl_domain.json"
+      "hccl_domain":{
+        "pp": 2,
+        "dp": 1,
+        "tp": 1
+      },
+      "rank_table_json": "./rank_table.json"
     }
   },
   "kpis": [

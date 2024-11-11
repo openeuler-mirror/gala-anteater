@@ -12,7 +12,6 @@ import os
 import json
 from typing import Dict
 import networkx as nx
-import matplotlib.pyplot as plt
 from anteater.model.rca.rca_graph.utils import create_meta_graph
 from anteater.utils.log import logger
 
@@ -125,17 +124,3 @@ class PrunedMetaGraph:
             self._delete_upstream_edges(front_end_metric)
 
         return self._meta_graph
-
-def plot_network(graph, front_end_metric=None):
-    # 绘制图
-    pos = nx.circular_layout(graph)  # 圆形布局，起到美化作用
-    color_values = []
-    for node in graph.nodes():
-        if node == front_end_metric:
-            color_values.append(1.0)
-        else:
-            color_values.append(0.25)
-    nx.draw(graph, pos, with_labels=True, font_weight="bold", node_color=color_values, cmap=plt.get_cmap('viridis'))
-    plt.title("DiGraph")
-    plt.show()
-
