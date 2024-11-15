@@ -18,7 +18,7 @@ from typing import List
 
 @dataclass
 class RootCause:
-    """The root cause of an anomaly events"""
+    """The root cause of an anomaly event"""
     metric: str
     labels: dict
     score: float
