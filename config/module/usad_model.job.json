@@ -73,6 +73,7 @@
   "model_config": {
     "name": "usad_model",
     "params": {
+      "detect_type": "machine",
       "th": 0.5,
       "max_error_rate": 0.7,
       "min_train_hours": 12,
