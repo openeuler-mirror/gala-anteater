@@ -10,7 +10,6 @@ Notes:
 """
 import numpy as np
 import pandas as pd
-import pingouin as pg
 
 
 class ProbMatrixBuilder():
@@ -65,6 +64,7 @@ class ProbMatrixBuilder():
             if len(df[item].unique()) == 1:
                 confounder.remove(item)
 
+        import pingouin as pg
         return abs(pg.partial_corr(data=df, x=v_fe, y=v_j, covar=confounder, method=corr_type)['r'].values[0])
 
     def transfer_prob(self, graph, nodes: tuple, df, corr_type, corr_prop):

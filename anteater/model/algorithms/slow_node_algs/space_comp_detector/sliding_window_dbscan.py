@@ -109,6 +109,8 @@ class SlidingWindowDBSCAN():
         labels = dbscan.fit_predict(sim_scores)
         logger.info(f"dnscan labels: {labels}")
         label_counts = Counter(labels)
+        if -1 in label_counts:
+            label_counts.pop(-1)
         # 找到样本数量最多的类别
         most_common_label, _ = label_counts.most_common(1)[0]
         new_labels = np.where(labels == most_common_label, 0, 1)

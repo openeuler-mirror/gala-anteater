@@ -62,6 +62,7 @@ class UsadDetector(Detector):
         self.cause_list = None
         self.candidates = {}
         self.machine_training = {}
+        self.detect_type = config.params.get("detect_type", "machine")
 
     def detect_machine_kpis(self, kpis: List[KPI], features: List[Feature], machine_id, key):
         """Executes anomaly detection on kpis"""
@@ -301,13 +302,16 @@ class UsadDetector(Detector):
 
         entity_ids = []
         entity_keys = []
-        # machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
-        # entity_keys.extend(['machine_id'] * len(machine_ids))
-        # entity_ids.extend(machine_ids)
-
-        pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
-        entity_keys.extend(['pod_id'] * len(pod_ids))
-        entity_ids.extend(pod_ids)
+        if self.detect_type == "machine":
+            # machine
+            machine_ids = self.data_loader.get_unique_machines(start, end, metrics)
+            entity_keys.extend(['machine_id'] * len(machine_ids))
+            entity_ids.extend(machine_ids)
+        else:
+            # pod
+            pod_ids = self.data_loader.get_unique_pods(start, end, metrics)
+            entity_keys.extend(['pod_id'] * len(pod_ids))
+            entity_ids.extend(pod_ids)
 
         if not entity_ids:
             logger.warning('Empty entity_ids, RETURN!')
