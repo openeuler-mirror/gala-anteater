@@ -1,6 +1,6 @@
 {
   "name": "ContainerDisruptionDetector",
-  "enable": false,
+  "enable": true,
   "job_type": "anomaly_detection",
   "keywords": [
     "app"
@@ -10,15 +10,15 @@
   "template": "simple",
   "kpis": [
     {
-      "metric": "gala_gopher_sli_container_cpu_rundelay",
+      "metric": "sli.cpu.schedlat_rundelay",
       "entity_name": "sli",
       "atrend": "rise",
       "enable": true,
       "params": {
         "method": "max",
-        "look_back": 15,
-        "obs_size": 5,
-        "outlier_ratio_th": 0.6,
+        "look_back": 20,
+        "obs_size": 10,
+        "outlier_ratio_th": 0.5,
         "smooth_params": {
           "method": "conv_smooth",
           "box_pts": 3
@@ -34,6 +34,7 @@
       "min_train_hours": 24,
       "min_predict_minutes": 5,
       "top_n": 20,
+      "extra_metrics": "cpu.busy,load.1min,octo_service.tp999,octo_service.tp99",
       "preprocessor": {
         "smooth_type": "rolling",
         "smooth_window": 18,
