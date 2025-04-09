@@ -119,7 +119,7 @@ def online_moving_average(
     :param historical_data: shape=(m,d)
     :param window: the window sizes
     :param stride: the window steps
-    :return: the moveing average result
+    :return: the moving average result
     """
     n = incoming_data.shape[0]
     # 根据窗口大小计算出所需要的所有数据量(把第一个窗口的终点放在incoming_data的起点)
