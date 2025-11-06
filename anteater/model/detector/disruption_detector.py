@@ -52,17 +52,26 @@ class ContainerDisruptionDetector(Detector):
     @timer
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) \
             -> List[Anomaly]:
+        logger.info("【zimeng】==== test logger INFO ====")
+        logger.warning("【zimeng】==== test logger WARNING ====")
         logger.info('Execute cdt model: %s.', self.__class__.__name__)
         anomalies = self.detect_and_rca(kpis)
 
         return anomalies
 
     def detect_and_rca(self, kpis: List[KPI]):
+        logger.info("【zimeng】==== enter detect_and_rca ====")
         start, end = dt.last(minutes=20)
+        logger.info(f"【zimeng】==== start={start}, end={end} ====")
+        logger.info(f"【zimeng】==== kpis count={len(kpis)} ====")
+        for k in kpis:
+            logger.info(f"【zimeng】kpi.metric={k.metric}, params={k.params}")
         machine_ids = self.get_unique_machine_id(start, end, kpis)
+        logger.info(f"【zimeng】machine_ids fetched = {machine_ids}")
         anomalies = []
         for _id in machine_ids:
             for kpi in kpis:
+                logger.info(f"【zimeng】==== machine_id={_id}, kpi={kpi} ====")
                 anomalies.extend(self.detect_signal_kpi(kpi, _id))
 
         logger.info('total machine number is %d, container number is %d .',
@@ -74,8 +83,10 @@ class ContainerDisruptionDetector(Detector):
     def detect_signal_kpi(self, kpi, machine_id: str) -> List[Anomaly]:
         """Detects kpi based on signal time series anomaly detection model"""
 
+        logger.info("【zimeng】==== enter detect_signal_kpi ====")
         anomalies = []
         anomalies_spot = self.detect_by_spot(kpi, machine_id)
+        logger.info("【zimeng】==== get anomalies_spot ====")
         if anomalies_spot:
             anomalies.extend(anomalies_spot)
 
@@ -104,6 +115,7 @@ class ContainerDisruptionDetector(Detector):
         return point_count, ts_list
 
     def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
+        logger.info("【zimeng】==== enter detect_by_spot ====")
         outlier_ratio_th = kpi.params['outlier_ratio_th']
         ts_scores = self.cal_spot_score(
             kpi.metric, machine_id, **kpi.params)
@@ -130,11 +142,16 @@ class ContainerDisruptionDetector(Detector):
     def cal_spot_score(self, metric, machine_id: str, **kwargs) \
             -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
         """Calculates metrics' ab score based on n-sigma method"""
+        logger.info("【zimeng】==== enter cal_spot_score ====")
         look_back = kwargs.get('look_back')
         obs_size = kwargs.get('obs_size')
         ts_dbscan_detector = TSDBSCAN(kwargs)
 
+        logger.info(f"【zimeng】metric={metric}, machine={machine_id}, look_back={look_back}, obs_size={obs_size}")
+
         point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
+        logger.info(f"【zimeng】Fetched {len(ts_list)} time series, expected point_count={point_count}")
+
         ts_scores = []
         root_causes = []
         extra_info = {}
@@ -145,25 +162,40 @@ class ContainerDisruptionDetector(Detector):
             # import pdb;pdb.set_trace()
             detect_result = ts_dbscan_detector.detect(_ts.values)
             if len(detect_result) != len(_ts.values):
-                raise ""
+                logger.error(f"【zimeng】Detect result length mismatch! detect={len(detect_result)}, ts={len(_ts.values)}")
+                raise ValueError("Detect result length mismatch")
+
             train_data = [_ts.values[i] for i in range(len(detect_result)) if detect_result[i] == 0]
             test_data = _ts.values[-obs_size:]
+
+            # 打印去重后的样本规模
             dedup_values = [k for k, g in groupby(test_data)]
             train_dedup_values = [k for k, g in groupby(train_data)]
+            logger.info(f"【zimeng】train_len={len(train_data)}, test_len={len(test_data)}, "
+                        f"dedup_train={len(train_dedup_values)}, dedup_test={len(dedup_values)}")
+
+            # 过滤条件检查
             if sum(_ts.values) == 0 or \
                     np.max(_ts.values) < 1e3 or \
                     len(_ts.values) < point_count * 0.6 or \
                     len(_ts.values) > point_count * 1.5 or \
-                    all(x == _ts.values[0] for x in _ts.values) or\
-                    len(dedup_values) < obs_size * 0.8 or \
-                    len(train_dedup_values) < len(train_data) * 0.8:
+                    all(x == _ts.values[0] for x in _ts.values) or \
+                    len(dedup_values) < obs_size * 0.8 :
+                    # len(train_dedup_values) < len(train_data) * 0.8:
+                logger.info(f"【zimeng】Skip abnormal ts: sum={sum(_ts.values)}, max={np.max(_ts.values)}, "
+                            f"len={len(_ts.values)}, point_count={point_count}")
                 score = 0
             else:
                 ts_series = pd.Series(_ts.values)
                 ts_series_train = pd.Series(train_data)
                 ts_series_list = self._check_bound_type('upper_bound', ts_series)
                 ts_series_train_list = self._check_bound_type('upper_bound', ts_series_train)
+
+                logger.info(f"【zimeng】Start SPOT detection, "
+                            f"train_shape={ts_series_train.shape}, obs_size={obs_size}")
+
                 result = np.zeros((obs_size,), dtype=np.int32)
+
                 for _ts_series, _ts_series_train in zip(ts_series_list, ts_series_train_list):
                     _ts_series_test = _ts_series[-obs_size:]
                     # fit model
@@ -173,7 +205,9 @@ class ContainerDisruptionDetector(Detector):
 
                     noise_data = np.random.normal(0, scale=1e-6, size=_ts_series_train.shape)
                     _ts_series_train += noise_data
+
                     if self._is_peak_empty(_ts_series_train):
+                        logger.warning(f"【zimeng】peak data all same, adding stronger noise")
                         if np.max(_ts_series_train) != 0:
                             noise_ratio = np.random.randint(-1e5, 1e5, size=_ts_series_train.shape) / 1e6
                             noise_data = noise_ratio * _ts_series_train
@@ -183,6 +217,7 @@ class ContainerDisruptionDetector(Detector):
                     _ts_series_train, mean, std = Normalization.clip_transform(
                         _ts_series_train[np.newaxis, :], is_clip=False)
                     _ts_series_train = _ts_series_train[0]
+
                     spot = Spot(q=self.q)
                     level = self._check_level(_ts_series_train, self.level)
                     spot.initialize(_ts_series_train, level=level)
@@ -194,10 +229,14 @@ class ContainerDisruptionDetector(Detector):
                     _ts_series_test, _, _ = Normalization.clip_transform(
                         _ts_series_test[np.newaxis, :], mean=mean, std=std, is_clip=False)
                     _ts_series_test = _ts_series_test[0]
+
                     thr_with_alarms = spot.run(_ts_series_test, with_alarm=True)
                     bound_result = np.array(_ts_series_test > thr_with_alarms["thresholds"], dtype=np.int32)
                     result += bound_result
+
                 output = np.sum(result)
+                logger.info(f"【zimeng】SPOT result={result.tolist()}, output={output}")
+
                 if output >= 3:
                     print('data: ', _ts.values)
                     print('spot result: ', result)
@@ -213,11 +252,13 @@ class ContainerDisruptionDetector(Detector):
                                                                obs_size)
                     print('extra_info', extra_info)
                     root_causes = self.find_discruption_source(_ts, ts_list)
+                    logger.info(f"【zimeng】root_causes={root_causes}")
 
                 score = divide(output, obs_size)
                 
             ts_scores.append((_ts, score, extra_info, root_causes))
 
+        logger.info(f"【zimeng】==== cal_spot_score finished, total={len(ts_scores)} ====")
         return ts_scores
 
     def find_discruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]) \
