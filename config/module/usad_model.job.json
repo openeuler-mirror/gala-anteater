@@ -1,6 +1,6 @@
 {
   "name": "AppSliDetector",
-  "enable": false,
+  "enable": true,
   "job_type": "anomaly_detection",
   "keywords": [
     "app"

@@ -1,6 +1,6 @@
 {
   "name": "RootCauseAnalysis",
-  "enable": false,
+  "enable": true,
   "job_type": "root_cause_analysis",
   "keywords": [
     "rca"
