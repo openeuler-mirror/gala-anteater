@@ -260,6 +260,10 @@ def render_report(
     return {"markdown": "\n\n".join(md)}
 
 
+@mcp.prompt(description="调用逻辑:1. 当用户询问特定容器ID的容器性能是否被干扰时调用。2. 检测结果将决定后续流程走向。\
+            3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用rca_tool方法 ，如果没有出现劣化现象，则调用报告工具返回报告给用户。\
+            4. 本方法得到的结果必须再调用generate_report 生成报告给到用户"
+            )
 @mcp.tool(name="container_disruption_detection_tool")
 def container_disruption_detection_tool(
     kpis: List[KPIParam] = None,
@@ -303,7 +307,10 @@ def container_disruption_detection_tool(
     facade.container_num = 0
     return anomalies
 
-
+@mcp.prompt(
+    description="调用逻辑:1. 仅在容器干扰检测工具返回is_anomaly=True时调用。 \
+    2. 接收感知工具的全量性能数据作为输入。  \
+    3. 本方法得到的结果必须再调用generate_report 生成报告给到用户")
 @mcp.tool(name="rca_tool")
 def rca_tool(
     metric: str,
