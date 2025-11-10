@@ -92,6 +92,7 @@ class MetricLoader:
         :return List of TimeSeries
         """
         query = self._get_query(metric, **kwargs)
+        # logger.info(f"Get query is  {query}")
         time_series = self.provider.range_query(start, end, metric, query)
         time_series = self.check_and_fill_data(time_series, start, end)
         return time_series
@@ -146,7 +147,9 @@ class MetricLoader:
         """Gets unique labels of all metrics"""
         unique_labels = set()
         for metric in metrics:
+            logger.info(f"metric is {metric}")
             time_series = self.get_metric(start, end, metric)
+            logger.info(f"time_series is {time_series}")
             unique_labels.update([item.labels.get(label_name, "") for item in time_series])
 
         return list([lbl for lbl in unique_labels if lbl])

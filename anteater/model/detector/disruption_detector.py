@@ -52,6 +52,7 @@ class ContainerDisruptionDetector(Detector):
     @timer
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) \
             -> List[Anomaly]:
+        # logger.info(f'容器干扰检测器使用的kpis{kpis}')
         logger.info('Execute cdt model: %s.', self.__class__.__name__)
         anomalies = self.detect_and_rca(kpis)
 
@@ -60,6 +61,7 @@ class ContainerDisruptionDetector(Detector):
     def detect_and_rca(self, kpis: List[KPI]):
         start, end = dt.last(minutes=20)
         machine_ids = self.get_unique_machine_id(start, end, kpis)
+        logger.info(f'检测start: {start}, end: {end}')
         anomalies = []
         for _id in machine_ids:
             for kpi in kpis:
@@ -130,8 +132,8 @@ class ContainerDisruptionDetector(Detector):
     def cal_spot_score(self, metric, machine_id: str, **kwargs) \
             -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
         """Calculates metrics' ab score based on n-sigma method"""
-        look_back = kwargs.get('look_back')
-        obs_size = kwargs.get('obs_size')
+        look_back = kwargs.get('look_back') # 回溯时间窗口
+        obs_size = kwargs.get('obs_size')   # 观察窗口大小
         ts_dbscan_detector = TSDBSCAN(kwargs)
 
         point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
@@ -141,7 +143,14 @@ class ContainerDisruptionDetector(Detector):
         logger.info('machine %s, total detected %d containers.',
                     machine_id, len(ts_list))
         self.container_num += len(ts_list)
+        logger.info(f"容器干扰检测 ts_list: {ts_list}")
+        for i, ts in enumerate(ts_list):
+            logger.info(f"TimeSeries {i}:")
+            logger.info(f"  labels: {ts.labels}")
+            logger.info(f"  time_stamps: {ts.time_stamps}")
+            logger.info(f"  values: {ts.values}")
         for _ts in ts_list:
+            # logger.info(f"容器干扰检测 _ts: {_ts}")
             # import pdb;pdb.set_trace()
             detect_result = ts_dbscan_detector.detect(_ts.values)
             if len(detect_result) != len(_ts.values):

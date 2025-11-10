@@ -6,7 +6,7 @@ Arangodb:
   db_name: "spider"
 
 Kafka:
-  server: "192.168.122.100"
+  server: "192.168.140.132"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
   rca_topic: "gala_cause_inference"
@@ -18,7 +18,7 @@ Kafka:
   password: ""
 
 Prometheus:
-  server: "localhost"
+  server: "192.168.140.132"
   port: "9090"
   steps: "5"
 
