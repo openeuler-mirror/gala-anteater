@@ -1,0 +1,17 @@
+# 公共配置文件
+# 语言设置，支持zh(中文)和en(英文)
+language = "zh"
+# 大模型配置
+llm_remote = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+llm_model = "qwen3-coder-480b-a35b-instruct"
+llm_api_key = ""
+max_tokens = 8192
+temperature = 0.7
+# 远程主机列表配置
+[[remote_hosts]]
+name = "本机"
+os_type = "openEuler"
+host = "116.63.144.61"
+port = 22
+username = "root"
+password = "3Gh@w9#pL$v"
