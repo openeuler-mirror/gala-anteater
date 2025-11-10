@@ -10,7 +10,7 @@
   "template": "simple",
   "kpis": [
     {
-      "metric": "gala_gopher_sli_container_cpu_rundelay",
+      "metric": "gaka_gopher_sli_container_cpu_rundelay",
       "entity_name": "sli",
       "atrend": "rise",
       "enable": true,
@@ -77,47 +77,47 @@
     }
   },
   "features": [
-  {
-    "metric": "gala_gopher_container_cpu_usage_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_cpu_system_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_cpu_user_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_memory_mapped_file"
-  },
-  {
-    "metric": "gala_gopher_container_memory_cache"
-  },
-  {
-    "metric": "gala_gopher_container_memory_rss"
-  },
-  {
-    "metric": "gala_gopher_container_memory_working_set_bytes"
-  },
-  {
-    "metric": "gala_gopher_container_memory_usage_bytes"
-  },
-  {
-    "metric": "gala_gopher_container_fs_reads_bytes_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_writes_bytes_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_read_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_write_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_inodes_free"
-  },
-  {
-    "metric": "gala_gopher_container_fs_inodes_total"
-  }
-]
+    {
+      "metric": "gala_gopher_container_cpu_usage_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_system_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_user_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_memory_mapped_file"
+    },
+    {
+      "metric": "gala_gopher_container_memory_cache"
+    },
+    {
+      "metric": "gala_gopher_container_memory_rss"
+    },
+    {
+      "metric": "gala_gopher_container_memory_working_set_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_memory_usage_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_fs_reads_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_writes_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_read_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_write_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_free"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_total"
+    }
+  ]
 }

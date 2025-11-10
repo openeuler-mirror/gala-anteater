@@ -21,7 +21,7 @@
 #
 
 # x86 - base image
-FROM python:3.7-slim-buster
+FROM python:3.9-slim-buster
 
 # ARM -base image
 # FROM python:3.7
@@ -38,6 +38,12 @@ COPY config/module/ ./config/module/
 
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
+
+RUN sed -i 's|http://deb.debian.org|http://archive.debian.org|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.debian.org|http://archive.debian.org|g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends vim && \
+    rm -rf /var/lib/apt/lists/*
 
 # Setting the pip3 source
 # RUN pip3 config set global.index-url https://mirrors.tools.huawei.com/pypi/simple \

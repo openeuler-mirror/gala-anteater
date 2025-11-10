@@ -9,7 +9,7 @@ Kafka:
   server: "192.168.140.132"
   port: "9092"
   model_topic: "gala_anteater_hybrid_model"
-  rca_topic: "gala_cause_inference"
+  rca_topic: "gala_cause_inference_test"
   meta_topic: "gala_gopher_metadata"
   group_id: "gala_anteater_kafka"
   # auth_type: plaintext/sasl_plaintext, please set "" for no auth
