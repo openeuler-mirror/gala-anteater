@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, Dict, List, Tuple
 
-from mcp_data import KPIParam, WindowParam, ExtraConfig
+from .mcp_data import KPIParam, WindowParam, ExtraConfig
 from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger("container_disruption_detection_mcp")
@@ -43,38 +43,6 @@ def load_kpis_from_job(
         f"look_back={look_back}, obs_size={obs_size}, extra_metrics='{extra_metrics}'"
     )
     return kpis, window, extra
-
-
-def load_anteater_conf(conf_path: str) -> Dict[str, Any]:
-    """加载 anteater_conf.yaml 并转为 dict"""
-    import yaml
-
-    with open(conf_path, "r", encoding="utf-8") as f:
-        conf = yaml.safe_load(f)
-
-    prometheus_conf = conf.get("Prometheus", {})
-    anteater_conf = {
-        "Global": {
-            "data_source": conf.get("Global", {}).get("data_source", "prometheus")
-        },
-        "Prometheus": {
-            "server": prometheus_conf.get("server", "localhost"),
-            "port": prometheus_conf.get("port", 9090),
-            "step": int(prometheus_conf.get("step", 60)),
-            "timeout": int(prometheus_conf.get("timeout", 10)),
-            "headers": prometheus_conf.get("headers", {}),
-        },
-    }
-
-    logger.info(f"Loaded Anteater configuration: {anteater_conf}")
-    return anteater_conf
-
-
-def divide(x, y):
-    try:
-        return x / y if y != 0 else 0
-    except Exception:
-        return 0
 
 
 def dt_last(*, minutes: int):
