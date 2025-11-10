@@ -1,0 +1,123 @@
+{
+  "name": "ContainerDisruptionDetector",
+  "enable": false,
+  "job_type": "anomaly_detection",
+  "keywords": [
+    "app"
+  ],
+  "root_cause_num": 20,
+  "detector": "container-disruption",
+  "template": "simple",
+  "kpis": [
+    {
+      "metric": "gaka_gopher_sli_container_cpu_rundelay",
+      "entity_name": "sli",
+      "atrend": "rise",
+      "enable": true,
+      "params": {
+        "method": "max",
+        "look_back": 20,
+        "obs_size": 10,
+        "outlier_ratio_th": 0.5,
+        "smooth_params": {
+          "method": "conv_smooth",
+          "box_pts": 3
+        }
+      }
+    }
+  ],
+  "model_config": {
+    "name": "disruption_model",
+    "params": {
+      "th": 0.35,
+      "max_error_rate": 0.7,
+      "min_train_hours": 24,
+      "min_predict_minutes": 5,
+      "top_n": 20,
+      "extra_metrics": "cpu.busy,load.1min,octo_service.tp999,octo_service.tp99",
+      "preprocessor": {
+        "smooth_type": "rolling",
+        "smooth_window": 18,
+        "scale_type": "clip",
+        "clip_alpha": 20
+      },
+      "postprocessor": {
+        "score_type": "common",
+        "alpha": 0.01,
+        "q": 0.001,
+        "level": 0.9
+      },
+      "usad": {
+        "smooth_window": 12,
+        "train_data_filter": false,
+        "z_dims": 50,
+        "encoder_nn_size": null,
+        "deocder_nn_size": null,
+        "alpha": 0.1,
+        "get_score_on_dim": false,
+        "do_noise": false,
+        "preprocess_type": "clip",
+        "clip_alpha": 20,
+        "score_type": "common",
+        "q": 1e-3,
+        "level": 0.95,
+        "hidden_sizes": [
+          50,
+          25
+        ],
+        "latent_size": 7,
+        "dropout_rate": 0.1,
+        "num_epochs": 2,
+        "batch_size": 64,
+        "warmup_epoch": 5,
+        "lr": 0.001,
+        "window_size": 10,
+        "patience": 5
+      }
+    }
+  },
+  "features": [
+    {
+      "metric": "gala_gopher_container_cpu_usage_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_system_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_user_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_memory_mapped_file"
+    },
+    {
+      "metric": "gala_gopher_container_memory_cache"
+    },
+    {
+      "metric": "gala_gopher_container_memory_rss"
+    },
+    {
+      "metric": "gala_gopher_container_memory_working_set_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_memory_usage_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_fs_reads_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_writes_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_read_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_write_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_free"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_total"
+    }
+  ]
+}

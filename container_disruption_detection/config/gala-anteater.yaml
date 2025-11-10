@@ -1,0 +1,40 @@
+Global:
+  data_source: "prometheus"
+
+Arangodb:
+  url: "http://localhost:8529"
+  db_name: "spider"
+
+Kafka:
+  server: "192.168.64.2"
+  port: "9092"
+  model_topic: "gala_anteater_hybrid_model"
+  rca_topic: "gala_cause_inference"
+  meta_topic: "gala_gopher_metadata"
+  group_id: "gala_anteater_kafka"
+  # auth_type: plaintext/sasl_plaintext, please set "" for no auth
+  auth_type: ""
+  username: ""
+  password: ""
+
+Prometheus:
+  server: "localhost"
+  port: "9090"
+  steps: "5"
+
+Aom:
+  base_url: ""
+  project_id: ""
+  auth_type: "token"
+  auth_info:
+    iam_server: ""
+    iam_domain: ""
+    iam_user_name: ""
+    iam_password: ""
+    ssl_verify: 0
+
+Schedule:
+  duration: 1
+  
+Suppression:
+  interval: 10
