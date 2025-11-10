@@ -10,7 +10,7 @@
   "template": "simple",
   "kpis": [
     {
-      "metric": "gaka_gopher_sli_container_cpu_rundelay",
+      "metric": "gala_gopher_sli_container_cpu_rundelay",
       "entity_name": "sli",
       "atrend": "rise",
       "enable": true,

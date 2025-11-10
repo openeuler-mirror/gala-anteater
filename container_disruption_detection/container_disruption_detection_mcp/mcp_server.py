@@ -262,7 +262,7 @@ def render_report(
 
 @mcp.tool(name="container_disruption_detection_tool")
 def container_disruption_detection_tool(
-    kpis: List[KPIParam],
+    kpis: List[KPIParam] = None,
     window: WindowParam = WindowParam(),
     extra: Optional[ExtraConfig] = None,
     anteater_conf: Optional[dict] = None,
@@ -270,6 +270,11 @@ def container_disruption_detection_tool(
     machine_id: Optional[str] = None,
 ) -> List[AnomalyModel]:
     """容器异常检测工具（支持自动识别机器ID）"""
+    job_path = os.path.join(os.path.dirname(__file__), "../config/container_disruption.job.json")
+    anteater_conf = os.path.join(os.path.dirname(__file__), "../config/gala-anteater.yaml")
+    kpis, window, extra = load_kpis_from_job(job_path)
+    print(f"kpis: {kpis}, window: {window}, extra: {extra}")
+
     loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
     facade = ContainerDisruptionFacade(loader, extra or ExtraConfig())
     anomalies: List[AnomalyModel] = []
