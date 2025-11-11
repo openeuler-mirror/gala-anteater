@@ -6,11 +6,15 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger("container_disruption_detection_data")
 
+class RootCauseInfo(BaseModel):
+    metric: str = Field(default="", description="特征量名称（默认空字符串）")
+    labels: Dict[str, Union[str, int, float]] = Field(default_factory=dict, description="异常根因详细信息（默认空字典）")
+    score: float = Field(default=0.0, description="异常分数（默认0.0）")
 
 class RootCauseResult(BaseModel):
-    metric: str
-    labels: Dict[str, Union[str, int, float]] = Field(default_factory=dict)
-    score: float
+    rootcause_info: List[RootCauseInfo] = Field(default_factory=list, description="异常根因信息列表（默认空列表）")
+    start_time: int = Field(default=0, description="检测窗口开始时间戳（默认0）")
+    end_time: int = Field(default=0, description="检测窗口结束时间戳（默认0）")
 
 class AnomalyInfo(BaseModel):
     machine_id: str = Field(default="", description="机器ID（默认空字符串）")
@@ -20,7 +24,7 @@ class AnomalyInfo(BaseModel):
     entity_name: Optional[str] = Field(default="", description="gala-gopher上报对应的entity_name（默认空字符串）")
     details: Dict[str, Union[str, int, float, dict]] = Field(default_factory=dict,description="异常事件详细信息（默认空字典）")
 
-class AnomalyResult(BaseModel):
+class PerceptionResult(BaseModel):
     is_anomaly: bool = Field(default=False, description="是否为异常事件（默认False）")
     anomaly_info: List[AnomalyInfo] = Field(default_factory=list, description="异常事件详细信息列表（默认空列表）")
     start_time: int = Field(default=0, description="检测窗口开始时间戳（默认0）")

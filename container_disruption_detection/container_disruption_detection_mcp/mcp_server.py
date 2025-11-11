@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from datetime import datetime
 
 from common.loader import build_metric_loader
@@ -13,12 +13,14 @@ from anteater.core.anomaly import Anomaly
 from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
-from anteater.utils.common import divide, GlobalVariable
+from anteater.utils.common import GlobalVariable
+from container_disruption_detection.container_disruption_detection_mcp.report_api import generate_degraded_report, generate_normal_report
 
 from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
     RootCauseResult,
+    RootCauseInfo,
     AnomalyInfo,
-    AnomalyResult,
+    PerceptionResult,
     KPIParam,
     WindowParam,
     ExtraConfig,
@@ -65,7 +67,7 @@ class ContainerDisruptionFacade:
 
 
 def render_report(
-    anomalies: List[AnomalyModel], report_type: ReportType
+    anomalies: PerceptionResult, report_type: ReportType
 ) -> Dict[str, str]:
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if report_type == ReportType.normal or not anomalies:
@@ -102,7 +104,7 @@ def render_report(
 
 
 @mcp.prompt(description="调用逻辑:1. 当用户询问特定容器ID的容器性能是否被干扰时调用。2. 检测结果将决定后续流程走向。\
-            3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用rca_tool方法 ，如果没有出现劣化现象，则调用报告工具返回报告给用户。\
+            3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用root_cause_analysis_tool方法 ，如果没有出现劣化现象，则调用报告工具返回报告给用户。\
             4. 本方法得到的结果必须再调用generate_report 生成报告给到用户"
             )
 @mcp.tool(name="container_disruption_detection_tool")
@@ -113,7 +115,7 @@ def container_disruption_detection_tool(
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: Optional[str] = None,
-) -> AnomalyResult:
+) -> PerceptionResult:
     """容器异常检测工具（支持自动识别机器ID）"""
     job_path = os.path.join(os.path.dirname(__file__), "../config/container_disruption.job.json")
     anteater_conf = os.path.join(os.path.dirname(__file__), "../config/gala-anteater.yaml")
@@ -129,11 +131,17 @@ def container_disruption_detection_tool(
         ),
     )
     anomalies = []
-
+    anomaly_result = PerceptionResult(
+            is_anomaly=False,
+            anomaly_info=[],
+        )
+    
     if not machine_id:
         if not kpis:
             raise ValueError("必须提供至少一个 KPI 参数")
-        machine_ids = facade.get_unique_machine_id(window.look_back, kpis)
+        start, end, machine_ids = facade.get_unique_machine_id(window.look_back, kpis)
+        anomaly_result.start_time = start
+        anomaly_result.end_time = end
     else:
         machine_ids = [machine_id]
 
@@ -169,18 +177,11 @@ def container_disruption_detection_tool(
             )
         )
 
-    # 构造并返回AnomalyResult对象
-    if not anomaly_infos:
-        anomaly_result = AnomalyResult(
-            is_anomaly=False,
-            anomaly_info=[],
-        )
-    else:
-        anomaly_result = AnomalyResult(
-            is_anomaly=True,
-            anomaly_info=anomaly_infos,
-        )
-    
+    # 构造并返回PerceptionResult对象
+    if anomaly_infos:
+        anomaly_result.is_anomaly = True
+        anomaly_result.anomaly_info = anomaly_infos
+
     return anomaly_result
 
 
@@ -188,27 +189,28 @@ def container_disruption_detection_tool(
     description="调用逻辑:1. 仅在容器干扰检测工具返回is_anomaly=True时调用。 \
     2. 接收感知工具的全量性能数据作为输入。  \
     3. 本方法得到的结果必须再调用generate_report 生成报告给到用户")
-@mcp.tool(name="rca_tool")
-def rca_tool(
-    anomalies: AnomalyResult,
+@mcp.tool(name="root_cause_analysis_tool")
+def root_cause_analysis_tool(
+    anomalies: PerceptionResult,
     start_time: str,
     end_time: str,
     window: WindowParam = WindowParam(),
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: str = "",
-) -> List[RootCauseResult]:
+) -> RootCauseResult:
     if anomalies.is_anomaly == False:
         raise ValueError("当container_disruption_detection_tool检测出异常事件时，再调用此工具")
     job_path = os.path.join(os.path.dirname(__file__), "../config/container_disruption.job.json")
     anteater_conf = os.path.join(os.path.dirname(__file__), "../config/gala-anteater.yaml")
     kpis, window, extra = load_kpis_from_job(job_path)
 
-    loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
+    loader = build_metric_loader(config_path = anteater_conf, metricinfo_json=metric_info)
     facade = ContainerDisruptionFacade(loader, ExtraConfig())
 
     metric = anomalies.anomaly_info[0].metric
     machine_id = anomalies.anomaly_info[0].machine_id
+    # 最好打log看看，start_time和end_time是不是和container_disruption_detection_tool的一致
     if GlobalVariable.is_test_model == False:
         GlobalVariable.is_test_model = True
         GlobalVariable.start_time = start_time
@@ -218,20 +220,59 @@ def rca_tool(
     else:
         _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
     
-    victim_list = [
-        ts for ts in ts_list if ts.labels.get("container_name") == victim_container_name
-    ]
-    if not victim_list:
-        raise RuntimeError(f"未找到容器 {victim_container_name} 的时序")
+    rootcauses = []
+    # todo，这里全部都判断了一遍，有些冗余，需要从container_disruption_detection_tool返回看哪些_ts存在异常
+    for _ts in ts_list:
+        rootcauses.extend(facade.find_disruption_source(_ts, ts_list))
 
-    return facade.find_disruption_source(victim_list[0], ts_list)
+    rootcause_infos = []
+    for rootcause in rootcauses:
+        rootcause_infos.append(
+            RootCauseInfo(
+                metric=rootcause.metric,
+                labels=rootcause.labels,
+                score=rootcause.score
+            )
+        )
+    
+    rootcause_result = RootCauseResult(
+        start_time=start_time,
+        end_time=end_time,
+        rootcause_info=rootcause_infos
+    )
+    
+    return rootcause_result
 
-
+@mcp.prompt(description="调用container_disruption_detection_tool 或 root_cause_analysis_tool 后把结果传入generate_report ")
 @mcp.tool(name="report_tool")
-def report_tool(
-    anomalies: AnomalyResult, report_type: ReportType = ReportType.anomaly
-):
-    return render_report(anomalies, report_type)
+def generate_report_tool(
+    source_data: Union[PerceptionResult, RootCauseResult], report_type: ReportType
+) -> dict:
+    """
+    使用 报告工具：生成最终Markdown格式报告
+    输入:
+    source_data 感知或定界的结果
+    report_type 是否劣化 normal anomaly
+    您是一个专业的容器干扰检测分析人员，擅长分析容器之间性能干扰情况，生成报告，报告标题“容器干扰检测诊断报告”。以下内容如实回答，不要发散。
+    先判断是否存在容器性能干扰，{report_type}为normal 不存在容器干扰，anomaly 存在容器干扰；
+    未劣化分析步骤如下：
+    1、总览：根据<context>里的{start_time}{end_time}得到开始和结束时间，结论是当前AI训练任务运行正常，将持续监测。
+    劣化分析步骤如下：
+    1、总览：根据<context>里的{time}得到检测时间，{abnormalNodeCount}异常节点数量，{compute}{network}{storage}异常类型true为异常，false正常；
+    2、细节：每条节点的具体卡号{objectId}、异常指标{kpiId}（其中：HcclAllGather表示集合通信库的AllGather时序序列指标；HcclReduceScatter表示集合通信库的ReduceScatter时序序列指标；HcclAllReduce表示集合通信库的AllReduce时序序列指标；），检测方法{methodType}（SPACE 多节点空间对比检测器，TIME 单节点时间检测器），以表格形式呈现；
+    3、针对这个节点给出检测建议，如果是计算类型，建议检测卡的状态，算子下发以及算子执行的代码，对慢节点进行隔离；如果是网络问题，建议检测组网的状态，使用压测节点之间的连通状态；如果是存储问题，建议检测存储的磁盘以及用户脚本中的dataloader和保存模型代码。
+    """
+    logger.info("调用 报告工具，report_type = " + report_type.value)
+    # 根据报告类型调用对应的生成方法
+    if report_type == ReportType.normal:
+        result = generate_normal_report(source_data)
+    elif report_type == ReportType.anomaly:
+        result = generate_degraded_report(source_data)
+    else:
+        raise Exception("不支持的报告类型")
+    logger.info(f"报告：{result}")
+    return result
+    # render_report
 
 
 if __name__ == "__main__":

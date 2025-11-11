@@ -48,8 +48,8 @@ python -m container_disruption_detection.container_disruption_detection_mcp.clie
 | 工具名 | 功能 | 输入 | 输出 |
 |--------|------|------|------|
 | `container_disruption_detection_tool` | 容器异常检测 | KPI 参数、时间窗口、配置等 | 异常列表（`List[AnomalyModel]`） |
-| `rca_tool` | 根因分析 | 指标名、容器名、机器 ID | 根因列表（`List[RootCauseModel]`） |
-| `report_tool` | 报告生成 | 异常列表、报告类型 | Markdown 报告字典 |
+| `root_cause_analysis_tool` | 根因分析 | 指标名、容器名、机器 ID | 根因列表（`List[RootCauseModel]`） |
+| `generate_report_tool` | 报告生成 | 异常列表、报告类型 | Markdown 报告字典 |
 
 ### 1. 容器异常检测
 
@@ -75,10 +75,10 @@ container_disruption_detection_tool(
 
 ### 2. 根因分析
 
-**Tool:** `rca_tool`
+**Tool:** `root_cause_analysis_tool`
 
 ```python
-rca_tool(
+root_cause_analysis_tool(
     metric: str,
     victim_container_name: str,
     window: WindowParam = WindowParam(),
@@ -96,10 +96,10 @@ rca_tool(
 
 ### 3. 报告生成
 
-**Tool:** `report_tool`
+**Tool:** `generate_report_tool`
 
 ```python
-report_tool(anomalies: List[AnomalyModel], report_type: ReportType = ReportType.anomaly) -> Dict[str, str]
+generate_report_tool(anomalies: List[AnomalyModel], report_type: ReportType = ReportType.anomaly) -> Dict[str, str]
 ```
 
 **说明：**
