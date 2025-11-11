@@ -230,10 +230,6 @@ if __name__ == "__main__":
         import multiprocessing
 
         multiprocessing.set_start_method("spawn", force=True)
-<<<<<<< HEAD
-
-=======
->>>>>>> 567b46987bbc408ea241fdf3d377a06d876830d3
     '''
     job_path = os.path.join(
         os.path.dirname(__file__), "../config/container_disruption.job.json"
@@ -241,20 +237,12 @@ if __name__ == "__main__":
     anteater_conf_path = os.path.join(
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
-<<<<<<< HEAD
 
     kpis, window, extra = load_kpis_from_job(job_path)
     logger.info("配置加载成功，开始检测。")
-=======
->>>>>>> 567b46987bbc408ea241fdf3d377a06d876830d3
 
     metric_info = {}
 
-<<<<<<< HEAD
-=======
-    # metric_info = {}
-
->>>>>>> 567b46987bbc408ea241fdf3d377a06d876830d3
     anomalies = container_disruption_detection_tool(
         kpis=kpis,
         window=window,
@@ -263,8 +251,5 @@ if __name__ == "__main__":
         metric_info=metric_info,
     )
     '''
-<<<<<<< HEAD
     
-=======
->>>>>>> 567b46987bbc408ea241fdf3d377a06d876830d3
     mcp.run(transport="sse")
