@@ -207,7 +207,6 @@ class ContainerDisruptionDetector(Detector):
         #     logger.info(f"  time_stamps: {ts.time_stamps}")
         #     logger.info(f"  values: {ts.values}")
         for _ts in ts_list:
-            # logger.info(f"容器干扰检测 _ts: {_ts}")
             # import pdb;pdb.set_trace()
             detect_result = ts_dbscan_detector.detect(_ts.values)
             logger.info(f"  DBSCAN检测结果长度: {len(detect_result)}")
