@@ -15,8 +15,9 @@ from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
 
 from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
-    RootCauseModel,
-    AnomalyModel,
+    RootCauseResult,
+    AnomalyInfo,
+    AnomalyResult,
     KPIParam,
     WindowParam,
     ExtraConfig,
@@ -51,7 +52,7 @@ class ContainerDisruptionFacade:
     def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
         return self.detector.detect_by_spot(kpi, machine_id)
 
-    def find_disruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]):
+    def find_discruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]):
         return self.detector.find_discruption_source(victim_ts, all_ts)
 
     def get_container_extra_info(
@@ -111,12 +112,11 @@ def container_disruption_detection_tool(
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: Optional[str] = None,
-) -> List[AnomalyModel]:
+) -> AnomalyResult:
     """容器异常检测工具（支持自动识别机器ID）"""
     job_path = os.path.join(os.path.dirname(__file__), "../config/container_disruption.job.json")
     anteater_conf = os.path.join(os.path.dirname(__file__), "../config/gala-anteater.yaml")
     kpis, window, extra = load_kpis_from_job(job_path)
-    print(f"kpis: {kpis}, window: {window}, extra: {extra}")
 
     loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
     facade = ContainerDisruptionFacade(
@@ -127,7 +127,7 @@ def container_disruption_detection_tool(
             params={"extra_metrics": extra.extra_metrics},
         ),
     )
-    anomalies: List[AnomalyModel] = []
+    anomalies = []
 
     if not machine_id:
         if not kpis:
@@ -142,20 +142,46 @@ def container_disruption_detection_tool(
 
     logger.info("检测完成，总机器数: %d", len(machine_ids))
 
-    # 将AnomalyModel类型转为字典
-    result = []
+    # 将Anomaly对象转换为AnomalyInfo对象
+    anomaly_infos = []
     for anomaly in anomalies:
-        result.append({
-            'machine_id': anomaly.machine_id,
-            'metric': anomaly.metric,
-            'labels': anomaly.labels,
-            'score': float(anomaly.score),  # 将 np.float64 转换为 Python float
-            'entity_name': anomaly.entity_name,
-            'details': anomaly.details,
-        })
+        # 转换root_causes为RootCauseResult对象
+        root_causes = []
+        if anomaly.root_causes:
+            for cause in anomaly.root_causes:
+                root_causes.append(
+                    RootCauseResult(
+                        metric=cause.metric,
+                        labels=cause.labels,
+                        score=cause.score
+                    )
+                )
+        
+        anomaly_infos.append(
+            AnomalyInfo(
+                machine_id=anomaly.machine_id,
+                metric=anomaly.metric,
+                labels=anomaly.labels,
+                score=anomaly.score,
+                entity_name=anomaly.entity_name,
+                details=anomaly.details or {}
+            )
+        )
+
+    # 构造并返回AnomalyResult对象
+    if not anomaly_infos:
+        anomaly_result = AnomalyResult(
+            is_anomaly=False,
+            anomaly_info=[],
+        )
+    else:
+        anomaly_result = AnomalyResult(
+            is_anomaly=True,
+            anomaly_info=anomaly_infos,
+        )
     
-    return result
-    # return anomalies
+    return anomaly_result
+
 
 @mcp.prompt(
     description="调用逻辑:1. 仅在容器干扰检测工具返回is_anomaly=True时调用。 \
@@ -163,18 +189,25 @@ def container_disruption_detection_tool(
     3. 本方法得到的结果必须再调用generate_report 生成报告给到用户")
 @mcp.tool(name="rca_tool")
 def rca_tool(
-    metric: str,
+    anomalies: AnomalyResult,
     victim_container_name: str,
     window: WindowParam = WindowParam(),
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: str = "",
-) -> List[RootCauseModel]:
-    if not machine_id:
-        raise ValueError("rca_tool 需要提供 machine_id")
+) -> List[RootCauseResult]:
+    if anomalies.is_anomaly == False:
+        raise ValueError("当container_disruption_detection_tool检测出异常事件时，再调用此工具")
+    job_path = os.path.join(os.path.dirname(__file__), "../config/container_disruption.job.json")
+    anteater_conf = os.path.join(os.path.dirname(__file__), "../config/gala-anteater.yaml")
+    kpis, window, extra = load_kpis_from_job(job_path)
 
     loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
     facade = ContainerDisruptionFacade(loader, ExtraConfig())
+
+    metric = anomalies.anomaly_info[0].metric
+    machine_id = anomalies.anomaly_info[0].machine_id
+
     _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
     victim_list = [
         ts for ts in ts_list if ts.labels.get("container_name") == victim_container_name
@@ -182,12 +215,12 @@ def rca_tool(
     if not victim_list:
         raise RuntimeError(f"未找到容器 {victim_container_name} 的时序")
 
-    return facade.find_disruption_source(victim_list[0], ts_list)
+    return facade.find_discruption_source(victim_list[0], ts_list)
 
 
 @mcp.tool(name="report_tool")
 def report_tool(
-    anomalies: List[AnomalyModel], report_type: ReportType = ReportType.anomaly
+    anomalies: AnomalyResult, report_type: ReportType = ReportType.anomaly
 ):
     return render_report(anomalies, report_type)
 
@@ -197,7 +230,6 @@ if __name__ == "__main__":
         import multiprocessing
 
         multiprocessing.set_start_method("spawn", force=True)
-<<<<<<< HEAD
     '''
     job_path = os.path.join(
         os.path.dirname(__file__), "../config/container_disruption.job.json"
@@ -205,22 +237,12 @@ if __name__ == "__main__":
     anteater_conf_path = os.path.join(
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
-=======
-
-    # job_path = os.path.join(
-    #     os.path.dirname(__file__), "../config/container_disruption.job.json"
-    # )
-    # anteater_conf_path = os.path.join(
-    #     os.path.dirname(__file__), "../config/gala-anteater.yaml"
-    # )
->>>>>>> cd8bfb38fa7bb7b21f0117ac60cd33a47e5c3f6c
 
     # kpis, window, extra = load_kpis_from_job(job_path)
     # logger.info("配置加载成功，开始检测。")
 
     # metric_info = {}
 
-<<<<<<< HEAD
     anomalies = container_disruption_detection_tool(
         kpis=kpis,
         window=window,
@@ -229,14 +251,4 @@ if __name__ == "__main__":
         metric_info=metric_info,
     )
     '''
-=======
-    # anomalies = container_disruption_detection_tool(
-    #     kpis=kpis,
-    #     window=window,
-    #     extra=extra,
-    #     anteater_conf=anteater_conf_path,
-    #     metric_info=metric_info,
-    # )
-
->>>>>>> cd8bfb38fa7bb7b21f0117ac60cd33a47e5c3f6c
     mcp.run(transport="sse")
