@@ -14,7 +14,7 @@ from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
 
-from .mcp_data import (
+from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
     RootCauseModel,
     AnomalyModel,
     KPIParam,
@@ -23,7 +23,7 @@ from .mcp_data import (
     ReportType,
 )
 
-from .utils import load_kpis_from_job, dt_last
+from container_disruption_detection.container_disruption_detection_mcp.utils import load_kpis_from_job, dt_last
 
 logging.basicConfig(
     level=logging.INFO,
@@ -123,7 +123,7 @@ def container_disruption_detection_tool(
         loader,
         ModelConfig(
             name="container_disruption_detection",
-            model_path="/home/mengzi/gala-anteater/anteater/model/detector/disruption_detector.py",
+            model_path="../../anteater/model/detector/disruption_detector.py",
             params={"extra_metrics": extra.extra_metrics},
         ),
     )
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         import multiprocessing
 
         multiprocessing.set_start_method("spawn", force=True)
-
+    '''
     job_path = os.path.join(
         os.path.dirname(__file__), "../config/container_disruption.job.json"
     )
@@ -203,5 +203,5 @@ if __name__ == "__main__":
         anteater_conf=anteater_conf_path,
         metric_info=metric_info,
     )
-
+    '''
     mcp.run(transport="sse")
