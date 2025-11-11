@@ -345,8 +345,8 @@ class ContainerDisruptionDetector(Detector):
                                                                obs_size)
                     logger.info(f"    容器额外信息: {extra_info}")
                     
-                    logger.info("  【步骤6.4.8-根因分析】调用find_discruption_source()...")
-                    root_causes = self.find_discruption_source(_ts, ts_list)
+                    logger.info("  【步骤6.4.8-根因分析】调用find_disruption_source()...")
+                    root_causes = self.find_disruption_source(_ts, ts_list)
                     logger.info(f"    根因数量: {len(root_causes)}")
                     for rc_idx, rc in enumerate(root_causes):
                         logger.info(f"      根因[{rc_idx + 1}]: metric={rc.metric}, score={rc.score}, "
@@ -365,9 +365,9 @@ class ContainerDisruptionDetector(Detector):
         logger.info("-" * 80 + "\n")
         return ts_scores
 
-    def find_discruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]) \
+    def find_disruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]) \
             -> List[RootCause]:
-        logger.info(f"【模块7-根因分析】进入find_discruption_source()")
+        logger.info(f"【模块7-根因分析】进入find_disruption_source()")
         logger.info(f"  受害者时间序列: {victim_ts.labels}")
         logger.info(f"  候选源时间序列数量: {len(all_ts)}")
         
@@ -431,7 +431,7 @@ class ContainerDisruptionDetector(Detector):
         root_causes = [RootCause(metric=causes['metric'], labels=causes['labels'], score=causes['score'])
                        for causes in tmp_causes]
 
-        logger.info(f"【模块7-根因分析】find_discruption_source()完成")
+        logger.info(f"【模块7-根因分析】find_disruption_source()完成")
         logger.info(f"  最终返回前3个根因，总候选数: {len(root_causes)}")
         if root_causes[:3]:
             for rc_idx, rc in enumerate(root_causes[:3]):

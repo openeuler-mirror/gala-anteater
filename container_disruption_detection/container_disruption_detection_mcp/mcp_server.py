@@ -13,6 +13,7 @@ from anteater.core.anomaly import Anomaly
 from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
+from anteater.utils.common import divide, GlobalVariable
 
 from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
     RootCauseResult,
@@ -44,7 +45,7 @@ class ContainerDisruptionFacade:
 
     def get_unique_machine_id(self, look_back: int, kpis: List[KPI]) -> List[str]:
         start, end = dt_last(minutes=look_back)
-        return self.detector.get_unique_machine_id(start, end, kpis)
+        return start, end, self.detector.get_unique_machine_id(start, end, kpis)
 
     def get_kpi_ts_list(self, metric: str, machine_id: str, look_back: int):
         return self.detector.get_kpi_ts_list(metric, machine_id, look_back)
@@ -52,8 +53,8 @@ class ContainerDisruptionFacade:
     def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
         return self.detector.detect_by_spot(kpi, machine_id)
 
-    def find_discruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]):
-        return self.detector.find_discruption_source(victim_ts, all_ts)
+    def find_disruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]):
+        return self.detector.find_disruption_source(victim_ts, all_ts)
 
     def get_container_extra_info(
         self, machine_id, container_name, start_time, end_time, obs_size
@@ -190,7 +191,8 @@ def container_disruption_detection_tool(
 @mcp.tool(name="rca_tool")
 def rca_tool(
     anomalies: AnomalyResult,
-    victim_container_name: str,
+    start_time: str,
+    end_time: str,
     window: WindowParam = WindowParam(),
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
@@ -207,15 +209,22 @@ def rca_tool(
 
     metric = anomalies.anomaly_info[0].metric
     machine_id = anomalies.anomaly_info[0].machine_id
-
-    _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
+    if GlobalVariable.is_test_model == False:
+        GlobalVariable.is_test_model = True
+        GlobalVariable.start_time = start_time
+        GlobalVariable.end_time = end_time
+        _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
+        GlobalVariable.is_test_model = False
+    else:
+        _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
+    
     victim_list = [
         ts for ts in ts_list if ts.labels.get("container_name") == victim_container_name
     ]
     if not victim_list:
         raise RuntimeError(f"未找到容器 {victim_container_name} 的时序")
 
-    return facade.find_discruption_source(victim_list[0], ts_list)
+    return facade.find_disruption_source(victim_list[0], ts_list)
 
 
 @mcp.tool(name="report_tool")

@@ -23,7 +23,9 @@ class AnomalyInfo(BaseModel):
 class AnomalyResult(BaseModel):
     is_anomaly: bool = Field(default=False, description="是否为异常事件（默认False）")
     anomaly_info: List[AnomalyInfo] = Field(default_factory=list, description="异常事件详细信息列表（默认空列表）")
-
+    start_time: int = Field(default=0, description="检测窗口开始时间戳（默认0）")
+    end_time: int = Field(default=0, description="检测窗口结束时间戳（默认0）")
+    
 
 class KPIParam(BaseModel):
     metric: str
