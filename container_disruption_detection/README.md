@@ -20,6 +20,7 @@ container_disruption_detection/
 |   |— mcp_server.py                      # MCP 服务主程序
 |   |— mcp_data.py                        # 数据结构定义
 |   |— utils.py                           # 配置与任务加载工具
+|   |— client.py                          # MCP 客户端示例
 |
 |— common/
 |   |— loader.py                          # MetricLoader 构建逻辑
@@ -34,13 +35,21 @@ container_disruption_detection/
 ## 启动方式
 
 ```bash
-cd servers/gala_anteater/container_disruption_detection/
-python3 container_disruption_detection_mcp/mcp_server.py
+cd /home/mengzi/gala-anteater
+export PYTHONPATH=$PYTHONPATH:/home/mengzi/gala-anteater
+python -m container_disruption_detection.container_disruption_detection_mcp.mcp_server
+python -m container_disruption_detection.container_disruption_detection_mcp.client
 ```
 
 默认监听 `0.0.0.0:12345`
 
 ## 工具接口
+
+| 工具名 | 功能 | 输入 | 输出 |
+|--------|------|------|------|
+| `container_disruption_detection_tool` | 容器异常检测 | KPI 参数、时间窗口、配置等 | 异常列表（`List[AnomalyModel]`） |
+| `rca_tool` | 根因分析 | 指标名、容器名、机器 ID | 根因列表（`List[RootCauseModel]`） |
+| `report_tool` | 报告生成 | 异常列表、报告类型 | Markdown 报告字典 |
 
 ### 1. 容器异常检测
 
@@ -54,11 +63,15 @@ container_disruption_detection_tool(
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: Optional[str] = None
-)
+) -> List[AnomalyModel]
 ```
 
-* 自动发现活跃机器 ID
-* `outlier_ratio_th` 为异常比例阈值（默认 0.1）
+**说明：**
+
+* 自动发现活跃机器 ID（当未指定 `machine_id` 时）
+* 若 `kpis` 为空，将抛出异常
+* `extra.extra_metrics` 可用于传入额外监控指标
+* 返回每个异常的详细信息，包括机器、指标、分数、标签及根因分析结果
 
 ### 2. 根因分析
 
@@ -72,24 +85,25 @@ rca_tool(
     anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: str
-)
+) -> List[RootCauseModel]
 ```
 
-计算同机容器间的相关性，返回前 3 个可能根因。
+**说明：**
+
+* `machine_id` 为必填参数
+* 若找不到指定容器的时序，将抛出异常
+* 基于同机容器的相关性分析，返回最相关的前若干个根因指标（默认取前 3 个）
 
 ### 3. 报告生成
 
 **Tool:** `report_tool`
 
 ```python
-report_tool(anomalies: List[AnomalyModel], report_type: ReportType)
+report_tool(anomalies: List[AnomalyModel], report_type: ReportType = ReportType.anomaly) -> Dict[str, str]
 ```
 
-输出 Markdown 格式诊断报告。
+**说明：**
 
-## 依赖
-
-* Python ≥ 3.8
-* gala-anteater
-* numpy, pandas, pydantic
-* mcp
+* 当 `report_type` 为 `ReportType.normal` 或异常列表为空时，返回“运行正常”报告
+* 当存在异常时，生成详细的 Markdown 格式诊断报告
+* 返回结构：`{"markdown": "<报告内容>"}`，可直接渲染为 Markdown

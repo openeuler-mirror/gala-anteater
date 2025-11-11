@@ -108,7 +108,7 @@ def container_disruption_detection_tool(
     kpis: List[KPIParam] = None,
     window: WindowParam = WindowParam(),
     extra: Optional[ExtraConfig] = None,
-    anteater_conf: Optional[dict] = None,
+    anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: Optional[str] = None,
 ) -> List[AnomalyModel]:
@@ -166,7 +166,7 @@ def rca_tool(
     metric: str,
     victim_container_name: str,
     window: WindowParam = WindowParam(),
-    anteater_conf: Optional[dict] = None,
+    anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: str = "",
 ) -> List[RootCauseModel]:
@@ -197,6 +197,7 @@ if __name__ == "__main__":
         import multiprocessing
 
         multiprocessing.set_start_method("spawn", force=True)
+<<<<<<< HEAD
     '''
     job_path = os.path.join(
         os.path.dirname(__file__), "../config/container_disruption.job.json"
@@ -204,12 +205,22 @@ if __name__ == "__main__":
     anteater_conf_path = os.path.join(
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
+=======
 
-    kpis, window, extra = load_kpis_from_job(job_path)
-    logger.info("配置加载成功，开始检测。")
+    # job_path = os.path.join(
+    #     os.path.dirname(__file__), "../config/container_disruption.job.json"
+    # )
+    # anteater_conf_path = os.path.join(
+    #     os.path.dirname(__file__), "../config/gala-anteater.yaml"
+    # )
+>>>>>>> cd8bfb38fa7bb7b21f0117ac60cd33a47e5c3f6c
 
-    metric_info = {}
+    # kpis, window, extra = load_kpis_from_job(job_path)
+    # logger.info("配置加载成功，开始检测。")
 
+    # metric_info = {}
+
+<<<<<<< HEAD
     anomalies = container_disruption_detection_tool(
         kpis=kpis,
         window=window,
@@ -218,4 +229,14 @@ if __name__ == "__main__":
         metric_info=metric_info,
     )
     '''
+=======
+    # anomalies = container_disruption_detection_tool(
+    #     kpis=kpis,
+    #     window=window,
+    #     extra=extra,
+    #     anteater_conf=anteater_conf_path,
+    #     metric_info=metric_info,
+    # )
+
+>>>>>>> cd8bfb38fa7bb7b21f0117ac60cd33a47e5c3f6c
     mcp.run(transport="sse")
