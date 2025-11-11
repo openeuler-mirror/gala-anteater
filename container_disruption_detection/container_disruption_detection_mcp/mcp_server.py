@@ -104,7 +104,7 @@ def container_disruption_detection_tool(
     kpis: List[KPIParam],
     window: WindowParam = WindowParam(),
     extra: Optional[ExtraConfig] = None,
-    anteater_conf: Optional[dict] = None,
+    anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: Optional[str] = None,
 ) -> List[AnomalyModel]:
@@ -132,7 +132,24 @@ def container_disruption_detection_tool(
             anomalies.extend(facade.detect_by_spot(k, mid))
 
     logger.info("检测完成，总机器数: %d", len(machine_ids))
-    return anomalies
+
+    results = []
+    for a in anomalies:
+        try:
+            results.append(
+                AnomalyModel(
+                    machine_id=a.machine_id,
+                    metric=a.metric,
+                    score=a.score,
+                    labels=a.labels,
+                    details=a.details,
+                    root_causes=a.root_causes or [],
+                )
+            )
+        except Exception as e:
+            logger.error(f"Anomaly 转换失败: {e}, 原对象: {a}")
+
+    return results
 
 
 @mcp.tool(name="rca_tool")
@@ -140,7 +157,7 @@ def rca_tool(
     metric: str,
     victim_container_name: str,
     window: WindowParam = WindowParam(),
-    anteater_conf: Optional[dict] = None,
+    anteater_conf: Optional[str] = None,
     metric_info: Optional[dict] = None,
     machine_id: str = "",
 ) -> List[RootCauseModel]:
@@ -172,24 +189,24 @@ if __name__ == "__main__":
 
         multiprocessing.set_start_method("spawn", force=True)
 
-    job_path = os.path.join(
-        os.path.dirname(__file__), "../config/container_disruption.job.json"
-    )
-    anteater_conf_path = os.path.join(
-        os.path.dirname(__file__), "../config/gala-anteater.yaml"
-    )
+    # job_path = os.path.join(
+    #     os.path.dirname(__file__), "../config/container_disruption.job.json"
+    # )
+    # anteater_conf_path = os.path.join(
+    #     os.path.dirname(__file__), "../config/gala-anteater.yaml"
+    # )
 
-    kpis, window, extra = load_kpis_from_job(job_path)
-    logger.info("配置加载成功，开始检测。")
+    # kpis, window, extra = load_kpis_from_job(job_path)
+    # logger.info("配置加载成功，开始检测。")
 
-    metric_info = {}
+    # metric_info = {}
 
-    anomalies = container_disruption_detection_tool(
-        kpis=kpis,
-        window=window,
-        extra=extra,
-        anteater_conf=anteater_conf_path,
-        metric_info=metric_info,
-    )
+    # anomalies = container_disruption_detection_tool(
+    #     kpis=kpis,
+    #     window=window,
+    #     extra=extra,
+    #     anteater_conf=anteater_conf_path,
+    #     metric_info=metric_info,
+    # )
 
     mcp.run(transport="sse")
