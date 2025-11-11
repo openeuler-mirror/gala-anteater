@@ -247,10 +247,10 @@ if __name__ == "__main__":
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
 
-    # kpis, window, extra = load_kpis_from_job(job_path)
-    # logger.info("配置加载成功，开始检测。")
+    kpis, window, extra = load_kpis_from_job(job_path)
+    logger.info("配置加载成功，开始检测。")
 
-    # metric_info = {}
+    metric_info = {}
 
     anomalies = container_disruption_detection_tool(
         kpis=kpis,
@@ -260,4 +260,5 @@ if __name__ == "__main__":
         metric_info=metric_info,
     )
     '''
+    
     mcp.run(transport="sse")
