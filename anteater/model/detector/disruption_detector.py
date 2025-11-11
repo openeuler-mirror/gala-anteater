@@ -201,11 +201,11 @@ class ContainerDisruptionDetector(Detector):
         logger.info(f"【模块6.3-容器统计】机器 {machine_id} 上检测到 {len(ts_list)} 个容器")
         self.container_num += len(ts_list)
         logger.info(f"容器干扰检测 ts_list: {ts_list}")
-        for i, ts in enumerate(ts_list):
-            logger.info(f"TimeSeries {i}:")
-            logger.info(f"  labels: {ts.labels}")
-            logger.info(f"  time_stamps: {ts.time_stamps}")
-            logger.info(f"  values: {ts.values}")
+        # for i, ts in enumerate(ts_list):
+        #     logger.info(f"TimeSeries {i}:")
+        #     logger.info(f"  labels: {ts.labels}")
+        #     logger.info(f"  time_stamps: {ts.time_stamps}")
+        #     logger.info(f"  values: {ts.values}")
         for _ts in ts_list:
             # logger.info(f"容器干扰检测 _ts: {_ts}")
             # import pdb;pdb.set_trace()
@@ -218,11 +218,18 @@ class ContainerDisruptionDetector(Detector):
                 logger.error(f"  【错误】检测结果长度不匹配! detect={len(detect_result)}, ts={len(_ts.values)}")
                 raise ValueError("Detect result length mismatch")
 
+            # 根据9:1比例计算测试数据大小
+            total_points = len(_ts.values)
+            new_obs_size = max(1, int(total_points * 0.1))  # 至少保留1个点作为测试数据
+            if obs_size is not None:
+                # 如果配置中指定了obs_size，则使用配置值和计算值中的较大值
+                new_obs_size = max(obs_size, new_obs_size)
+
             # 分离训练和测试数据
             logger.info("  【步骤6.4.2-数据分离】分离训练数据和测试数据...")
             train_data = [_ts.values[i] for i in range(len(detect_result)) if detect_result[i] == 0]
-            test_data = _ts.values[-obs_size:]
-            logger.info(f"  训练数据长度: {len(train_data)}, 测试数据长度: {len(test_data)}")
+            test_data = _ts.values[-new_obs_size:]
+            logger.info(f"  训练数据长度: {len(train_data)}, 测试数据长度: {len(test_data)} (按9:1划分)")
 
             # 去重统计
             logger.info("  【步骤6.4.3-数据去重检查】检查数据重复度...")
@@ -352,7 +359,6 @@ class ContainerDisruptionDetector(Detector):
                 logger.info(f"  最终得分: {score:.4f}")
                 
             ts_scores.append((_ts, score, extra_info, root_causes))
-            logger.info(f"  >>> 时间序列 [{ts_idx + 1}/{len(ts_list)}] 处理完成 <<<\n")
 
         logger.info(f"【模块6-SPOT分数计算】cal_spot_score()完成")
         logger.info(f"  总计处理: {len(ts_scores)} 条时间序列")

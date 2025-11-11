@@ -65,7 +65,7 @@ class MetricLoader:
                 result = []
 
                 for index, time in enumerate(standard_time):
-                    logger.info(f"【模块4-数据获取】standard_time {standard_time}")
+                    # logger.info(f"【模块4-数据获取】standard_time {standard_time}")
                     if time in value_dict:
                         # 如果 container_data 中存在相应的元素，直接添加到结果列表
                         result.append(value_dict[time])

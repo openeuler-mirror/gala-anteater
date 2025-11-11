@@ -141,7 +141,21 @@ def container_disruption_detection_tool(
             anomalies.extend(facade.detect_by_spot(k, mid))
 
     logger.info("检测完成，总机器数: %d", len(machine_ids))
-    return anomalies
+
+    # 将AnomalyModel类型转为字典
+    result = []
+    for anomaly in anomalies:
+        result.append({
+            'machine_id': anomaly.machine_id,
+            'metric': anomaly.metric,
+            'labels': anomaly.labels,
+            'score': float(anomaly.score),  # 将 np.float64 转换为 Python float
+            'entity_name': anomaly.entity_name,
+            'details': anomaly.details,
+        })
+    
+    return result
+    # return anomalies
 
 @mcp.prompt(
     description="调用逻辑:1. 仅在容器干扰检测工具返回is_anomaly=True时调用。 \
