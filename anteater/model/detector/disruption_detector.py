@@ -252,8 +252,8 @@ class ContainerDisruptionDetector(Detector):
                 skip_reasons.append(f"数据点过多({len(_ts.values)} > {point_count * 1.5})")
             if all(x == _ts.values[0] for x in _ts.values):
                 skip_reasons.append("所有值相同")
-            if len(dedup_values) < obs_size * 0.8:
-                skip_reasons.append(f"测试数据重复度过高({len(dedup_values)} < {obs_size * 0.8})")
+            # if len(dedup_values) < obs_size * 0.8:
+            #     skip_reasons.append(f"测试数据重复度过高({len(dedup_values)} < {obs_size * 0.8})")
             
             if skip_reasons:
                 logger.info(f"  【跳过】时间序列不符合条件: {', '.join(skip_reasons)}")
