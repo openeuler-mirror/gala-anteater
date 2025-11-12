@@ -1,6 +1,6 @@
 {
   "name": "ContainerDisruptionDetector",
-  "enable": false,
+  "enable": true,
   "job_type": "anomaly_detection",
   "keywords": [
     "app"
@@ -34,7 +34,7 @@
       "min_train_hours": 24,
       "min_predict_minutes": 5,
       "top_n": 20,
-      "extra_metrics": "gala_gopher_container_cpu_busy",
+      "extra_metrics": "gala_gopher_sli_container_cpu_busy",
       "preprocessor": {
         "smooth_type": "rolling",
         "smooth_window": 18,

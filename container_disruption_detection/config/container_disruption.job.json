@@ -16,7 +16,7 @@
       "enable": true,
       "params": {
         "method": "max",
-        "look_back": 60,
+        "look_back": 2,
         "obs_size": 10,
         "outlier_ratio_th": 0.5,
         "smooth_params": {
@@ -34,7 +34,7 @@
       "min_train_hours": 24,
       "min_predict_minutes": 5,
       "top_n": 20,
-      "extra_metrics": "cpu.busy,load.1min,octo_service.tp999,octo_service.tp99",
+      "extra_metrics": "gala_gopher_sli_container_cpu_busy",
       "preprocessor": {
         "smooth_type": "rolling",
         "smooth_window": 18,
