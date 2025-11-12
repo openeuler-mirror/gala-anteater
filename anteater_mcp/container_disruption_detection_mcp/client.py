@@ -146,7 +146,9 @@ async def main() -> None:
 
     if is_anomaly:
         print("\n>>> 调用 root_cause_analysis_tool ...")
-        analysis = await client.call_tool("root_cause_analysis_tool", {"anomalies": parsed_result})
+        analysis = await client.call_tool(
+            "root_cause_analysis_tool", {"anomalies": parsed_result}
+        )
         print("=== 根因分析结果 ===")
         print(analysis)
         source_data = None

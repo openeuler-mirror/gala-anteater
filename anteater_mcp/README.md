@@ -11,7 +11,7 @@
 ## 目录结构
 
 ```
-container_disruption_detection/
+anteater_mcp/
 ├── config/
 │   ├── container_disruption.job.json
 │   └── gala-anteater.yaml
@@ -39,10 +39,10 @@ cd /home/mengzi/gala-anteater
 export PYTHONPATH=$PYTHONPATH:/home/mengzi/gala-anteater
 
 # 启动 MCP 服务
-python -m container_disruption_detection.container_disruption_detection_mcp.mcp_server
+python -m anteater_mcp.container_disruption_detection_mcp.mcp_server
 
 # 启动客户端（功能验证）
-python -m container_disruption_detection.container_disruption_detection_mcp.client
+python -m anteater_mcp.container_disruption_detection_mcp.client
 ```
 
 默认监听地址：`0.0.0.0:12345`

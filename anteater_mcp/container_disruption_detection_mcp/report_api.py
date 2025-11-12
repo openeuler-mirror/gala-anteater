@@ -1,8 +1,7 @@
-import json
 from datetime import datetime
-from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
+from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
     PerceptionResult,
-    RootCauseResult
+    RootCauseResult,
 )
 
 
@@ -27,9 +26,9 @@ def generate_normal_report(data: PerceptionResult) -> dict:
             "start_time": start,
             "end_time": end,
             "status": "正常",
-            "description": "当前AI任务运行正常，将持续监测。"
+            "description": "当前AI任务运行正常，将持续监测。",
         },
-        "details": []
+        "details": [],
     }
 
 
@@ -51,7 +50,7 @@ def generate_degraded_report(data: RootCauseResult) -> dict:
             "end_time": end,
             "status": "存在异常",
             "abnormalNodeCount": len(details),
-            "description": "检测到容器存在性能干扰，请参考下方详细信息。"
+            "description": "检测到容器存在性能干扰，请参考下方详细信息。",
         },
-        "details": details
+        "details": details,
     }

@@ -1,22 +1,20 @@
-# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
-"""MCP Client"""
-
 import asyncio
+import json
 import logging
+import os
 from contextlib import AsyncExitStack
-from typing import TYPE_CHECKING, Union
-from pydantic import BaseModel, Field
 from enum import Enum
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.sse import sse_client
-from mcp.client.stdio import stdio_client
+from typing import Union
 
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
+from anteater_mcp.container_disruption_detection_mcp.utils import load_kpis_from_job
 
 logger = logging.getLogger(__name__)
 
 
 class MCPStatus(str, Enum):
-    """MCP状态枚举"""
     UNINITIALIZED = "UNINITIALIZED"
     RUNNING = "RUNNING"
     STOPPED = "STOPPED"
@@ -24,109 +22,170 @@ class MCPStatus(str, Enum):
 
 
 class MCPClient:
-    """MCP客户端基类"""
-
     def __init__(self, url: str, headers: dict[str, str]) -> None:
-        """初始化MCP Client"""
         self.url = url
         self.headers = headers
         self.client: Union[ClientSession, None] = None
         self.status = MCPStatus.UNINITIALIZED
 
-    async def _main_loop(
-        self
-    ) -> None:
-        """
-        创建MCP Client
-
-        抽象函数；作用为在初始化的时候使用MCP SDK创建Client
-        由于目前MCP的实现中Client和Session是1:1的关系，所以直接创建了 :class:`~mcp.ClientSession`
-        """
-        # 创建Client
+    async def _main_loop(self) -> None:
         try:
-            client = sse_client(
-                url=self.url,
-                headers=self.headers
-            )
+            client = sse_client(url=self.url, headers=self.headers)
         except Exception as e:
             self.error_sign.set()
-            err = f"创建Client失败，错误信息：{e}"
-            print(err)
-            raise Exception(err)
-        # 创建Client、Session
+            raise Exception(f"创建Client失败: {e}")
+
         try:
             exit_stack = AsyncExitStack()
             read, write = await exit_stack.enter_async_context(client)
             self.client = ClientSession(read, write)
             session = await exit_stack.enter_async_context(self.client)
-            # 初始化Client
             await session.initialize()
-        except Exception:
+        except Exception as e:
             self.error_sign.set()
             self.status = MCPStatus.STOPPED
-            err = f"初始化Client失败，错误信息：{e}"
-            print(err)
-            raise
+            raise Exception(f"初始化Client失败，错误信息：{e}")
 
         self.ready_sign.set()
         self.status = MCPStatus.RUNNING
-        # 等待关闭信号
         await self.stop_sign.wait()
 
-        # 关闭Client
         try:
-            await exit_stack.aclose()  # type: ignore[attr-defined]
+            await exit_stack.aclose()
             self.status = MCPStatus.STOPPED
-        except Exception:
+        except Exception as e:
             print(f"关闭Client失败，错误信息：{e}")
 
     async def init(self) -> None:
-        """
-        初始化 MCP Client类
-        :return: None
-        """
-        # 初始化变量
         self.ready_sign = asyncio.Event()
         self.error_sign = asyncio.Event()
         self.stop_sign = asyncio.Event()
-
-        # 创建协程
         self.task = asyncio.create_task(self._main_loop())
 
-        # 等待初始化完成
         done, pending = await asyncio.wait(
-            [asyncio.create_task(self.ready_sign.wait()),
-             asyncio.create_task(self.error_sign.wait())],
-            return_when=asyncio.FIRST_COMPLETED
+            [
+                asyncio.create_task(self.ready_sign.wait()),
+                asyncio.create_task(self.error_sign.wait()),
+            ],
+            return_when=asyncio.FIRST_COMPLETED,
         )
         if self.error_sign.is_set():
             self.status = MCPStatus.ERROR
-            print("MCP Client 初始化失败")
             raise Exception("MCP Client 初始化失败")
 
-    async def call_tool(self, tool_name: str, params: dict) -> "CallToolResult":
-        """调用MCP Server的工具"""
+    async def call_tool(self, tool_name: str, params: dict):
         return await self.client.call_tool(tool_name, params)
 
     async def stop(self) -> None:
-        """停止MCP Client"""
         self.stop_sign.set()
         try:
             await self.task
         except Exception as e:
-            err = f"关闭MCP Client失败，错误信息：{e}"
-            print(err)
+            print(f"关闭MCP Client失败，错误信息：{e}")
+
+
+def _to_payload(x):
+    """递归序列化对象为 JSON 可传输格式"""
+    if x is None:
+        return None
+    if hasattr(x, "model_dump"):
+        return x.model_dump()
+    if hasattr(x, "dict"):
+        return x.dict()
+    if hasattr(x, "__dict__") and not isinstance(x, (str, bytes)):
+        return {
+            k: _to_payload(v) for k, v in x.__dict__.items() if not k.startswith("_")
+        }
+    if isinstance(x, (list, tuple)):
+        return [_to_payload(i) for i in x]
+    if isinstance(x, dict):
+        return {k: _to_payload(v) for k, v in x.items()}
+    return x
 
 
 async def main() -> None:
-    """测试MCP Client"""
-    url = "http://0.0.0.0:12345/sse"
-    headers = {}
-    client = MCPClient(url, headers)
+    base_dir = os.path.dirname(__file__)
+    job_path = os.path.join(base_dir, "../config/container_disruption.job.json")
+    anteater_conf_path = os.path.join(base_dir, "../config/gala-anteater.yaml")
+
+    kpis, window, extra = load_kpis_from_job(job_path)
+    logger.info("配置加载成功，开始检测。")
+
+    client = MCPClient(url="http://127.0.0.1:12345/sse", headers={})
     await client.init()
-    result = await client.call_tool("container_disruption_detection_tool", {})
-    print(result)
+
+    params = {
+        "kpis": _to_payload(kpis),
+        "window": _to_payload(window),
+        "extra": _to_payload(extra),
+        "anteater_conf": anteater_conf_path,
+        "metric_info": {},
+    }
+
+    print(">>> 调用 container_disruption_detection_tool ...")
+    result = await client.call_tool("container_disruption_detection_tool", params)
+
+    anomalies_json = None
+    if getattr(result, "content", None):
+        for c in result.content:
+            if getattr(c, "text", None):
+                anomalies_json = c.text
+                break
+
+    anomalies_json = anomalies_json or "{}"
+    print("=== 检测结果(JSON) ===")
+    print(anomalies_json)
+
+    try:
+        parsed_result = json.loads(anomalies_json)
+        is_anomaly = parsed_result.get("is_anomaly", False)
+    except Exception as e:
+        logger.error(f"检测结果解析失败: {e}")
+        parsed_result = {}
+        is_anomaly = False
+
+    if is_anomaly:
+        print("\n>>> 调用 root_cause_analysis_tool ...")
+        analysis = await client.call_tool(
+            "root_cause_analysis_tool", {"anomalies": parsed_result}
+        )
+        print("=== 根因分析结果 ===")
+        print(analysis)
+        source_data = None
+        if getattr(analysis, "content", None):
+            for c in analysis.content:
+                if getattr(c, "text", None):
+                    source_data = c.text
+                    break
+        report_type = "anomaly"
+    else:
+        print("\n检测结果正常，无需根因分析。")
+        source_data = anomalies_json
+        report_type = "normal"
+
+    print("\n>>> 调用 report_tool ...")
+    if not source_data:
+        logger.error("未找到有效的 source_data，无法生成报告。")
+        return
+
+    try:
+        payload = {
+            "source_data": json.loads(source_data),
+            "report_type": report_type,
+        }
+    except Exception:
+        payload = {
+            "source_data": parsed_result,
+            "report_type": report_type,
+        }
+
+    report = await client.call_tool("report_tool", payload)
+    print("=== 报告 ===")
+    print(report)
+
+    await asyncio.sleep(0.5)
     await client.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

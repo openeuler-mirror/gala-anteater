@@ -1,8 +1,8 @@
 import json
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
-from .mcp_data import KPIParam, WindowParam, ExtraConfig
+from anteater_mcp.container_disruption_detection_mcp.mcp_data import KPIParam, WindowParam, ExtraConfig
 from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger("container_disruption_detection_mcp")
