@@ -1,61 +1,57 @@
 import json
 from datetime import datetime
-
 from container_disruption_detection.container_disruption_detection_mcp.mcp_data import (
     PerceptionResult,
     RootCauseResult
 )
 
 
+def _format_timestamp(ts: int) -> str:
+    """内部工具函数：时间戳转格式化字符串"""
+    if not ts:
+        return "未知时间"
+    try:
+        # 时间戳是秒，不需要除以1000
+        return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return str(ts)
+
+
 def generate_normal_report(data: PerceptionResult) -> dict:
-    """生成无劣化的正常报告"""
-    data = data.model_dump()
-    timestamp = data.get("start_time")
-    start_time = datetime.fromtimestamp(timestamp // 1000).strftime("%Y-%m-%d %H:%M:%S") if timestamp else "未知时间"
-    timestamp = data.get("end_time")
-    end_time = datetime.fromtimestamp(timestamp // 1000).strftime("%Y-%m-%d %H:%M:%S") if timestamp else "未知时间"
-    data["start_time"] = start_time
-    data["end_time"] = end_time
-
-    return data
-
-# todo, 待完善
-def generate_degraded_report(data: RootCauseResult) -> dict:
-    """
-        生成设备异常状态的JSON报告
-
-        参数:
-            data: 包含设备状态信息的字典
-
-        返回:
-            格式化的JSON报告字典
-        """
-    # 解析时间戳为可读格式
-    data = data.model_dump()
-    start_time = data.get("strat_time")
-    end_time = data.get("end_time")
-    
-    # 提取异常信息
-    rootcauseInfos = data.get("rootcause_info", [])
-
-    # 整理异常节点详情
-    abnormal_nodes = []
-    for rootcauseInfo in rootcauseInfos:
-        abnormal_nodes.append({
-            "metric": rootcauseInfo.get("metric"),
-            "labels": rootcauseInfo.get("labels"),
-            "score": rootcauseInfo.get("score")
-        })
-
-    # 构建JSON报告
-    report = {
+    """生成正常报告"""
+    start = _format_timestamp(data.start_time)
+    end = _format_timestamp(data.end_time)
+    return {
         "reportName": "容器干扰检测诊断报告",
         "overview": {
-            "start_time": start_time,
-            "end_time": end_time,
-            "abnormal_nodes": abnormal_nodes
-        }
+            "start_time": start,
+            "end_time": end,
+            "status": "正常",
+            "description": "当前AI任务运行正常，将持续监测。"
+        },
+        "details": []
     }
 
-    return report
 
+def generate_degraded_report(data: RootCauseResult) -> dict:
+    """生成异常报告"""
+    start = _format_timestamp(data.start_time)
+    end = _format_timestamp(data.end_time)
+    rootcauseInfos = data.rootcause_info or []
+
+    details = [
+        {"metric": rca.metric, "labels": rca.labels, "score": rca.score}
+        for rca in rootcauseInfos
+    ]
+
+    return {
+        "reportName": "容器干扰检测诊断报告",
+        "overview": {
+            "start_time": start,
+            "end_time": end,
+            "status": "存在异常",
+            "abnormalNodeCount": len(details),
+            "description": "检测到容器存在性能干扰，请参考下方详细信息。"
+        },
+        "details": details
+    }
