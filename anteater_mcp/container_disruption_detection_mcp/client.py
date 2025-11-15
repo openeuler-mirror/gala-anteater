@@ -1,5 +1,3 @@
-# 修改后的完整 client
-
 import asyncio
 import json
 import logging
@@ -15,9 +13,6 @@ logger = logging.getLogger("container_disruption_client")
 logging.basicConfig(level=logging.INFO)
 
 
-# ============================================================
-#   MCP 客户端基础状态机
-# ============================================================
 class MCPStatus(str, Enum):
     UNINITIALIZED = "UNINITIALIZED"
     RUNNING = "RUNNING"
@@ -101,9 +96,7 @@ class MCPClient:
             pass
 
 
-# ============================================================
-#   工具函数：从 MCP 返回体提取 JSON
-# ============================================================
+# 从 MCP 返回体提取 JSON
 def extract_json_from_mcp(result) -> dict:
     """
     从 MCP 返回体中提取 JSON
@@ -125,9 +118,6 @@ def extract_json_from_mcp(result) -> dict:
     return {}
 
 
-# ============================================================
-#   主调用流程
-# ============================================================
 async def main() -> None:
     client = MCPClient(url="http://127.0.0.1:12345/sse", headers={})
     await client.init()
@@ -138,17 +128,15 @@ async def main() -> None:
         "container_keyword_list": [],
         "metric_keyword_list": ["sli_container"],
         "analysis_timestamp": int(time.time() * 1000),
-        "analysis_interval": 2 * 60 * 1000,  # 2 min
+        "analysis_interval": 20 * 60 * 1000,  # 20 min
     }
 
-    # ===================================================
     # 1. 容器干扰检测
-    # ===================================================
     print("\n>>> 调用 container_disruption_detection_tool ...")
 
     detect_result = await client.call_tool(
         "container_disruption_detection_tool",
-        {"request": json.dumps(request_payload)},   # ✔修正
+        {"request": json.dumps(request_payload)},
     )
     detect_json = extract_json_from_mcp(detect_result)
 
@@ -162,9 +150,7 @@ async def main() -> None:
 
     detection_report = detect_json.get("detection_report", {})
 
-    # ===================================================
     # 2. 容器干扰源分析
-    # ===================================================
     print("\n>>> 调用 container_interference_analysis_tool ...")
 
     analysis_payload = {
@@ -174,7 +160,7 @@ async def main() -> None:
 
     analysis_result = await client.call_tool(
         "container_interference_analysis_tool",
-        {"request": json.dumps(analysis_payload)},   # ✔修正
+        {"request": json.dumps(analysis_payload)},
     )
     analysis_json = extract_json_from_mcp(analysis_result)
 
@@ -188,9 +174,7 @@ async def main() -> None:
 
     analysis_report = analysis_json.get("analysis_report", {})
 
-    # ===================================================
     # 3. 干扰恢复建议
-    # ===================================================
     print("\n>>> 调用 container_interference_recovery_suggestion_tool ...")
 
     recovery_payload = {
@@ -201,16 +185,13 @@ async def main() -> None:
 
     recovery_result = await client.call_tool(
         "container_interference_recovery_suggestion_tool",
-        {"request": json.dumps(recovery_payload)},   # ✔修正
+        {"request": json.dumps(recovery_payload)},
     )
     recovery_json = extract_json_from_mcp(recovery_result)
 
     print("\n=== 3) 恢复建议 ===")
     print(json.dumps(recovery_json, indent=2, ensure_ascii=False))
 
-    # ===================================================
-    # 全流程结束
-    # ===================================================
     await asyncio.sleep(0.2)
     await client.stop()
 

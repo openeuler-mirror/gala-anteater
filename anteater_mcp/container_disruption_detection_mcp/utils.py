@@ -13,15 +13,15 @@ from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
 logger = logging.getLogger("container_disruption_detection_mcp.utils")
 
 
-# -------------------------------------------------------------------
-#    加载 job.json，解析为 KPIParam / WindowParam / ExtraConfig
-# -------------------------------------------------------------------
-def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, ExtraConfig]:
+# 加载 job.json，解析为 KPIParam / WindowParam / ExtraConfig
+def load_kpis_from_job(
+    job_path: str,
+) -> Tuple[List[KPIParam], WindowParam, ExtraConfig]:
     """
     加载 container_disruption.job.json
     输出：
         - KPIParam 列表
-        - WindowParam（look_back + obs_size）
+        - WindowParam（look_back，obs_size）
         - ExtraConfig（extra_metrics）
     """
 
@@ -34,9 +34,7 @@ def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, Extr
         logger.exception(f"[load_kpis_from_job] 读取 job.json 失败: {e}")
         raise
 
-    # -----------------------------
-    #         解析 KPIParam
-    # -----------------------------
+    # 解析 KPIParam
     kpis: List[KPIParam] = []
 
     for idx, k in enumerate(job.get("kpis", [])):
@@ -57,15 +55,13 @@ def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, Extr
 
     logger.info(f"[load_kpis_from_job] 已加载 {len(kpis)} 个 KPIParam")
 
-    # -----------------------------
-    #         解析 WindowParam
-    # -----------------------------
+    # 解析 WindowParam
     if kpis:
         first_params = kpis[0].params
         look_back = int(first_params.get("look_back", 20))
-        obs_size = int(first_params.get("obs_size", 6))
+        obs_size = int(first_params.get("obs_size", 20))
     else:
-        look_back, obs_size = 20, 6  # 默认值
+        look_back, obs_size = 20, 20  # 默认值
 
     window = WindowParam(look_back=look_back, obs_size=obs_size)
 
@@ -73,9 +69,7 @@ def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, Extr
         f"[load_kpis_from_job] WindowParam: look_back={look_back}, obs_size={obs_size}"
     )
 
-    # -----------------------------
-    #         解析 ExtraConfig
-    # -----------------------------
+    # 解析 ExtraConfig
     model_conf = job.get("model_config", {}).get("params", {})
     extra_metrics = str(model_conf.get("extra_metrics", "")).strip()
     extra = ExtraConfig(extra_metrics=extra_metrics)
@@ -87,13 +81,8 @@ def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, Extr
     return kpis, window, extra
 
 
-# -------------------------------------------------------------------
-#         回溯时间窗口（给旧接口 fallback 使用）
-# -------------------------------------------------------------------
+# 回溯时间窗口
 def dt_last(*, minutes: int):
-    """
-    旧 detector 使用的时间函数，MCP 新接口依旧需要兼容。
-    """
     end = datetime.now(timezone.utc)
     start = end - timedelta(minutes=minutes)
     return start, end
