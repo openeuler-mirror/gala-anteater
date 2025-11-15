@@ -155,6 +155,8 @@ async def main() -> None:
 
     analysis_payload = {
         "task_id": task_id,
+        "start_time": detect_json.get("start_time"),
+        "end_time": detect_json.get("end_time"),
         "detection_report": detection_report,
     }
 

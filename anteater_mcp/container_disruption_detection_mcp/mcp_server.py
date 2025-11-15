@@ -205,6 +205,8 @@ def _build_detection_report(
         "task_id": task_id,
         "code": 200,
         "msg": "success",
+        "start_time": detection_start,
+        "end_time": detection_end,
         "detection_report": {
             "metric_list": metric_list,
             "disruption_cnt": len(details),
@@ -475,20 +477,33 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     api = DisruptionSourceAPI()
 
     analysis_details = []
-
+    start_ts = payload.get("start_time")
+    end_ts = payload.get("end_time")
     # 多异常容器分析
     for d in details:
         victim_container_id = d.get("container_id")
         metric_id = d.get("metric_id")
-        start_ts = d.get("start_time")
-        end_ts = d.get("end_time")
-
         if not (victim_container_id and metric_id and start_ts and end_ts):
             continue  # 跳过不合法项，不中断
 
-        # 时间窗口
-        start_dt = datetime.fromtimestamp(start_ts / 1000)
-        end_dt = datetime.fromtimestamp(end_ts / 1000)
+        # 时间窗口 - 转换为 datetime 类型
+        try:
+            if isinstance(start_ts, str):
+                # 处理 ISO 8601 格式字符串
+                start_dt = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
+            else:
+                # 处理数值时间戳（毫秒）
+                start_dt = datetime.fromtimestamp(start_ts / 1000)
+            
+            if isinstance(end_ts, str):
+                # 处理 ISO 8601 格式字符串
+                end_dt = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
+            else:
+                # 处理数值时间戳（毫秒）
+                end_dt = datetime.fromtimestamp(end_ts / 1000)
+        except Exception as e:
+            logger.error(f"[Analysis] 时间戳转换失败: {e}")
+            continue
 
         # 获取该 metric 在窗口内的所有 ts
         try:
