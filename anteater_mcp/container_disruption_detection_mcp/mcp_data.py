@@ -43,7 +43,13 @@ class AnomalyInfo(BaseModel):
         default_factory=dict,
         description="异常指标的标签信息（container_id、instance等）",
     )
+    start_timestamp: int = Field(
+        default=0, description="异常开始时间戳（秒）"
+    )
+    end_timestamp: int = Field(default=0, description="异常结束时间戳（秒）")    
     score: float = Field(default=0.0, description="异常分数（越高说明异常程度越高）")
+    level: str = Field(default="", description="异常级别（轻度/中度/严重）")
+    peak: int = Field(default=0, description="异常峰值")
     entity_name: Optional[str] = Field(
         default="", description="实体名（如指标的entity_name）"
     )
@@ -61,6 +67,9 @@ class PerceptionResult(BaseModel):
     )
     start_time: int = Field(default=0, description="检测窗口开始时间戳（秒）")
     end_time: int = Field(default=0, description="检测窗口结束时间戳（秒）")
+
+    code: int = Field(default=0, description="检测结果状态码")
+    msg: str = Field(default="", description="检测结果描述信息，当code非200时返回报错信息")
 
 
 # --------------------------- 运行参数定义 ---------------------------

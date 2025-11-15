@@ -77,6 +77,10 @@ class ContainerDisruptionFacade:
 )
 @mcp.tool(name="container_disruption_detection_tool")
 def container_disruption_detection_tool(
+    container_keyword_list: Optional[List[str]] = None, # 包含该关键词的容器会被分析
+    metric_keyword_list: Optional[List[str]] = None, # 包含该关键词的 SLI 指标会被分析
+    analysis_timestamp: Optional[int] = None, # 13 位时间戳，单位毫秒
+    analysis_interval: int = 20,  # 分钟
     kpis: List[KPIParam] = None,
     window: WindowParam = WindowParam(),
     extra: Optional[ExtraConfig] = None,
