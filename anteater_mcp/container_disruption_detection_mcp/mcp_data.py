@@ -59,6 +59,8 @@ class PerceptionResult(BaseModel):
     )
     start_time: int = Field(default=0, description="检测窗口开始时间（秒）")
     end_time: int = Field(default=0, description="检测窗口结束时间（秒）")
+    start_timestamp: int = Field(default=0, description="异常开始时间（秒）")
+    end_timestamp: int = Field(default=0, description="异常结束时间（秒）")
 
 
 # KPI & 窗口定义（运行参数）
