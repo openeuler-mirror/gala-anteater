@@ -56,6 +56,10 @@ class ContainerDisruptionDetector(Detector):
         logger.info(f"ModelConfig params: {config.params if config else 'None'}")
         logger.info("========== ContainerDisruptionDetector初始化完成 ==========")
 
+    def get_detection_time(self):
+        """获取检测时间范围"""
+        return self.start_time, self.end_time
+    
     @timer
     def _execute(
         self, kpis: List[KPI], features: List[Feature], **kwargs

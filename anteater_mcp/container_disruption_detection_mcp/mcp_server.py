@@ -114,6 +114,8 @@ def _build_detection_report(
     kpis: List[KPIParam],
     start_ts_ms: int,
     end_ts_ms: int,
+    detection_start: int,
+    detection_end: int,
     container_keyword_list: List[str],
 ) -> Dict[str, Any]:
     metric_list = sorted({k.metric for k in kpis}) if kpis else []
@@ -393,13 +395,17 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
         perception.is_anomaly = True
         perception.anomaly_info = anomaly_infos
 
+    detection_start, detection_end = facade.detector.get_detection_time()
+
     # 构造对外 detection_report
     result = _build_detection_report(
         task_id,
         perception,
         kpis,
-        start_ts_ms,
-        end_ts_ms,
+        perception.start_time * 1000,
+        perception.end_time * 1000,
+        detection_start,
+        detection_end,
         container_keywords,
     )
 
@@ -420,14 +426,9 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 @mcp.tool(name="container_interference_analysis_tool")
 def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     """
-    干扰源分析 API：
-    入参为 JSON 字符串：
-    {
-      "task_id": "...",
-      "detection_report": { ... }   // 容器干扰检测工具输出的检测报告
-    }
+    对 detection_report 中的每一个异常容器进行干扰源分析
     """
-    # 解析请求
+    # 解析
     try:
         payload = json.loads(request)
     except Exception as e:
@@ -435,65 +436,32 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
         return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
+    detection_report = payload.get("detection_report")
+
     if not task_id:
         return {"task_id": "", "code": 400, "msg": "task_id is required"}
-
-    detection_report = payload.get("detection_report")
     if not isinstance(detection_report, dict):
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "detection_report is required and must be dict",
-        }
+        return {"task_id": task_id, "code": 400, "msg": "detection_report invalid"}
 
-    logger.info("[Analysis] start | task_id=%s", task_id)
+    metric_list = detection_report.get("metric_list", [])
+    details = detection_report.get("details", [])
+    disruption_cnt = detection_report.get("disruption_cnt", 0)
 
-    # 校验 detection_report
-    if "details" not in detection_report:
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "invalid detection_report: missing details",
-        }
-
-    if detection_report.get("disruption_cnt", 0) == 0:
-        # 无异常，正常返回
+    if disruption_cnt == 0 or not details:
         return {
             "task_id": task_id,
             "code": 200,
             "msg": "no disruption detected",
             "analysis_report": {
-                "metric_list": detection_report.get("metric_list", []),
+                "metric_list": metric_list,
                 "disruption_cnt": 0,
                 "details": [],
             },
         }
 
-    details = detection_report.get("details") or []
-    if not details:
-        return {
-            "task_id": task_id,
-            "code": 200,
-            "msg": "no disruption detected",
-            "analysis_report": {
-                "metric_list": detection_report.get("metric_list", []),
-                "disruption_cnt": 0,
-                "details": [],
-            },
-        }
+    logger.info("[Analysis] start multi-container | task_id=%s", task_id)
 
-    d = details[0]
-    victim_container_id = d.get("container_id")
-    metric_id = d.get("metric_id")
-
-    if not victim_container_id or not metric_id:
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "invalid detection_report: container_id/metric_id missing",
-        }
-
-    # 检测报告没有 machine_id，因此从 metric_loader 再扫描一次
+    # metric loader 全局只初始化一次
     anteater_conf = os.path.join(
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
@@ -501,94 +469,90 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     try:
         loader = build_metric_loader(config_path=anteater_conf, metricinfo_json={})
     except Exception as e:
-        logger.exception("[Analysis] metric loader failure")
-        return {
-            "task_id": task_id,
-            "code": 404,
-            "msg": f"metric loader failure: {e}",
-        }
+        logger.exception("[Analysis] metric loader error")
+        return {"task_id": task_id, "code": 404, "msg": str(e)}
 
-    # 获取 SLI 时间序列
-    try:
-        start_dt, end_dt = dt_last(minutes=2)
-        print(f"start_dt={start_dt}, end_dt={end_dt}")
-        all_ts: List[TimeSeries] = loader.get_metric(start_dt, end_dt, metric_id)
-    except Exception:
-        logger.exception("[Analysis] metric data fetch failed")
-        return {
-            "task_id": task_id,
-            "code": 404,
-            "msg": "metric data fetch failed",
-        }
+    api = DisruptionSourceAPI()
 
-    if not all_ts:
-        return {
-            "task_id": task_id,
-            "code": 404,
-            "msg": "no metric ts found",
-        }
+    analysis_details = []
 
-    # 找受害者 ts
-    victim_ts = None
-    for ts in all_ts:
-        if ts.labels.get("container_id") == victim_container_id:
-            victim_ts = ts
-            break
+    # 多异常容器分析
+    for d in details:
+        victim_container_id = d.get("container_id")
+        metric_id = d.get("metric_id")
+        start_ts = d.get("start_time")
+        end_ts = d.get("end_time")
 
-    if victim_ts is None:
-        return {
-            "task_id": task_id,
-            "code": 404,
-            "msg": "victim ts not found",
-        }
+        if not (victim_container_id and metric_id and start_ts and end_ts):
+            continue  # 跳过不合法项，不中断
 
-    # 调用 DisruptionSourceAPI
-    try:
-        api = DisruptionSourceAPI()
-        sources: List[RootCause] = api.find_sources(victim_ts, all_ts)
-    except Exception as e:
-        logger.exception("[Analysis] 干扰源计算失败")
-        return {
-            "task_id": task_id,
-            "code": 404,
-            "msg": f"find_sources error: {e}",
-        }
+        # 时间窗口
+        start_dt = datetime.fromtimestamp(start_ts / 1000)
+        end_dt = datetime.fromtimestamp(end_ts / 1000)
 
-    # 概率归一化
-    probs: Dict[str, float] = {}
-    total = sum(float(getattr(s, "score", 0.0)) for s in sources)
-    for rc in sources:
-        cid = rc.labels.get("container_id", "")
-        if not cid:
+        # 获取该 metric 在窗口内的所有 ts
+        try:
+            all_ts: List[TimeSeries] = loader.get_metric(start_dt, end_dt, metric_id)
+        except Exception:
+            logger.exception("[Analysis] fetch ts failed")
             continue
-        probs[cid] = (
-            round((float(getattr(rc, "score", 0.0)) / total), 3) if total > 0 else 0.0
+
+        if not all_ts:
+            logger.warning("[Analysis] no ts for metric=%s", metric_id)
+            continue
+
+        # 找 victim 的 ts
+        victim_ts = None
+        for ts in all_ts:
+            cid = ts.labels.get("container_id") or ts.labels.get("container_name")
+            if cid == victim_container_id:
+                victim_ts = ts
+                break
+
+        if victim_ts is None:
+            logger.warning("[Analysis] victim ts missing: %s", victim_container_id)
+            continue
+
+        # 调用干扰源分析
+        try:
+            sources: List[RootCause] = api.find_sources(victim_ts, all_ts)
+        except Exception:
+            logger.exception("[Analysis] root cause error")
+            continue
+
+        # 归一化概率
+        total = sum(float(getattr(s, "score", 0.0)) for s in sources)
+        probs = {}
+        for s in sources:
+            cid = s.labels.get("container_id", "")
+            if cid:
+                probs[cid] = (
+                    round(float(getattr(s, "score", 0.0)) / total, 3)
+                    if total > 0
+                    else 0.0
+                )
+
+        # 添加到结果
+        analysis_details.append(
+            {
+                "container_id": victim_container_id,
+                "disrupted_metric_id": metric_id,
+                "start_timestamp": start_ts,
+                "end_timestamp": end_ts,
+                "interf_src_probs": probs,  # { container_id: prob }
+            }
         )
 
-    # 构造输出
-    result = {
+    return {
         "task_id": task_id,
         "code": 200,
         "msg": "success",
         "analysis_report": {
-            "metric_list": [metric_id],
-            "disruption_cnt": len(sources),
-            "details": [
-                {
-                    "container_id": victim_container_id,
-                    "disrupted_metric_id": metric_id,
-                    "interf_src_probs": probs,
-                }
-            ],
+            "metric_list": metric_list,
+            "disruption_cnt": len(analysis_details),
+            "details": analysis_details,
         },
     }
-
-    logger.info(
-        "[Analysis] completed | task_id=%s | root_causes=%d",
-        task_id,
-        len(sources),
-    )
-    return result
 
 
 @mcp.prompt(
@@ -602,15 +566,8 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 @mcp.tool(name="container_interference_recovery_suggestion_tool")
 def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
     """
-    干扰恢复建议 API：
-    入参为 JSON 字符串：
-    {
-      "task_id": "...",
-      "detection_report": { ... },   // 检测工具输出
-      "analysis_report": { ... }     // 分析工具输出
-    }
+    多容器恢复建议：对 analysis_report 中每个干扰结果生成恢复建议
     """
-    # 解析请求
     try:
         payload = json.loads(request)
     except Exception as e:
@@ -618,36 +575,14 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
         return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
-    if not task_id:
-        return {"task_id": "", "code": 400, "msg": "task_id is required"}
-
-    detection_report = payload.get("detection_report")
     analysis_report = payload.get("analysis_report")
 
-    if not isinstance(detection_report, dict):
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "detection_report is required and must be dict",
-        }
-
+    if not task_id:
+        return {"task_id": "", "code": 400, "msg": "task_id is required"}
     if not isinstance(analysis_report, dict):
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "analysis_report is required and must be dict",
-        }
+        return {"task_id": task_id, "code": 400, "msg": "analysis_report invalid"}
 
-    logger.info("[Recovery] start | task_id=%s", task_id)
-
-    # 参数校验（analysis_report）
     details = analysis_report.get("details", [])
-    if not isinstance(details, list):
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "invalid analysis_report: details must be list",
-        }
 
     if not details:
         return {
@@ -657,57 +592,52 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
             "recovery_suggestion": [],
         }
 
-    d = details[0]
-    victim = d.get("container_id")
-    metric = d.get("disrupted_metric_id")
-    probs = d.get("interf_src_probs", {})
+    suggestions = []
 
-    if not victim or not metric:
-        return {
-            "task_id": task_id,
-            "code": 400,
-            "msg": "invalid analysis_report: container_id/disrupted_metric_id missing",
-        }
+    # 多容器恢复建议生成
+    for d in details:
+        victim = d.get("container_id")
+        metric = d.get("disrupted_metric_id")
+        probs = d.get("interf_src_probs", {})
 
-    # 没有明确干扰源
-    if not probs:
-        return {
-            "task_id": task_id,
-            "code": 200,
-            "msg": "success",
-            "recovery_suggestion": [
+        if not victim or not metric:
+            continue
+
+        # 若无干扰源
+        if not probs:
+            suggestions.append(
                 {
-                    "suggestion": f"容器 {victim} 未检测到明确干扰源，可继续观察。",
-                    "evidence": "干扰源概率均为 0。",
-                    "example": "无需操作。",
+                    "container_id": victim,
+                    "suggestion": f"容器 {victim} 在指标 {metric} 出现异常，但未检测到明确干扰源。",
+                    "evidence": "干扰源概率全为 0。",
+                    "example": "建议继续观察，必要时扩大分析时间窗口。",
                 }
-            ],
-        }
+            )
+            continue
 
-    # 选最可能的干扰源
-    src_id, prob = max(probs.items(), key=lambda x: x[1])
+        # 找概率最高的干扰源
+        src_id, prob = max(probs.items(), key=lambda x: x[1])
 
-    suggestion = (
-        f"容器 {victim} 的指标 {metric} 受到干扰，"
-        f"建议对可能的干扰源容器 {src_id} 进行性能隔离或限制资源。"
-    )
-    evidence = f"干扰源概率最高的容器为 {src_id}（概率 {prob}）。"
-    example = (
-        f"示例操作：为容器 {src_id} 设置更严格的资源限制，"
-        f"或将容器 {victim} 调度到独占节点运行。"
-    )
+        suggestions.append(
+            {
+                "container_id": victim,
+                "suggestion": (
+                    f"容器 {victim} 在指标 {metric} 受到干扰。"
+                    f"建议对干扰源容器 {src_id}（概率 {prob}）进行资源隔离或限制。"
+                ),
+                "evidence": f"干扰源概率最高：{src_id}（{prob}）。",
+                "example": (
+                    f"可对 {src_id} 设置 CPU/IO 限制，或将容器 {victim} 调度到独占节点。"
+                ),
+            }
+        )
 
-    result = {
+    return {
         "task_id": task_id,
         "code": 200,
         "msg": "success",
-        "recovery_suggestion": [
-            {"suggestion": suggestion, "evidence": evidence, "example": example}
-        ],
+        "recovery_suggestion": suggestions,
     }
-
-    logger.info("[Recovery] finish | task_id=%s", task_id)
-    return result
 
 
 if __name__ == "__main__":
