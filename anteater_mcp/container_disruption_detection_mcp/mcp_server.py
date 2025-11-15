@@ -252,6 +252,8 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
         return {"task_id": task_id, "code": 400, "msg": "analysis_interval must > 0"}
 
     analysis_timestamp = payload.get("analysis_timestamp", int(time.time() * 1000))
+    if not analysis_timestamp:
+        analysis_timestamp = int(time.time() * 1000)
     try:
         analysis_timestamp = int(analysis_timestamp)
     except Exception:
@@ -263,6 +265,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     start_ts_ms = analysis_timestamp - analysis_interval
     end_ts_ms = analysis_timestamp
+    print(f"start_ts_ms:{start_ts_ms}, end_ts_ms: {end_ts_ms}")
     look_back_minutes = max(1, int(analysis_interval / 60000))
 
     container_keywords = [str(x) for x in payload.get("container_keyword_list", [])]
@@ -508,6 +511,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     # 获取 SLI 时间序列
     try:
         start_dt, end_dt = dt_last(minutes=2)
+        print(f"start_dt={start_dt}, end_dt={end_dt}")
         all_ts: List[TimeSeries] = loader.get_metric(start_dt, end_dt, metric_id)
     except Exception:
         logger.exception("[Analysis] metric data fetch failed")

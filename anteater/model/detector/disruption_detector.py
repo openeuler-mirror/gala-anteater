@@ -249,13 +249,6 @@ class ContainerDisruptionDetector(Detector):
                 )
                 raise ValueError("Detect result length mismatch")
 
-            # 根据9:1比例计算测试数据大小
-            total_points = len(_ts.values)
-            new_obs_size = max(1, int(total_points * 0.1))  # 至少保留1个点作为测试数据
-            if obs_size is not None:
-                # 如果配置中指定了obs_size，则使用配置值和计算值中的较大值
-                new_obs_size = max(obs_size, new_obs_size)
-
             # 分离训练和测试数据
             logger.info("  【步骤6.4.2-数据分离】分离训练数据和测试数据...")
             train_data = [
@@ -263,9 +256,9 @@ class ContainerDisruptionDetector(Detector):
                 for i in range(len(detect_result))
                 if detect_result[i] == 0
             ]
-            test_data = _ts.values[-new_obs_size:]
+            test_data = _ts.values[-obs_size:]
             logger.info(
-                f"  训练数据长度: {len(train_data)}, 测试数据长度: {len(test_data)} (按9:1划分)"
+                f"  训练数据长度: {len(train_data)}, 测试数据长度: {len(test_data)}"
             )
 
             # 去重统计
