@@ -1,51 +1,99 @@
+from __future__ import annotations
 import json
 import logging
-from typing import List, Tuple
-
-from anteater_mcp.container_disruption_detection_mcp.mcp_data import KPIParam, WindowParam, ExtraConfig
+from typing import List, Tuple, Any
 from datetime import datetime, timedelta, timezone
 
-logger = logging.getLogger("container_disruption_detection_mcp")
+from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
+    KPIParam,
+    WindowParam,
+    ExtraConfig,
+)
+
+logger = logging.getLogger("container_disruption_detection_mcp.utils")
 
 
-def load_kpis_from_job(
-    job_path: str,
-) -> Tuple[List[KPIParam], WindowParam, ExtraConfig]:
-    """从 job.json 中加载 KPIParam, WindowParam 和 ExtraConfig"""
-    with open(job_path, "r", encoding="utf-8") as f:
-        job = json.load(f)
+# -------------------------------------------------------------------
+#    加载 job.json，解析为 KPIParam / WindowParam / ExtraConfig
+# -------------------------------------------------------------------
+def load_kpis_from_job(job_path: str) -> Tuple[List[KPIParam], WindowParam, ExtraConfig]:
+    """
+    加载 container_disruption.job.json
+    输出：
+        - KPIParam 列表
+        - WindowParam（look_back + obs_size）
+        - ExtraConfig（extra_metrics）
+    """
 
-    kpis = []
-    for k in job.get("kpis", []):
+    logger.info(f"[load_kpis_from_job] 加载 job 文件: {job_path}")
+
+    try:
+        with open(job_path, "r", encoding="utf-8") as f:
+            job = json.load(f)
+    except Exception as e:
+        logger.exception(f"[load_kpis_from_job] 读取 job.json 失败: {e}")
+        raise
+
+    # -----------------------------
+    #         解析 KPIParam
+    # -----------------------------
+    kpis: List[KPIParam] = []
+
+    for idx, k in enumerate(job.get("kpis", [])):
         if not k.get("enable", True):
             continue
-        kpis.append(
-            KPIParam(
-                metric=k["metric"],
-                entity_name=k.get("entity_name", ""),
-                params=k.get("params", {}),
-            )
-        )
 
-    # 解析 WindowParam
-    first_params = kpis[0].params if kpis else {}
-    look_back = int(first_params.get("look_back", 20))
-    obs_size = int(first_params.get("obs_size", 6))
+        metric = k.get("metric")
+        if not metric:
+            logger.warning(f"[load_kpis_from_job] KPI[{idx}] 缺少 metric，跳过")
+            continue
+
+        kp = KPIParam(
+            metric=metric,
+            entity_name=str(k.get("entity_name", "")),
+            params=k.get("params", {}) or {},
+        )
+        kpis.append(kp)
+
+    logger.info(f"[load_kpis_from_job] 已加载 {len(kpis)} 个 KPIParam")
+
+    # -----------------------------
+    #         解析 WindowParam
+    # -----------------------------
+    if kpis:
+        first_params = kpis[0].params
+        look_back = int(first_params.get("look_back", 20))
+        obs_size = int(first_params.get("obs_size", 6))
+    else:
+        look_back, obs_size = 20, 6  # 默认值
+
     window = WindowParam(look_back=look_back, obs_size=obs_size)
 
-    # 解析 ExtraConfig
+    logger.info(
+        f"[load_kpis_from_job] WindowParam: look_back={look_back}, obs_size={obs_size}"
+    )
+
+    # -----------------------------
+    #         解析 ExtraConfig
+    # -----------------------------
     model_conf = job.get("model_config", {}).get("params", {})
-    extra_metrics = model_conf.get("extra_metrics", "")
+    extra_metrics = str(model_conf.get("extra_metrics", "")).strip()
     extra = ExtraConfig(extra_metrics=extra_metrics)
 
     logger.info(
-        f"Loaded {len(kpis)} KPI(s) from job file '{job_path}', "
-        f"look_back={look_back}, obs_size={obs_size}, extra_metrics='{extra_metrics}'"
+        f"[load_kpis_from_job] ExtraMetrics='{extra_metrics if extra_metrics else '(none)'}'"
     )
+
     return kpis, window, extra
 
 
+# -------------------------------------------------------------------
+#         回溯时间窗口（给旧接口 fallback 使用）
+# -------------------------------------------------------------------
 def dt_last(*, minutes: int):
+    """
+    旧 detector 使用的时间函数，MCP 新接口依旧需要兼容。
+    """
     end = datetime.now(timezone.utc)
     start = end - timedelta(minutes=minutes)
     return start, end

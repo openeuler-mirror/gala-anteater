@@ -1,31 +1,25 @@
 from __future__ import annotations
 import os
 import sys
+import json
+import time
 import logging
-from typing import List, Optional, Union
+from datetime import datetime
+from typing import List, Dict, Any
 
 from common.loader import build_metric_loader
-
 from mcp.server import FastMCP
-from anteater.core.anomaly import Anomaly
+
+from anteater.core.anomaly import Anomaly, RootCause
 from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
-from anteater.utils.common import GlobalVariable
-from anteater_mcp.container_disruption_detection_mcp.report_api import (
-    generate_degraded_report,
-    generate_normal_report,
-)
 
 from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
-    RootCauseResult,
-    RootCauseInfo,
-    AnomalyInfo,
     PerceptionResult,
+    AnomalyInfo,
     KPIParam,
-    WindowParam,
     ExtraConfig,
-    ReportType,
 )
 
 from anteater_mcp.container_disruption_detection_mcp.utils import (
@@ -33,6 +27,14 @@ from anteater_mcp.container_disruption_detection_mcp.utils import (
     dt_last,
 )
 
+from anteater_mcp.container_disruption_detection_mcp.api.disruption_source_api import (
+    DisruptionSourceAPI,
+)
+
+
+# -------------------------
+# 日志配置
+# -------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -40,24 +42,47 @@ logging.basicConfig(
 )
 logger = logging.getLogger("container_disruption_detection_mcp")
 
+# -------------------------
+# 启动 MCP Server
+# -------------------------
 mcp = FastMCP("Container Disruption Detection MCP", host="0.0.0.0", port=12345)
 
 
+# -----------------------------------------------------
+#  Facade：对 ContainerDisruptionDetector 做统一封装
+# -----------------------------------------------------
 class ContainerDisruptionFacade:
-    def __init__(self, data_loader, config: ExtraConfig):
+    """
+    用于统一屏蔽 ContainerDisruptionDetector 的复杂接口，
+    使 MCP 工具调用更稳定、更可控。
+    """
+
+    def __init__(self, data_loader, config: ModelConfig | ExtraConfig):
         self.data_loader = data_loader
-        self.config = config
-        self.detector = ContainerDisruptionDetector(data_loader, config)
 
-    def get_unique_machine_id(self, look_back: int, kpis: List[KPI]) -> List[str]:
+        # 兼容 ExtraConfig / ModelConfig
+        if isinstance(config, ModelConfig):
+            self.detector = ContainerDisruptionDetector(data_loader, config)
+        else:
+            self.detector = ContainerDisruptionDetector(
+                data_loader,
+                ModelConfig(
+                    name="container_disruption_detection",
+                    model_path="../../anteater/model/detector/disruption_detector.py",
+                    params={"extra_metrics": getattr(config, "extra_metrics", "")},
+                ),
+            )
+
+    def get_unique_machine_id(self, look_back: int, kpis: List[KPI]):
         start, end = dt_last(minutes=look_back)
-        return start, end, self.detector.get_unique_machine_id(start, end, kpis)
-
-    def get_kpi_ts_list(self, metric: str, machine_id: str, look_back: int):
-        return self.detector.get_kpi_ts_list(metric, machine_id, look_back)
+        mids = self.detector.get_unique_machine_id(start, end, kpis)
+        return start, end, mids
 
     def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
         return self.detector.detect_by_spot(kpi, machine_id)
+
+    def get_kpi_ts_list(self, metric: str, machine_id: str, look_back: int):
+        return self.detector.get_kpi_ts_list(metric, machine_id, look_back)
 
     def find_disruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]):
         return self.detector.find_disruption_source(victim_ts, all_ts)
@@ -70,257 +95,600 @@ class ContainerDisruptionFacade:
         )
 
 
-@mcp.prompt(
-    description="调用逻辑:1. 当用户询问特定容器ID的容器性能是否被干扰时调用。2. 检测结果将决定后续流程走向。\
-            3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用root_cause_analysis_tool方法 ，如果没有出现劣化现象，则调用报告工具返回报告给用户。\
-            4. 本方法得到的结果必须再调用 report_tool 生成报告给到用户"
-)
+# -----------------------------------------------------
+# 工具函数
+# -----------------------------------------------------
+def _score_to_level(score: float) -> str:
+    """将 0~1 score 映射为异常级别"""
+    if score < 0.3:
+        return "轻度"
+    elif score < 0.7:
+        return "中度"
+    return "严重"
+
+
+def _extract_container_id(labels: Dict[str, Any]) -> str:
+    """尽最大可能从 labels 中提取容器 ID"""
+    if not labels:
+        return ""
+    for k in ("container_id", "container_name", "pod", "instance"):
+        if k in labels and labels[k]:
+            return str(labels[k])
+    return str(labels)
+
+
+def _build_detection_report(
+    task_id: str,
+    perception: PerceptionResult,
+    kpis: List[KPIParam],
+    start_ts_ms: int,
+    end_ts_ms: int,
+    container_keyword_list: List[str],
+) -> Dict[str, Any]:
+
+    metric_list = sorted({k.metric for k in kpis}) if kpis else []
+    details = []
+
+    for anomaly in perception.anomaly_info:
+        cid = _extract_container_id(anomaly.labels)
+
+        # 容器关键字过滤
+        if container_keyword_list:
+            if not any(kw in cid for kw in container_keyword_list):
+                continue
+
+        abnormal_level = _score_to_level(anomaly.score)
+
+        # 峰值提取
+        peak = None
+        if isinstance(anomaly.details, dict):
+            for key in ("peak", "max", "value"):
+                if key in anomaly.details:
+                    try:
+                        peak = int(float(anomaly.details[key]))
+                        break
+                    except Exception:
+                        pass
+        if peak is None:
+            peak = int(anomaly.score * 100)
+
+
+        def _safe_parse_dt(ts):
+            if isinstance(ts, datetime):
+                return ts
+            if isinstance(ts, str):
+                try:
+                    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                except:
+                    return None
+            return None
+
+        inner_info = anomaly.details.get("info", {}) if isinstance(anomaly.details, dict) else {}
+
+        inner_start = _safe_parse_dt(inner_info.get("abnormal_start"))
+        inner_end = _safe_parse_dt(inner_info.get("abnormal_end"))
+
+        use_start = int(inner_start.timestamp() * 1000) if inner_start else start_ts_ms
+        use_end = int(inner_end.timestamp() * 1000) if inner_end else end_ts_ms
+        
+        details.append(
+            {
+                "container_id": cid,
+                "metric_id": anomaly.metric,
+                "start_timestamp": use_start,
+                "end_timestamp": use_end,
+                "abnormal_level": abnormal_level,
+                "disruption_peak": peak,
+            }
+        )
+
+    return {
+        "task_id": task_id,
+        "code": 200,
+        "msg": "success",
+        "detection_report": {
+            "metric_list": metric_list,
+            "disruption_cnt": len(details),
+            "details": details,
+        },
+    }
+
+
+# -----------------------------------------------------
+# MCP 1：容器干扰检测（新版接口）
+# -----------------------------------------------------
+@mcp.prompt(description="容器干扰检测 MCP：根据给定时间范围检测 SLI 是否存在干扰症状。")
 @mcp.tool(name="container_disruption_detection_tool")
-def container_disruption_detection_tool(
-    container_keyword_list: Optional[List[str]] = None, # 包含该关键词的容器会被分析
-    metric_keyword_list: Optional[List[str]] = None, # 包含该关键词的 SLI 指标会被分析
-    analysis_timestamp: Optional[int] = None, # 13 位时间戳，单位毫秒
-    analysis_interval: int = 20,  # 分钟
-    kpis: List[KPIParam] = None,
-    window: WindowParam = WindowParam(),
-    extra: Optional[ExtraConfig] = None,
-    anteater_conf: Optional[str] = None,
-    metric_info: Optional[dict] = None,
-    machine_id: Optional[str] = None,
-) -> PerceptionResult:
-    """容器异常检测工具（支持自动识别机器ID）"""
+def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
+    """
+    容器干扰检测 API（与文档对齐）：
+    - 入参为 JSON 字符串 request
+      {
+        "task_id": "...",
+        "container_keyword_list": [...],   // 可选
+        "metric_keyword_list": [...],      // 可选
+        "analysis_timestamp": 1234567890,  // 可选，毫秒
+        "analysis_interval": 600000        // 必选，毫秒
+      }
+    - 输出 JSON（字典）
+    """
+    # -------------- 参数解析 --------------
+    try:
+        payload = json.loads(request)
+    except Exception as e:
+        logger.exception("请求 JSON 解析失败")
+        return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
+
+    task_id = payload.get("task_id", "")
+    if not task_id:
+        return {"task_id": "", "code": 400, "msg": "task_id is required"}
+
+    if "analysis_interval" not in payload:
+        return {"task_id": task_id, "code": 400, "msg": "analysis_interval is required"}
+
+    try:
+        analysis_interval = int(payload["analysis_interval"])
+    except Exception:
+        return {"task_id": task_id, "code": 400, "msg": "analysis_interval must be int"}
+
+    if analysis_interval <= 0:
+        return {"task_id": task_id, "code": 400, "msg": "analysis_interval must > 0"}
+
+    analysis_timestamp = payload.get("analysis_timestamp", int(time.time() * 1000))
+    try:
+        analysis_timestamp = int(analysis_timestamp)
+    except Exception:
+        return {"task_id": task_id, "code": 400, "msg": "analysis_timestamp must be int"}
+
+    start_ts_ms = analysis_timestamp - analysis_interval
+    end_ts_ms = analysis_timestamp
+    look_back_minutes = max(1, int(analysis_interval / 60000))
+
+    container_keywords = [str(x) for x in payload.get("container_keyword_list", [])]
+    metric_keywords = [str(x) for x in payload.get("metric_keyword_list", [])]
+
+    logger.info(
+        "开始检测 | task_id=%s | look_back=%d min | metrics_kw=%s | containers_kw=%s",
+        task_id,
+        look_back_minutes,
+        metric_keywords,
+        container_keywords,
+    )
+
+    # ------------------ 加载 job 配置 ------------------
     job_path = os.path.join(
         os.path.dirname(__file__), "../config/container_disruption.job.json"
     )
     anteater_conf = os.path.join(
         os.path.dirname(__file__), "../config/gala-anteater.yaml"
     )
-    kpis, window, extra = load_kpis_from_job(job_path)
 
-    loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
-    facade = ContainerDisruptionFacade(
-        loader,
-        ModelConfig(
-            name="container_disruption_detection",
-            model_path="../../anteater/model/detector/disruption_detector.py",
-            params={"extra_metrics": extra.extra_metrics},
-        ),
+    try:
+        kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path)
+    except Exception:
+        logger.exception("加载 job 配置失败")
+        return {"task_id": task_id, "code": 404, "msg": "failed to load job config"}
+
+    # 根据 metric 关键字过滤 KPI
+    if metric_keywords:
+        kpis = [k for k in kpis if any(kw in k.metric for kw in metric_keywords)]
+
+    # 无 KPI → 正常返回（空报告）
+    if not kpis:
+        logger.warning("无可分析的 KPI，直接返回空报告")
+        empty = PerceptionResult(
+            is_anomaly=False, anomaly_info=[], start_time=start_ts_ms, end_time=end_ts_ms
+        )
+        return _build_detection_report(
+            task_id, empty, [], start_ts_ms, end_ts_ms, container_keywords
+        )
+
+    # ------------------ 构造检测器 ------------------
+    try:
+        loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=None)
+        facade = ContainerDisruptionFacade(
+            loader,
+            ModelConfig(
+                name="container_disruption_detection",
+                model_path="../../anteater/model/detector/disruption_detector.py",
+                params={"extra_metrics": extra_cfg.extra_metrics},
+            ),
+        )
+    except Exception:
+        logger.exception("构造 detector 失败")
+        return {"task_id": task_id, "code": 404, "msg": "failed to init detector"}
+
+    # ------------------ 获取机器列表 ------------------
+    try:
+        start_dt, end_dt, machine_ids = facade.get_unique_machine_id(
+            look_back_minutes, kpis
+        )
+    except Exception:
+        logger.exception("获取机器列表失败")
+        return {"task_id": task_id, "code": 404, "msg": "failed to query machine list"}
+
+    if not machine_ids:
+        return {"task_id": task_id, "code": 404, "msg": "no machine data available"}
+
+    logger.info(
+        "检测窗口 job=[%s - %s]  actual=[%s - %s]",
+        start_dt.isoformat(),
+        end_dt.isoformat(),
+        datetime.fromtimestamp(start_ts_ms / 1000).isoformat(),
+        datetime.fromtimestamp(end_ts_ms / 1000).isoformat(),
     )
-    anomalies = []
-    anomaly_result = PerceptionResult(
+
+    # --------------------------------------------------
+    # 执行检测流程（遍历机器和 KPI）
+    # --------------------------------------------------
+    anomalies: List[Anomaly] = []
+    perception = PerceptionResult(
         is_anomaly=False,
         anomaly_info=[],
+        start_time=int(start_ts_ms / 1000),
+        end_time=int(end_ts_ms / 1000),
     )
 
-    if not machine_id:
-        if not kpis:
-            raise ValueError("必须提供至少一个 KPI 参数")
-        start, end, machine_ids = facade.get_unique_machine_id(window.look_back, kpis)
-        anomaly_result.start_time = int(start.timestamp())
-        anomaly_result.end_time = int(end.timestamp())
-    else:
-        machine_ids = [machine_id]
+    try:
+        for mid in machine_ids:
+            for kpi in kpis:
+                anomalies.extend(facade.detect_by_spot(kpi, mid))
+    except Exception:
+        logger.exception("检测执行失败")
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": "error occurred during detection",
+        }
 
-    for mid in machine_ids:
-        for k in kpis:
-            anomalies.extend(facade.detect_by_spot(k, mid))
+    logger.info(
+        "检测结束 | task_id=%s | 总机器数=%d | 异常数=%d",
+        task_id,
+        len(machine_ids),
+        len(anomalies),
+    )
 
-    logger.info("检测完成，总机器数: %d", len(machine_ids))
-
-    # 将Anomaly对象转换为AnomalyInfo对象
-    anomaly_infos = []
-    for anomaly in anomalies:
-        # 转换root_causes为RootCauseResult对象
-        root_causes = []
-        if anomaly.root_causes:
-            for cause in anomaly.root_causes:
-                root_causes.append(
-                    RootCauseResult(
-                        metric=cause.metric, labels=cause.labels, score=cause.score
-                    )
-                )
-
+    # --------------------------------------------------
+    # 转换为 PerceptionResult.AnomalyInfo
+    # --------------------------------------------------
+    anomaly_infos: List[AnomalyInfo] = []
+    for an in anomalies:
         anomaly_infos.append(
             AnomalyInfo(
-                machine_id=anomaly.machine_id,
-                metric=anomaly.metric,
-                labels=anomaly.labels,
-                score=anomaly.score,
-                entity_name=anomaly.entity_name,
-                details=anomaly.details or {},
+                machine_id=getattr(an, "machine_id", ""),
+                metric=getattr(an, "metric", ""),
+                labels=getattr(an, "labels", {}) or {},
+                score=float(getattr(an, "score", 0.0)),
+                entity_name=getattr(an, "entity_name", "") or "",
+                details=getattr(an, "details", {}) or {},
             )
         )
 
-    # 构造并返回PerceptionResult对象
     if anomaly_infos:
-        anomaly_result.is_anomaly = True
-        anomaly_result.anomaly_info = anomaly_infos
+        perception.is_anomaly = True
+        perception.anomaly_info = anomaly_infos
 
-    return anomaly_result
-
-
-@mcp.prompt(
-    description="调用逻辑:1. 仅在容器干扰检测工具返回is_anomaly=True时调用。 \
-    2. 接收感知工具的全量性能数据作为输入。  \
-    3. 本方法得到的结果必须再调用 report_tool 生成报告给到用户"
-)
-@mcp.tool(name="root_cause_analysis_tool")
-def root_cause_analysis_tool(
-    anomalies: PerceptionResult,
-    window: WindowParam = WindowParam(),
-    anteater_conf: Optional[str] = None,
-    metric_info: Optional[dict] = None,
-    machine_id: str = "",
-) -> RootCauseResult:
-    if anomalies.is_anomaly == False:
-        raise ValueError(
-            "当container_disruption_detection_tool检测出异常事件时，再调用此工具"
-        )
-    job_path = os.path.join(
-        os.path.dirname(__file__), "../config/container_disruption.job.json"
-    )
-    anteater_conf = os.path.join(
-        os.path.dirname(__file__), "../config/gala-anteater.yaml"
-    )
-    kpis, window, extra = load_kpis_from_job(job_path)
-
-    loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=metric_info)
-    facade = ContainerDisruptionFacade(
-        loader,
-        ModelConfig(
-            name="container_disruption_detection",
-            model_path="../../anteater/model/detector/disruption_detector.py",
-            params={"extra_metrics": extra.extra_metrics},
-        ),
+    # --------------------------------------------------
+    # 构造对外 detection_report
+    # --------------------------------------------------
+    result = _build_detection_report(
+        task_id,
+        perception,
+        kpis,
+        start_ts_ms,
+        end_ts_ms,
+        container_keywords,
     )
 
-    # 使用第一个异常作为入口点获取同一机器的时序列表
-    metric = anomalies.anomaly_info[0].metric
-    machine_id = anomalies.anomaly_info[0].machine_id
-    if GlobalVariable.is_test_model == False:
-        GlobalVariable.is_test_model = True
-        from datetime import datetime
-
-        GlobalVariable.start_time = datetime.fromtimestamp(anomalies.start_time)
-        GlobalVariable.end_time = datetime.fromtimestamp(anomalies.end_time)
-        _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
-        GlobalVariable.is_test_model = False
-    else:
-        _, ts_list = facade.get_kpi_ts_list(metric, machine_id, window.look_back)
-
-    # 只分析检测阶段判定为异常的时间序列
-    abnormal_keys = {(a.metric, a.machine_id) for a in anomalies.anomaly_info}
-
-    rootcauses = []
-
-    for _ts in ts_list:
-        ts_metric = getattr(_ts, "metric", None)
-        ts_machine_id = _ts.labels.get("machine_id") if hasattr(_ts, "labels") else None
-
-        if (ts_metric, ts_machine_id) in abnormal_keys:
-            logger.info(
-                f"根因分析: 检测到异常时序 metric={ts_metric}, machine_id={ts_machine_id}"
-            )
-            rootcauses.extend(facade.find_disruption_source(_ts, ts_list))
-        else:
-            logger.debug(f"跳过正常时序 metric={ts_metric}, machine_id={ts_machine_id}")
-
-    rootcause_infos = [
-        RootCauseInfo(metric=rc.metric, labels=rc.labels, score=rc.score)
-        for rc in rootcauses
-    ]
-
-    rootcause_result = RootCauseResult(
-        rootcause_info=rootcause_infos,
-        start_time=anomalies.start_time,
-        end_time=anomalies.end_time,
+    logger.info(
+        "检测报告完成 | task_id=%s | disruption_cnt=%d",
+        task_id,
+        result["detection_report"]["disruption_cnt"],
     )
-
-    return rootcause_result
-
-
-@mcp.prompt(
-    description="""
-调用逻辑：
-1. 仅在 container_disruption_detection_tool 或 root_cause_analysis_tool 执行完成后调用；
-2. 当检测结果正常（无容器性能干扰）时，传入 report_type=normal；
-   当检测结果存在性能干扰时，传入 report_type=anomaly；
-3. 本工具生成结构化报告数据，供大模型后续自然语言报告生成使用；
-4. 不论是否存在干扰，执行完检测或根因分析后都必须调用此工具。
-"""
-)
-@mcp.tool(name="report_tool")
-def generate_report_tool(
-    source_data: Union[PerceptionResult, RootCauseResult], report_type: ReportType
-) -> dict:
-    """
-    容器干扰诊断报告生成工具
-
-    角色设定：
-    您是一名专业的容器性能干扰诊断工程师，
-    擅长分析容器化环境和 AI 训练任务的性能干扰问题。
-    您将基于 <context> 中的检测或根因分析结果生成
-    “容器干扰检测诊断报告”，内容必须真实、专业、可供研发与运维使用。
-
-    写作要求：
-    - 报告标题固定为“容器干扰检测诊断报告”；
-    - 若 report_type=normal，则直接说明系统运行正常；
-    - 若 report_type=anomaly，则说明干扰类型、异常容器数量及其指标；
-    - 禁止出现 GPU / CPU / 磁盘 等无关字眼；
-    - 当前时间可参考 {{ time }}；
-    - 报告由大模型最终生成自然语言文本，本函数仅返回结构化 JSON 数据。
-
-    报告逻辑结构：
-    1. **总览**：检测时间范围、状态（正常 / 异常）、异常数量；
-    2. **细节**：异常容器的指标 (metric)、标签 (labels)、得分 (score)；
-    3. **建议**：
-        - 若为计算类异常：检查算子执行逻辑与任务下发；
-        - 若为网络类异常：检查容器组网与端口延迟；
-        - 若为存储类异常：检查I/O性能与数据加载逻辑。
-
-    输出：
-    - 返回 JSON 格式的结构化报告；
-    - 大模型基于本结构生成最终人类可读报告。
-    """
-    logger.info(f"调用 报告工具，report_type = {report_type.value}")
-
-    # 根据报告类型生成对应结构
-    if report_type == ReportType.normal:
-        result = generate_normal_report(source_data)
-    elif report_type == ReportType.anomaly:
-        result = generate_degraded_report(source_data)
-    else:
-        raise ValueError(f"不支持的报告类型: {report_type}")
-
-    logger.info(f"报告生成完成: {result.get('overview', {}).get('status')}")
     return result
 
 
+# =========================================================
+# MCP 2：容器干扰源分析
+# =========================================================
+@mcp.prompt(description="容器干扰源分析工具：基于检测报告分析可能的干扰源。")
+@mcp.tool(name="container_interference_analysis_tool")
+def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
+    """
+    干扰源分析 API：
+    入参为 JSON 字符串：
+    {
+      "task_id": "...",
+      "detection_report": { ... }   // 容器干扰检测工具输出的检测报告
+    }
+    """
+    # ---------- 解析请求 ----------
+    try:
+        payload = json.loads(request)
+    except Exception as e:
+        logger.exception("[Analysis] invalid json")
+        return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
+
+    task_id = payload.get("task_id", "")
+    if not task_id:
+        return {"task_id": "", "code": 400, "msg": "task_id is required"}
+
+    detection_report = payload.get("detection_report")
+    if not isinstance(detection_report, dict):
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "detection_report is required and must be dict",
+        }
+
+    logger.info("[Analysis] start | task_id=%s", task_id)
+
+    # ---------- 校验 detection_report ----------
+    if "details" not in detection_report:
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "invalid detection_report: missing details",
+        }
+
+    if detection_report.get("disruption_cnt", 0) == 0:
+        # 无异常 → 可直接返回
+        return {
+            "task_id": task_id,
+            "code": 200,
+            "msg": "no disruption detected",
+            "analysis_report": {
+                "metric_list": detection_report.get("metric_list", []),
+                "disruption_cnt": 0,
+                "details": [],
+            },
+        }
+
+    details = detection_report.get("details") or []
+    if not details:
+        return {
+            "task_id": task_id,
+            "code": 200,
+            "msg": "no disruption detected",
+            "analysis_report": {
+                "metric_list": detection_report.get("metric_list", []),
+                "disruption_cnt": 0,
+                "details": [],
+            },
+        }
+
+    d = details[0]
+    victim_container_id = d.get("container_id")
+    metric_id = d.get("metric_id")
+
+    if not victim_container_id or not metric_id:
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "invalid detection_report: container_id/metric_id missing",
+        }
+
+    # NOTE：检测报告没有 machine_id，因此从 metric_loader 再扫描一次
+    anteater_conf = os.path.join(
+        os.path.dirname(__file__), "../config/gala-anteater.yaml"
+    )
+
+    try:
+        loader = build_metric_loader(config_path=anteater_conf, metricinfo_json={})
+    except Exception as e:
+        logger.exception("[Analysis] metric loader failure")
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": f"metric loader failure: {e}",
+        }
+
+    # ---------- 获取 SLI 时间序列 ----------
+    try:
+        start_dt, end_dt = dt_last(minutes=2)
+        all_ts: List[TimeSeries] = loader.get_metric(start_dt, end_dt, metric_id)
+    except Exception:
+        logger.exception("[Analysis] metric data fetch failed")
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": "metric data fetch failed",
+        }
+
+    if not all_ts:
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": "no metric ts found",
+        }
+
+    # ---------- 找受害者 ts ----------
+    victim_ts = None
+    for ts in all_ts:
+        if ts.labels.get("container_id") == victim_container_id:
+            victim_ts = ts
+            break
+
+    if victim_ts is None:
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": "victim ts not found",
+        }
+
+    # ---------- 调用 DisruptionSourceAPI ----------
+    try:
+        api = DisruptionSourceAPI()
+        sources: List[RootCause] = api.find_sources(victim_ts, all_ts)
+    except Exception as e:
+        logger.exception("[Analysis] 干扰源计算失败")
+        # 文档只规定 200/400/404，这里归为数据访问类错误
+        return {
+            "task_id": task_id,
+            "code": 404,
+            "msg": f"find_sources error: {e}",
+        }
+
+    # ---------- 概率归一化 ----------
+    probs: Dict[str, float] = {}
+    total = sum(float(getattr(s, "score", 0.0)) for s in sources)
+    for rc in sources:
+        cid = rc.labels.get("container_id", "")
+        if not cid:
+            continue
+        probs[cid] = round(
+            (float(getattr(rc, "score", 0.0)) / total), 3
+        ) if total > 0 else 0.0
+
+    # ---------- 构造输出 ----------
+    result = {
+        "task_id": task_id,
+        "code": 200,
+        "msg": "success",
+        "analysis_report": {
+            "metric_list": [metric_id],
+            "disruption_cnt": len(sources),
+            "details": [
+                {
+                    "container_id": victim_container_id,
+                    "disrupted_metric_id": metric_id,
+                    "interf_src_probs": probs,
+                }
+            ],
+        },
+    }
+
+    logger.info(
+        "[Analysis] completed | task_id=%s | root_causes=%d",
+        task_id,
+        len(sources),
+    )
+    return result
+
+
+# =========================================================
+# MCP 3：容器干扰恢复建议
+# =========================================================
+@mcp.prompt(description="容器干扰恢复建议工具：基于检测 + 分析结果生成恢复建议。")
+@mcp.tool(name="container_interference_recovery_suggestion_tool")
+def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
+    """
+    干扰恢复建议 API：
+    入参为 JSON 字符串：
+    {
+      "task_id": "...",
+      "detection_report": { ... },   // 检测工具输出
+      "analysis_report": { ... }     // 分析工具输出
+    }
+    """
+    # ---------- 解析请求 ----------
+    try:
+        payload = json.loads(request)
+    except Exception as e:
+        logger.exception("[Recovery] invalid json")
+        return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
+
+    task_id = payload.get("task_id", "")
+    if not task_id:
+        return {"task_id": "", "code": 400, "msg": "task_id is required"}
+
+    detection_report = payload.get("detection_report")
+    analysis_report = payload.get("analysis_report")
+
+    if not isinstance(detection_report, dict):
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "detection_report is required and must be dict",
+        }
+
+    if not isinstance(analysis_report, dict):
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "analysis_report is required and must be dict",
+        }
+
+    logger.info("[Recovery] start | task_id=%s", task_id)
+
+    # 参数校验（analysis_report）
+    details = analysis_report.get("details", [])
+    if not isinstance(details, list):
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "invalid analysis_report: details must be list",
+        }
+
+    if not details:
+        return {
+            "task_id": task_id,
+            "code": 200,
+            "msg": "no interference found",
+            "recovery_suggestion": [],
+        }
+
+    d = details[0]
+    victim = d.get("container_id")
+    metric = d.get("disrupted_metric_id")
+    probs = d.get("interf_src_probs", {})
+
+    if not victim or not metric:
+        return {
+            "task_id": task_id,
+            "code": 400,
+            "msg": "invalid analysis_report: container_id/disrupted_metric_id missing",
+        }
+
+    # --------- 没有明确干扰源 ----------
+    if not probs:
+        return {
+            "task_id": task_id,
+            "code": 200,
+            "msg": "success",
+            "recovery_suggestion": [
+                {
+                    "suggestion": f"容器 {victim} 未检测到明确干扰源，可继续观察。",
+                    "evidence": "干扰源概率均为 0。",
+                    "example": "无需操作。",
+                }
+            ],
+        }
+
+    # 选最可能的干扰源
+    src_id, prob = max(probs.items(), key=lambda x: x[1])
+
+    suggestion = (
+        f"容器 {victim} 的指标 {metric} 受到干扰，"
+        f"建议对可能的干扰源容器 {src_id} 进行性能隔离或限制资源。"
+    )
+    evidence = f"干扰源概率最高的容器为 {src_id}（概率 {prob}）。"
+    example = (
+        f"示例操作：为容器 {src_id} 设置更严格的资源限制，"
+        f"或将容器 {victim} 调度到独占节点运行。"
+    )
+
+    result = {
+        "task_id": task_id,
+        "code": 200,
+        "msg": "success",
+        "recovery_suggestion": [
+            {"suggestion": suggestion, "evidence": evidence, "example": example}
+        ],
+    }
+
+    logger.info("[Recovery] finish | task_id=%s", task_id)
+    return result
+
+
+# =========================================================
+# MCP Server 主入口
+# =========================================================
 if __name__ == "__main__":
     if os.name == "posix":
         import multiprocessing
 
         multiprocessing.set_start_method("spawn", force=True)
-    """
-    job_path = os.path.join(
-        os.path.dirname(__file__), "../config/container_disruption.job.json"
-    )
-    anteater_conf_path = os.path.join(
-        os.path.dirname(__file__), "../config/gala-anteater.yaml"
-    )
 
-    kpis, window, extra = load_kpis_from_job(job_path)
-    logger.info("配置加载成功，开始检测。")
-
-    metric_info = {}
-
-    anomalies = container_disruption_detection_tool(
-        kpis=kpis,
-        window=window,
-        extra=extra,
-        anteater_conf=anteater_conf_path,
-        metric_info=metric_info,
-    )
-    """
-
+    logger.info("启动 MCP Server (SSE 模式)，端口=12345")
     mcp.run(transport="sse")
