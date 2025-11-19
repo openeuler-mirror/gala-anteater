@@ -38,3 +38,9 @@ Schedule:
   
 Suppression:
   interval: 10
+
+
+llm_config:
+  base_url: ""
+  api_key: ""
+  model: ""

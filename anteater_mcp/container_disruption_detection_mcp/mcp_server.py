@@ -15,6 +15,8 @@ from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
 
+from anteater_mcp.container_disruption_detection_mcp.suggestion_generation.suggestion_by_llm import  naive_recovery_suggestion_llm
+
 from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
     PerceptionResult,
     AnomalyInfo,
@@ -88,8 +90,17 @@ class ContainerDisruptionFacade:
         )
 
 
+# 工具函数
+def _score_to_level(score: float) -> str:
+    """将 0~1 score 映射为异常级别"""
+    if score < 0.3:
+        return "轻度"
+    elif score < 0.7:
+        return "中度"
+    return "严重"
 
-def _extract_container_id(labels: dict[str, Any]) -> str:
+
+def _extract_container_id(labels: Dict[str, Any]) -> str:
     """尽最大可能从 labels 中提取容器 ID"""
     if not labels:
         return ""
@@ -108,7 +119,7 @@ def _build_detection_report(
     detection_start: int,
     detection_end: int,
     container_keyword_list: List[str],
-) -> dict[str, Any]:
+) -> Dict[str, Any]:
     metric_list = sorted({k.metric for k in kpis}) if kpis else []
     details = []
 
@@ -119,6 +130,8 @@ def _build_detection_report(
         if container_keyword_list:
             if not any(kw in cid for kw in container_keyword_list):
                 continue
+
+        abnormal_level = _score_to_level(anomaly.score)
 
         # 峰值提取
         peak = None
@@ -185,7 +198,7 @@ def _build_detection_report(
                 "metric_id": anomaly.metric,
                 "start_timestamp": use_start,
                 "end_timestamp": use_end,
-                "abnormal_level": anomaly.score,
+                "abnormal_level": abnormal_level,
                 "disruption_peak": peak,
             }
         )
@@ -209,7 +222,7 @@ def _build_detection_report(
             3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用container_interference_analysis_tool方法进行干扰源分析 ，如果没有出现劣化现象，则直接生成最终报告给用户。"
 )
 @mcp.tool(name="container_disruption_detection_tool")
-def container_disruption_detection_tool(request: str) -> dict[str, Any]:
+def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     """
     容器干扰检测 API
     - 入参为 JSON 字符串 request
@@ -281,7 +294,7 @@ def container_disruption_detection_tool(request: str) -> dict[str, Any]:
     )
 
     try:
-        kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path, look_back_minutes)
+        kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path)
     except Exception:
         logger.exception("加载 job 配置失败")
         return {"task_id": task_id, "code": 404, "msg": "failed to load job config"}
@@ -300,7 +313,7 @@ def container_disruption_detection_tool(request: str) -> dict[str, Any]:
             end_time=end_ts_ms,
         )
         return _build_detection_report(
-            task_id, empty, [], start_ts_ms, end_ts_ms, start_ts_ms, end_ts_ms, container_keywords
+            task_id, empty, [], start_ts_ms, end_ts_ms, container_keywords
         )
 
     # 构造检测器
@@ -415,7 +428,7 @@ def container_disruption_detection_tool(request: str) -> dict[str, Any]:
     4. 若不继续，基于前述报告，调用报告工具生成最终报告；若继续，则调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 "
 )
 @mcp.tool(name="container_interference_analysis_tool")
-def container_interference_analysis_tool(request: str) -> dict[str, Any]:
+def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     """
     对 detection_report 中的每一个异常容器进行干扰源分析
     """
@@ -568,9 +581,9 @@ def container_interference_analysis_tool(request: str) -> dict[str, Any]:
 """
 )
 @mcp.tool(name="container_interference_recovery_suggestion_tool")
-def container_interference_recovery_suggestion_tool(request: str) -> dict[str, Any]:
+def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
     """
-    多容器恢复建议：对 analysis_report 中每个干扰结果生成恢复建议
+    多容器恢复建议：对 analysis_report 中的干扰生成恢复建议
     """
     try:
         payload = json.loads(request)
@@ -597,6 +610,14 @@ def container_interference_recovery_suggestion_tool(request: str) -> dict[str, A
         }
 
     suggestions = []
+    response_msg = "success"
+    try:
+        output = await naive_recovery_suggestion_llm(task_id, detection_report, analysis_report)
+        if output.code == 200:
+            return output.model_dump(exclude_none=True) # 成功用LLM访问大模型获取建议
+        response_msg = output.msg
+    except:
+        response_msg = "LLM访问失败，将通过规则生成建议，并不提供具体指令"
 
     # 多容器恢复建议生成
     for d in details:
@@ -612,9 +633,9 @@ def container_interference_recovery_suggestion_tool(request: str) -> dict[str, A
             suggestions.append(
                 {
                     "container_id": victim,
-                    "suggestion": f"容器 {victim} 在指标 {metric} 出现异常，但未检测到明确干扰源。",
+                    "suggestion": f"容器 {victim} 在指标 {metric} 出现异常，但未检测到明确干扰源。建议继续观察，必要时扩大分析时间窗口。",
                     "evidence": "干扰源概率全为 0。",
-                    "example": "建议继续观察，必要时扩大分析时间窗口。",
+                    "example": "无大模型服务可用，暂不提供具体指令示例",
                 }
             )
             continue
@@ -628,29 +649,26 @@ def container_interference_recovery_suggestion_tool(request: str) -> dict[str, A
                 "suggestion": (
                     f"容器 {victim} 在指标 {metric} 受到干扰。"
                     f"建议对干扰源容器 {src_id}（概率 {prob}）进行资源隔离或限制。"
+                    f"例如：可对 {src_id} 设置 CPU/IO 限制，或将容器 {victim} 调度到独占节点。"
                 ),
                 "evidence": f"干扰源概率最高：{src_id}（{prob}）。",
-                "example": (
-                    f"可对 {src_id} 设置 CPU/IO 限制，或将容器 {victim} 调度到独占节点。"
-                ),
+                "example": f"无大模型服务可用，暂不提供具体指令示例",
             }
         )
 
     return {
         "task_id": task_id,
         "code": 200,
-        "msg": "success",
+        "msg": response_msg,
         "recovery_suggestion": suggestions,
     }
 
-def main():
+
+if __name__ == "__main__":
     if os.name == "posix":
         import multiprocessing
+
         multiprocessing.set_start_method("spawn", force=True)
 
     logger.info("启动 MCP Server (SSE 模式)，端口=12345")
     mcp.run(transport="sse")
-
-if __name__ == "__main__":
-    main()
-
