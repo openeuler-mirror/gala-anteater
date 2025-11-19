@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=exec
-ExecStart=/usr/local/bin/container-disruption-detection-mcpserver
+ExecStart=/root/miniconda3/envs/py3.11/bin/container-disruption-detection-mcp
 Environment=PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
-Restart=on-failure
+Restart=no
 RestartSec=1
 KillMode=control-group
 KillSignal=SIGTERM

@@ -11,7 +11,7 @@ setup(
     version="1.0.0",
     author="zimeng li, lihao dong",
     author_email="lizimeng9@huawei.com, donglihao1@huawei.com",
-    description="MCP Server for Container Disruption Detection for AI Model Training and Inference",
+    description="MCP Server for Container Disruption Detection",
     url="https://gitee.com/openeuler/gala-anteater",
     keywords=[
         "Container Disruption Detection",

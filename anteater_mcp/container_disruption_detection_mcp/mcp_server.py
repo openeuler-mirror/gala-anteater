@@ -88,7 +88,8 @@ class ContainerDisruptionFacade:
         )
 
 
-def _extract_container_id(labels: Dict[str, Any]) -> str:
+
+def _extract_container_id(labels: dict[str, Any]) -> str:
     """尽最大可能从 labels 中提取容器 ID"""
     if not labels:
         return ""
@@ -107,7 +108,7 @@ def _build_detection_report(
     detection_start: int,
     detection_end: int,
     container_keyword_list: List[str],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     metric_list = sorted({k.metric for k in kpis}) if kpis else []
     details = []
 
@@ -208,7 +209,7 @@ def _build_detection_report(
             3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用container_interference_analysis_tool方法进行干扰源分析 ，如果没有出现劣化现象，则直接生成最终报告给用户。"
 )
 @mcp.tool(name="container_disruption_detection_tool")
-def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
+def container_disruption_detection_tool(request: str) -> dict[str, Any]:
     """
     容器干扰检测 API
     - 入参为 JSON 字符串 request
@@ -414,7 +415,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     4. 若不继续，基于前述报告，调用报告工具生成最终报告；若继续，则调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 "
 )
 @mcp.tool(name="container_interference_analysis_tool")
-def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
+def container_interference_analysis_tool(request: str) -> dict[str, Any]:
     """
     对 detection_report 中的每一个异常容器进行干扰源分析
     """
@@ -567,7 +568,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 """
 )
 @mcp.tool(name="container_interference_recovery_suggestion_tool")
-def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
+def container_interference_recovery_suggestion_tool(request: str) -> dict[str, Any]:
     """
     多容器恢复建议：对 analysis_report 中每个干扰结果生成恢复建议
     """
@@ -642,12 +643,14 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
         "recovery_suggestion": suggestions,
     }
 
-
-if __name__ == "__main__":
+def main():
     if os.name == "posix":
         import multiprocessing
-
         multiprocessing.set_start_method("spawn", force=True)
 
     logger.info("启动 MCP Server (SSE 模式)，端口=12345")
     mcp.run(transport="sse")
+
+if __name__ == "__main__":
+    main()
+
