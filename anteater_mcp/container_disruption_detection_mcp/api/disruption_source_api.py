@@ -107,12 +107,14 @@ class DisruptionSourceAPI:
             )
             entry["labels"]["cpu_num"] = cpu_num
 
-            # 过滤低相关性
-            if score >= min_corr:
-                candidates.append(entry)
-                logger.info(
-                    f"[RCA] 候选源加入：metric={ts.metric}, score={score}, cpu={cpu_num}"
-                )
+            # # 过滤低相关性
+            # if score >= min_corr:
+            #     candidates.append(entry)
+            #     logger.info(
+            #         f"[RCA] 候选源加入：metric={ts.metric}, score={score}, cpu={cpu_num}"
+            #     )
+            # 不过滤，全部加入候选
+            candidates.append(entry)
 
         # 排序：CPU数优先，其次相关性
         candidates.sort(
