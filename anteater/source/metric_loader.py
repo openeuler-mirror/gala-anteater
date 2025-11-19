@@ -52,10 +52,7 @@ class MetricLoader:
         start, end = round(start.timestamp()), round(end.timestamp())
         standard_time = list(range(start, end + self.provider.step, self.provider.step))
         # 将列表 data 转换为字典，方便查找和补充缺失的元素
-        not_found = 0
-        found = 0
         for i, ts_data in enumerate(ts_list):
-            # logger.info(f"【模块4-数据获取】ts_list {ts_list}")
             values = ts_data.values
             time_stamps = ts_data.time_stamps
             value_dict = dict(zip(time_stamps, values))
@@ -65,13 +62,10 @@ class MetricLoader:
                 result = []
 
                 for index, time in enumerate(standard_time):
-                    # logger.info(f"【模块4-数据获取】standard_time {standard_time}")
                     if time in value_dict:
                         # 如果 container_data 中存在相应的元素，直接添加到结果列表
                         result.append(value_dict[time])
-                        found += 1
                     else:
-                        not_found += 1
                         # 如果 container_data 中不存在相应的元素，进行补充
                         if index == 0:
                             # 如果是第一个元素缺失，用后一个元素填充
@@ -83,8 +77,6 @@ class MetricLoader:
                             result.append(next_value)
                 ts_list[i].time_stamps = standard_time
                 ts_list[i].values = result
-
-        logger.info(f"【模块4-数据获取】查询命中 {found} 条，未命中: {not_found} 条")
 
         return ts_list
 
@@ -100,7 +92,6 @@ class MetricLoader:
         :return List of TimeSeries
         """
         query = self._get_query(metric, **kwargs)
-        logger.info(f"Get query is  {query}")
         time_series = self.provider.range_query(start, end, metric, query)
         time_series = self.check_and_fill_data(time_series, start, end)
         return time_series
@@ -155,9 +146,7 @@ class MetricLoader:
         """Gets unique labels of all metrics"""
         unique_labels = set()
         for metric in metrics:
-            logger.info(f"metric is {metric}")
             time_series = self.get_metric(start, end, metric)
-            logger.info(f"time_series is {time_series}")
             unique_labels.update([item.labels.get(label_name, "") for item in time_series])
 
         return list([lbl for lbl in unique_labels if lbl])
@@ -165,7 +154,6 @@ class MetricLoader:
     def expected_point_length(self, start: datetime, end: datetime) -> int:
         """Gets expected length of time series during a period"""
         start, end = round(start.timestamp()), round(end.timestamp())
-        logger.info(f"【模块4-期望数据获取点数】start {start}, end: {end}, step: {self.provider.step+1}")
         if self.provider.step > 0:
             return (end - start) // self.provider.step + 1
         else:
