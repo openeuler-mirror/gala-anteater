@@ -76,17 +76,17 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def detect_signal_kpi(self, kpi, machine_id: str) -> List[Anomaly]:
+    def detect_signal_kpi(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
         """Detects kpi based on signal time series anomaly detection model"""
 
         anomalies = []
-        anomalies_spot = self.detect_by_spot(kpi, machine_id)
+        anomalies_spot = self.detect_by_spot(kpi, machine_id, container_ids)
         if anomalies_spot:
             anomalies.extend(anomalies_spot)
 
         return anomalies
 
-    def get_kpi_ts_list(self, metric, machine_id: str, look_back):
+    def get_kpi_ts_list(self, metric, machine_id: str, container_id: str, look_back):
 
         if GlobalVariable.is_test_model:
             start_time, end_time = GlobalVariable.start_time, GlobalVariable.end_time
@@ -94,7 +94,7 @@ class ContainerDisruptionDetector(Detector):
             self.end_time = end_time
 
             ts_list = self.data_loader.get_metric(
-                start_time, end_time, metric, machine_id=machine_id)
+                start_time, end_time, metric, machine_id=machine_id, container_id=container_id)
             point_count = self.data_loader.expected_point_length(start_time, end_time)
 
         else:
@@ -104,14 +104,14 @@ class ContainerDisruptionDetector(Detector):
 
             point_count = self.data_loader.expected_point_length(start, end)
             ts_list = self.data_loader.get_metric(
-                start, end, metric, machine_id=machine_id)
+                start, end, metric, machine_id=machine_id, container_id=container_id)
 
         return point_count, ts_list
 
-    def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
+    def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
         outlier_ratio_th = kpi.params['outlier_ratio_th']
         ts_scores = self.cal_spot_score(
-            kpi.metric, machine_id, **kpi.params)
+            kpi.metric, machine_id, container_ids, **kpi.params)
         if not ts_scores:
             logger.warning('Key metric %s is null on the target machine %s!',
                            kpi.metric, machine_id)
@@ -132,14 +132,19 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def cal_spot_score(self, metric, machine_id: str, **kwargs) \
+    def cal_spot_score(self, metric, machine_id: str, container_ids: List[str], **kwargs) \
             -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
         """Calculates metrics' ab score based on n-sigma method"""
         look_back = kwargs.get('look_back')
         obs_size = kwargs.get('obs_size')
         ts_dbscan_detector = TSDBSCAN(kwargs)
 
-        point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
+        ts_list = []
+        point_count = 0
+        for container_id in container_ids:
+            point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+            ts_list.extend(_ts)
+
         ts_scores = []
         root_causes = []
         extra_info = {}

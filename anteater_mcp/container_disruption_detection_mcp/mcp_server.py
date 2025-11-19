@@ -73,8 +73,8 @@ class ContainerDisruptionFacade:
         mids = self.detector.get_unique_machine_id(start, end, kpis)
         return start, end, mids
 
-    def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
-        return self.detector.detect_by_spot(kpi, machine_id)
+    def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
+        return self.detector.detect_by_spot(kpi, machine_id, container_ids)
 
     def get_kpi_ts_list(self, metric: str, machine_id: str, look_back: int):
         return self.detector.get_kpi_ts_list(metric, machine_id, look_back)
@@ -353,7 +353,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     try:
         for mid in machine_ids:
             for kpi in kpis:
-                anomalies.extend(facade.detect_by_spot(kpi, mid))
+                anomalies.extend(facade.detect_by_spot(kpi, mid, container_keywords))
     except Exception:
         logger.exception("检测执行失败")
         return {
@@ -428,6 +428,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
         return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
+    container_keywords = [str(x) for x in payload.get("container_keyword_list", [])]
     detection_report = payload.get("detection_report")
 
     if not task_id:
@@ -497,7 +498,10 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 
         # 获取该 metric 在窗口内的所有 ts
         try:
-            all_ts: List[TimeSeries] = loader.get_metric(start_dt, end_dt, metric_id)
+            all_ts = []
+            for container_id in container_keywords:
+                _ts = loader.get_metric(start_dt, end_dt, metric_id, container_id=container_id)
+                all_ts.extend(_ts)
         except Exception:
             logger.exception("[Analysis] fetch ts failed")
             continue
