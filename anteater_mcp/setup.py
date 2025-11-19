@@ -42,6 +42,7 @@ setup(
         "pyArango",
         "pingouin",
         "statsmodels",
+        "mcp"
     ],
     entry_points={
         "console_scripts": [
