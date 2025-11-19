@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 
-from common.loader import build_metric_loader
+from anteater_mcp.container_disruption_detection_mcp.common.loader import build_metric_loader
 from mcp.server import FastMCP
 
 from anteater.core.anomaly import Anomaly, RootCause
