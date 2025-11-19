@@ -91,9 +91,7 @@ class DetectionDetailItem(BaseModel):
     metric_id: str = Field(default="", description="存在干扰的指标 ID")
     start_timestamp: int = Field(default=0, description="异常开始时间（毫秒）")
     end_timestamp: int = Field(default=0, description="异常结束时间（毫秒）")
-    abnormal_level: str = Field(
-        default="轻度", description="异常级别（轻度/中度/严重）"
-    )
+    abnormal_level: float = Field(default=0.0, description="异常级别评分")
     disruption_peak: int = Field(default=0, description="异常峰值")
 
 

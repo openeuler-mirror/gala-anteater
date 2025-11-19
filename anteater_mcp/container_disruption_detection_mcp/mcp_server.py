@@ -119,8 +119,6 @@ def _build_detection_report(
             if not any(kw in cid for kw in container_keyword_list):
                 continue
 
-        abnormal_level = anomaly.score
-
         # 峰值提取
         peak = None
         if isinstance(anomaly.details, dict):
@@ -186,7 +184,7 @@ def _build_detection_report(
                 "metric_id": anomaly.metric,
                 "start_timestamp": use_start,
                 "end_timestamp": use_end,
-                "abnormal_level": abnormal_level,
+                "abnormal_level": anomaly.score,
                 "disruption_peak": peak,
             }
         )
@@ -301,7 +299,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
             end_time=end_ts_ms,
         )
         return _build_detection_report(
-            task_id, empty, [], start_ts_ms, end_ts_ms, container_keywords
+            task_id, empty, [], start_ts_ms, end_ts_ms, start_ts_ms, end_ts_ms, container_keywords
         )
 
     # 构造检测器
