@@ -580,6 +580,7 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
         return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
+    detection_report = payload.get("detection_report")
     analysis_report = payload.get("analysis_report")
 
     if not task_id:
