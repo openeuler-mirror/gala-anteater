@@ -1,0 +1,20 @@
+{
+  "user_prompt": "[Task Description]\n你是容器云平台的专家，现在请你根据容器干扰检测报告（报告哪些指标存在干扰）和各自相关的指标的相关性分析报告，对系统中的存在的容器干扰给出若干条建议，要求每条建议包括三部分：\nsuggestion: 消减排除建议的内容（文字）（注意告知该建议可能存在的不合理和不适用的情况）\nevidence: 提供建议的依据（有什么观察到的现象是和该建议相关的，该建议能解决干扰的原理）\nexample: 该建议对应的示范命令（如果有参数，请告诉参数的含义）。\n\n现在请你根据下面信息，给出建议:\n[INPUT]\n容器干扰检测报告(检测哪些指标存在干扰):\n{detection_report}容器干扰相关性报告（报告被干扰的指标和什么指标相关联）:\n{analysis_report}",
+  "format_examples": [
+    {
+      "suggestion": "建议对容器 container-xxx 设置 CPU 配额限制，以减轻其对容器 container-yyy 的 CPU 性能干扰。需要注意的是，如果 container-xxx 是实时计算任务且已处于最低合理配额，进一步限制可能导致任务超时；此外，若两者不在同一节点，则该操作无效。",
+      "evidence": "容器 container-xxx 被识别为 CPU 干扰源：其 CPU 使用率持续高于 95%，且与受干扰容器 container-yyy 的 CPU 调度延迟呈强正相关（相关系数 0.88）。干扰检测报告确认 container-yyy 的 CPU 指标存在显著抖动，而相关性分析表明该抖动与 container-xxx 的 CPU 消耗高度同步，说明存在同节点 CPU 资源争抢。",
+      "example": "kubectl patch pod container-xxx --type='json' -p='[{\"op\": \"add\", \"path\": \"/spec/containers/0/resources/limits/cpu\", \"value\": \"800m\"}]'  # 限制 container-xxx 的 CPU 用量为 0.8 核"
+    },
+    {
+      "suggestion": "建议将容器 container-zzz 与容器 container-www 部署到不同节点，或为其磁盘 I/O 设置隔离策略（如使用 blockio cgroup 限制），以缓解 I/O 干扰。需注意：若集群节点资源紧张，调度分离可能失败；若底层存储为共享云盘，I/O 隔离效果可能有限。",
+      "evidence": "容器 container-zzz 被识别为 I/O 干扰源：其磁盘写入吞吐量频繁突增至 200MB/s 以上，且与容器 container-www 的内存分配延迟（MEM alloc stall）呈强正相关（相关系数 0.81）。尽管干扰发生在 MEM 指标，但相关性分析指出其根源是 I/O 压力导致页面回收阻塞，进而影响内存可用性，表明存在 I/O → MEM 的间接干扰链。",
+      "example": "kubectl label node node-a io-sensitive=true\nkubectl patch pod container-www -p '{\"spec\":{\"nodeSelector\":{\"io-sensitive\":\"true\"}}}'  # 将受干扰容器调度到专用节点\n# 或使用 annotation 配合扩展调度器实现 I/O 隔离"
+    },
+    {
+      "suggestion": "当前检测到容器 container-aaa 的网络吞吐（Network TX）与容器 container-bbb 的 CPU 使用率存在微弱正相关（相关系数仅 0.1），但干扰强度低，且无性能指标异常告警。建议暂不采取资源调整措施，而是持续监控 24 小时或结合应用日志进一步确认是否存在真实干扰。盲目隔离可能导致资源利用率下降或调度复杂度上升。",
+      "evidence": "干扰检测报告显示 container-aaa 的 Network TX 指标有轻微波动，但未超出正常基线；相关性分析发现其与 container-bbb 的 CPU 使用率相关系数仅为 0.1，远低于显著干扰阈值。同时，两个容器的关键 SLO（如延迟、错误率）均未恶化，表明该相关性可能是偶发噪声或间接耦合，尚不足以构成有效干扰证据。",
+      "example": "kubectl top pod container-aaa container-bbb --containers  # 实时查看资源使用\nkubectl logs container-aaa | grep -i 'timeout\\|error'  # 检查应用层是否真实受影响"
+    }
+  ]
+}

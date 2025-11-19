@@ -14,3 +14,5 @@ xarray
 numpy
 scikit_learn
 setuptools
+openai
+json_repair
