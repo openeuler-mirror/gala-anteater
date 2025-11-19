@@ -90,16 +90,6 @@ class ContainerDisruptionFacade:
         )
 
 
-# 工具函数
-def _score_to_level(score: float) -> str:
-    """将 0~1 score 映射为异常级别"""
-    if score < 0.3:
-        return "轻度"
-    elif score < 0.7:
-        return "中度"
-    return "严重"
-
-
 def _extract_container_id(labels: Dict[str, Any]) -> str:
     """尽最大可能从 labels 中提取容器 ID"""
     if not labels:
@@ -130,8 +120,6 @@ def _build_detection_report(
         if container_keyword_list:
             if not any(kw in cid for kw in container_keyword_list):
                 continue
-
-        abnormal_level = _score_to_level(anomaly.score)
 
         # 峰值提取
         peak = None
@@ -198,7 +186,7 @@ def _build_detection_report(
                 "metric_id": anomaly.metric,
                 "start_timestamp": use_start,
                 "end_timestamp": use_end,
-                "abnormal_level": abnormal_level,
+                "abnormal_level": anomaly.score,
                 "disruption_peak": peak,
             }
         )
@@ -294,7 +282,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     )
 
     try:
-        kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path)
+        kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path, look_back_minutes)
     except Exception:
         logger.exception("加载 job 配置失败")
         return {"task_id": task_id, "code": 404, "msg": "failed to load job config"}
@@ -313,7 +301,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
             end_time=end_ts_ms,
         )
         return _build_detection_report(
-            task_id, empty, [], start_ts_ms, end_ts_ms, container_keywords
+            task_id, empty, [], start_ts_ms, end_ts_ms, start_ts_ms, end_ts_ms, container_keywords
         )
 
     # 构造检测器
