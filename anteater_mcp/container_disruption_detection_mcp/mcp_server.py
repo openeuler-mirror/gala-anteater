@@ -117,11 +117,6 @@ def _build_detection_report(
     for anomaly in perception.anomaly_info:
         cid = _extract_container_id(anomaly.labels)
 
-        # 容器关键字过滤
-        if container_keyword_list:
-            if not any(kw in cid for kw in container_keyword_list):
-                continue
-
         # 峰值提取
         peak = None
         if isinstance(anomaly.details, dict):
