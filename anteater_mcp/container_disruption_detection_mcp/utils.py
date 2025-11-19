@@ -15,7 +15,7 @@ logger = logging.getLogger("container_disruption_detection_mcp.utils")
 
 # 加载 job.json，解析为 KPIParam / WindowParam / ExtraConfig
 def load_kpis_from_job(
-    job_path: str,
+    job_path: str, look_back_minutes: int = 20
 ) -> Tuple[List[KPIParam], WindowParam, ExtraConfig]:
     """
     加载 container_disruption.job.json
@@ -58,10 +58,10 @@ def load_kpis_from_job(
     # 解析 WindowParam
     if kpis:
         first_params = kpis[0].params
-        look_back = int(first_params.get("look_back", 20))
+        look_back = look_back_minutes if look_back_minutes > 0 else int(first_params.get("look_back", 20))
         obs_size = int(first_params.get("obs_size", 20))
     else:
-        look_back, obs_size = 20, 20  # 默认值
+        look_back, obs_size = look_back_minutes if look_back_minutes > 0 else 20, 20  # 默认值
 
     window = WindowParam(look_back=look_back, obs_size=obs_size)
 
