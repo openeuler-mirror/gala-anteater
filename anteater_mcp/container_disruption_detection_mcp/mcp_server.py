@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import logging
+import asyncio
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -604,7 +605,7 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
     suggestions = []
     response_msg = "success"
     try:
-        output = await naive_recovery_suggestion_llm(task_id, detection_report, analysis_report)
+        output = asyncio.run(naive_recovery_suggestion_llm(task_id, detection_report, analysis_report))
         if output.code == 200:
             return output.model_dump(exclude_none=True) # 成功用LLM访问大模型获取建议
         response_msg = output.msg
