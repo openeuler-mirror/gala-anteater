@@ -29,19 +29,8 @@ setup(
         ("/usr/lib/systemd/system/", glob("service/*")),
     ],
     install_requires=[
-        "APScheduler",
-        "kafka-python",
-        "joblib",
         "numpy",
         "pandas",
-        "requests",
-        "scikit_learn",
-        "scipy",
-        "torch",
-        "networkx",
-        "pyArango",
-        "pingouin",
-        "statsmodels",
         "mcp"
     ],
     entry_points={
