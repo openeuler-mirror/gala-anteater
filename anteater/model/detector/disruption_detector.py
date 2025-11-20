@@ -137,7 +137,7 @@ class ContainerDisruptionDetector(Detector):
         for container_id in container_ids:
             point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
             ts_list.extend(_ts)
-        return point_count, 
+        return point_count, ts_list
     
 
     def cal_spot_score(self, metric, machine_id: str, container_ids: List[str], **kwargs) \
@@ -151,7 +151,7 @@ class ContainerDisruptionDetector(Detector):
         #     point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
         #     ts_list.extend(_ts)
 
-        point_count, ts_list = self.get_ts_list(self, metric, machine_id, container_ids, look_back)
+        point_count, ts_list = self.get_ts_list(metric, machine_id, container_ids, look_back)
 
         ts_scores = []
         root_causes = []
