@@ -32,6 +32,7 @@ setup(
         "numpy",
         "pandas",
         "mcp"
+        "fastmcp"
     ],
     entry_points={
         "console_scripts": [

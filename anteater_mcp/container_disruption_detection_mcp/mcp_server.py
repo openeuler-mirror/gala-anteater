@@ -652,8 +652,7 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
         "recovery_suggestion": suggestions,
     }
 
-
-if __name__ == "__main__":
+def main():
     if os.name == "posix":
         import multiprocessing
 
@@ -661,3 +660,6 @@ if __name__ == "__main__":
 
     logger.info("启动 MCP Server (SSE 模式)，端口=12345")
     mcp.run(transport="sse")
+
+if __name__ == "__main__":
+    main()
