@@ -7,6 +7,7 @@ import logging
 import asyncio
 from datetime import datetime
 from typing import List, Dict, Any
+import re
 
 from anteater_mcp.container_disruption_detection_mcp.common.loader import build_metric_loader
 from mcp.server import FastMCP
@@ -415,7 +416,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     description="调用逻辑:\
     1. 仅在container_disruption_detection_tool后调用。 \
     2. 接收容器干扰检测工具输出的检测报告作为输入，对检测报告的结果进行分析。 \
-    3. 调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 \
+    3. 本方法得到的结果必须再调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 \
      当前工具的入参为 JSON 字符串 request，必须包含如下两个字段:\
       {\
         'task_id': '...', //与此前检测工具container_disruption_detection_tool任务保持一致\
@@ -492,39 +493,20 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     api = DisruptionSourceAPI()
 
     analysis_details = []
-    start_ts = payload.get("start_time")
-    end_ts = payload.get("end_time")
+
     # 多异常容器分析
     for d in details:
         victim_container_id = d.get("container_id")
         metric_id = d.get("metric_id")
-        if not (victim_container_id and metric_id and start_ts and end_ts):
+        if not (victim_container_id and metric_id):
             continue  # 跳过不合法项，不中断
-
-        # 时间窗口 - 转换为 datetime 类型
-        try:
-            if isinstance(start_ts, str):
-                # 处理 ISO 8601 格式字符串
-                start_dt = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
-            else:
-                # 处理数值时间戳（毫秒）
-                start_dt = datetime.fromtimestamp(start_ts / 1000)
-            
-            if isinstance(end_ts, str):
-                # 处理 ISO 8601 格式字符串
-                end_dt = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
-            else:
-                # 处理数值时间戳（毫秒）
-                end_dt = datetime.fromtimestamp(end_ts / 1000)
-        except Exception as e:
-            logger.error(f"[Analysis] 时间戳转换失败: {e}")
-            continue
 
         # 获取该 metric 在窗口内的所有 ts
         try:
+            GlobalVariable.is_test_model = True
             all_ts = []
             for container_id in container_keywords:
-                _ts = loader.get_metric(start_dt, end_dt, metric_id, container_id=container_id)
+                _ts = loader.get_metric(GlobalVariable.start_time, GlobalVariable.end_time, metric_id, container_id=container_id)
                 all_ts.extend(_ts)
         except Exception:
             logger.exception("[Analysis] fetch ts failed")
@@ -570,8 +552,6 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
             {
                 "container_id": victim_container_id,
                 "disrupted_metric_id": metric_id,
-                "start_timestamp": start_ts,
-                "end_timestamp": end_ts,
                 "interf_src_probs": probs,  # { container_id: prob }
             }
         )
@@ -587,22 +567,34 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
         },
     }
 
+def fix_json(json_str):
+    json_str = re.sub(r'}\s*{', '},{', json_str)
+    json_str = re.sub(r']\s*\[', '],[', json_str)
+
+    open_braces = json_str.count('{')
+    close_braces = json_str.count('}')
+    if open_braces > close_braces:
+        json_str += '}' * (open_braces - close_braces)
+    elif close_braces > open_braces:
+        json_str = '{' * (close_braces - open_braces) + json_str
+    
+    json_str = json_str.replace('\\"', '"')
+
+    return json_str
 
 @mcp.prompt(
     description="""
 调用逻辑：
 1. 仅在container_interference_analysis_tool执行完成后调用；
-2. 接收容器干扰检测工具输出的检测报告和容器干扰源分析工具输出的分析报告作为输入，生成针对性的干扰恢复建议；
-3. 基于前述所有报告，调用报告工具生成最终报告给用户。
-4. 该工具执行完成后，容器干扰检测分析任务完成。
+2. 接收容器干扰源分析工具输出的分析报告作为输入，生成针对性的干扰恢复建议；
+3. 该工具执行完成后，容器干扰检测分析任务完成。
 """
 )
 @mcp.tool(name="container_interference_recovery_suggestion_tool", description="""
-多容器恢复建议：对 detection_report 和 analysis_report 中的干扰生成恢复建议
+多容器恢复建议：对 analysis_report 中的干扰生成恢复建议
 - 入参为 JSON 字符串 request:
     {
     "task_id": "...", //与此前检测工具任务保持一致
-    "detection_report": {...},   // 此前检测工具container_disruption_detection_tool的输出的一部分
     "analysis_report": {...},   // 此前干扰源分析工具container_interference_analysis_tool的输出的一部分
     }
 - 输出 JSON（字典）
@@ -610,12 +602,11 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 """)
 async def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
     """
-    多容器恢复建议：对 detection_report 和 analysis_report 中的干扰生成恢复建议
+    多容器恢复建议：对 analysis_report 中的干扰生成恢复建议
     
     - 入参为 JSON 字符串 request:
       {
         "task_id": "...", //与此前检测工具任务保持一致
-        "detection_report": {...},   // 此前检测工具container_disruption_detection_tool的输出的一部分
         "analysis_report": {...},   // 此前干扰源分析工具container_interference_analysis_tool的输出的一部分
       }
     - 输出 JSON（字典）
@@ -623,12 +614,17 @@ async def container_interference_recovery_suggestion_tool(request: str) -> Dict[
     try:
         payload = json.loads(request)
     except Exception as e:
-        logger.exception("[Recovery] invalid json:\n{request}")
-        return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
+        fixed_request = fix_json(request)
+        logger.info(f'进行 JSON 格式修复')
+        try:
+            payload = json.loads(fixed_request)
+        except json.JSONDecodeError as e:
+            logger.exception("[Recovery] invalid json:\n{request}")
+            return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
     detection_report = payload.get("detection_report",{})
-    analysis_report = payload.get("analysis_report",{})
+    analysis_report = detection_report.get("analysis_report",{})
 
     if not task_id:
         return {"task_id": "", "code": 400, "msg": "task_id is required"}
@@ -687,7 +683,7 @@ async def container_interference_recovery_suggestion_tool(request: str) -> Dict[
                     f"建议对干扰源容器 {src_id}（概率 {prob}）进行资源隔离或限制。"
                     f"例如：可对 {src_id} 设置 CPU/IO 限制，或将容器 {victim} 调度到独占节点。"
                 ),
-                "evidence": f"干扰源概率最高：{src_id}（{prob}）。",
+                "evidence": f"干扰源概率最高：{src_id}({prob}）。",
                 "example": f"无大模型服务可用，暂不提供具体指令示例",
             }
         )
