@@ -60,11 +60,12 @@ class ContainerDisruptionFacade:
         if isinstance(config, ModelConfig):
             self.detector = ContainerDisruptionDetector(data_loader, config)
         else:
+            import anteater
             self.detector = ContainerDisruptionDetector(
                 data_loader,
                 ModelConfig(
                     name="container_disruption_detection",
-                    model_path="../../anteater/model/detector/disruption_detector.py",
+                    model_path=os.path.join(anteater.__path__[0], "model/detector/disruption_detector.py"),
                     params={"extra_metrics": getattr(config, "extra_metrics", "")},
                 ),
             )
@@ -270,12 +271,8 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     )
 
     # 加载 job 配置
-    job_path = os.path.join(
-        os.path.dirname(__file__), "../config/container_disruption.job.json"
-    )
-    anteater_conf = os.path.join(
-        os.path.dirname(__file__), "../config/gala-anteater.yaml"
-    )
+    job_path = "/etc/gala-anteater-mcp/config/container_disruption.job.json"
+    anteater_conf = "/etc/gala-anteater-mcp/config/gala-anteater.yaml"
 
     try:
         kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path, look_back_minutes)
@@ -302,12 +299,13 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     # 构造检测器
     try:
+        import anteater
         loader = build_metric_loader(config_path=anteater_conf, metricinfo_json=None)
         facade = ContainerDisruptionFacade(
             loader,
             ModelConfig(
                 name="container_disruption_detection",
-                model_path="../../anteater/model/detector/disruption_detector.py",
+                model_path= os.path.join(anteater.__path__[0], "model/detector/disruption_detector.py"),
                 params={"extra_metrics": extra_cfg.extra_metrics},
             ),
         )
@@ -452,7 +450,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 
     # metric loader 全局只初始化一次
     anteater_conf = os.path.join(
-        os.path.dirname(__file__), "../config/gala-anteater.yaml"
+        "/etc/gala-anteater-mcp/config/gala-anteater.yaml"
     )
 
     try:

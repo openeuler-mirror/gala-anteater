@@ -21,11 +21,8 @@ setup(
     ],
     packages=find_packages(where=".", exclude=("tests", "tests.*")),
     data_files=[
-        ("/etc/gala-anteater/config/", glob("config/metricinfo.json")),
-        ("/etc/gala-anteater/config/", glob("config/gala-anteater.yaml")),
-        ("/etc/gala-anteater/config/", glob("config/log.settings.ini")),
-        ("/etc/gala-anteater/module/", glob("config/module/*")),
-        ("/etc/gala-anteater/entity/", glob("config/entity/*")),
+        ("/etc/gala-anteater-mcp/config/", glob("config/container_disruption.job.json")),
+        ("/etc/gala-anteater-mcp/config/", glob("config/gala-anteater.yaml")),
         ("/usr/lib/systemd/system/", glob("service/*")),
     ],
     install_requires=[
