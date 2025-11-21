@@ -573,7 +573,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 """
 )
 @mcp.tool(name="container_interference_recovery_suggestion_tool")
-def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
+async def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
     """
     多容器恢复建议：对 analysis_report 中的干扰生成恢复建议
     """
@@ -605,7 +605,7 @@ def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, A
     suggestions = []
     response_msg = "success"
     try:
-        output = asyncio.run(naive_recovery_suggestion_llm(task_id, detection_report, analysis_report))
+        output = await naive_recovery_suggestion_llm(task_id, detection_report, analysis_report)
         if output.code == 200:
             return output.model_dump(exclude_none=True) # 成功用LLM访问大模型获取建议
         response_msg = output.msg
