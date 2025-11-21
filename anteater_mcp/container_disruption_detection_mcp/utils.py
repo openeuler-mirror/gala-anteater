@@ -1,7 +1,9 @@
-from __future__ import annotations
 import json
 import logging
-from typing import List, Tuple, Any
+
+from __future__ import annotations
+
+from typing import List, Tuple
 from datetime import datetime, timedelta, timezone
 
 from anteater_mcp.container_disruption_detection_mcp.mcp_data import (

@@ -1,19 +1,18 @@
 from __future__ import annotations
-from typing import Dict, List, Optional, Union, Any
-from pydantic import BaseModel, Field
+
+from typing import Dict, List, Union, Any
+
 from enum import Enum
+from pydantic import BaseModel, Field
+
 
 # 公共枚举 & 基础结构
-
-
 class ReportType(str, Enum):
     normal = "normal"
     anomaly = "anomaly"
 
 
 # Root Cause（干扰源分析相关）
-
-
 class RootCauseInfo(BaseModel):
     """干扰源分析的根因项"""
 

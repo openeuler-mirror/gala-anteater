@@ -1,8 +1,10 @@
 from __future__ import annotations
-from typing import List
-import pandas as pd
-import numpy as np
+
 import logging
+
+import pandas as pd
+
+from typing import List
 
 from anteater.core.ts import TimeSeries
 from anteater.core.anomaly import RootCause
@@ -107,12 +109,6 @@ class DisruptionSourceAPI:
             )
             entry["labels"]["cpu_num"] = cpu_num
 
-            # # 过滤低相关性
-            # if score >= min_corr:
-            #     candidates.append(entry)
-            #     logger.info(
-            #         f"[RCA] 候选源加入：metric={ts.metric}, score={score}, cpu={cpu_num}"
-            #     )
             # 不过滤，全部加入候选
             candidates.append(entry)
 

@@ -1,19 +1,19 @@
-# server.py
-
-from fastmcp import FastMCP
-import asyncio
+import os
+import logging
+import json
+import yaml
 
 from pydantic import BaseModel
 from typing import Optional
-import json
-import os
-import logging
-import yaml
 from json_repair import repair_json
 from openai import OpenAI
 
+__all__ = [
+    naive_recovery_suggestion_llm, DetectionReport, RCAReport
+]
 
 logger = logging.getLogger("anteater_mcp.suggestion_by_llm")
+
 
 class ToolMeta(BaseModel):
     name: str
@@ -34,6 +34,7 @@ TOOL_RECOVERY = ToolMeta(name="container_interference_recovery_suggestion_tool",
                                      f"the **evidence** of providing this suggestion,"
                                      f"and an **example** command of following the suggestion.")
 
+
 class LLMConfig(BaseModel):
     base_url: str = None
     api_key: str = None
@@ -44,25 +45,11 @@ class LLMConfig(BaseModel):
 class LLMTool:
     def __init__(self, llm_config: LLMConfig):
         default_config_path = self.get_default_config_path()
-        default_config: dict = yaml.load(open(default_config_path, encoding="utf8"), Loader=yaml.SafeLoader)
+        with open(default_config_path, encoding="utf8") as f:
+            default_config: dict = yaml.load(f, Loader=yaml.SafeLoader)
         default_config: LLMConfig = LLMConfig(**default_config["llm_config"])
         self._llm_config = default_config.model_copy(
             update=llm_config.model_dump(exclude_unset=True, exclude_none=True), deep=True)
-
-    @classmethod
-    def get_default_config_path(cls):
-        return os.path.join("/etc", "gala-anteater-mcp", "config", "gala-anteater.yaml")
-
-    def get_client(self, base_url=None, api_key=None):
-        if base_url is None:
-            base_url = self._llm_config.base_url
-        if api_key is None:
-            api_key = self._llm_config.api_key
-        client = OpenAI(
-            base_url=base_url,
-            api_key=api_key,
-        )
-        return client
 
     async def _query(self, system_prompt: str, user_prompt: str):
         client = self.get_client()
@@ -81,6 +68,20 @@ class LLMTool:
             if chunk_ans:
                 ans.append(chunk_ans)
         return ''.join(ans)
+    @classmethod
+    def get_default_config_path(cls):
+        return os.path.join("/etc", "gala-anteater-mcp", "config", "gala-anteater.yaml")
+
+    def get_client(self, base_url=None, api_key=None):
+        if base_url is None:
+            base_url = self._llm_config.base_url
+        if api_key is None:
+            api_key = self._llm_config.api_key
+        client = OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+        )
+        return client
 
     def get_available_models(self):
         client = self.get_client()
@@ -156,7 +157,8 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict,
     """
     prompt_path = os.path.join("/etc", "gala-anteater-mcp", "config", "prompts.json")
     try:
-        prompts = json.load(open(prompt_path, encoding="utf8"))
+        with open(prompt_path, encoding="utf8") as f:
+            prompts = json.load(f)
         user_prompt = prompts["user_prompt"].format(detection_report=detection_report,
                                                     analysis_report=analysis_report)
         format_examples = prompts["format_examples"]
@@ -190,12 +192,9 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict,
             item_suggestion = RecoverySuggestion.model_validate(item)
             results.append(item_suggestion)
         except Exception as e:
+            logger.error(f"[{TOOL_RECOVERY.name}] model validation failed: {e}")
             continue
         else:
             logger.info(f"[{TOOL_RECOVERY.name}] valid suggestion: count={len(results)}")
 
     return Output(task_id=task_id, code=200, msg="success", recovery_suggestion=results)
-
-__all__ = [
-    naive_recovery_suggestion_llm, DetectionReport, RCAReport
-]

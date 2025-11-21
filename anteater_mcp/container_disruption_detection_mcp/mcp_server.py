@@ -3,22 +3,18 @@ import os
 import sys
 import json
 import time
+import re
 import logging
-import asyncio
+
 from datetime import datetime
 from typing import List, Dict, Any
-import re
-
-from anteater_mcp.container_disruption_detection_mcp.common.loader import build_metric_loader
 from mcp.server import FastMCP
 
+from anteater_mcp.container_disruption_detection_mcp.common.loader import build_metric_loader
 from anteater.core.anomaly import Anomaly, RootCause
 from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
-
-from anteater_mcp.container_disruption_detection_mcp.suggestion_generation.suggestion_by_llm import naive_recovery_suggestion_llm, RCAReport, DetectionReport
-
 from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
     PerceptionResult,
     AnomalyInfo,
@@ -27,8 +23,7 @@ from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
 )
 
 from anteater_mcp.container_disruption_detection_mcp.utils import (
-    load_kpis_from_job,
-    dt_last,
+    load_kpis_from_job
 )
 
 from anteater_mcp.container_disruption_detection_mcp.api.disruption_source_api import (
@@ -73,8 +68,6 @@ class ContainerDisruptionFacade:
             )
 
     def get_unique_machine_id(self, look_back: int, kpis: List[KPI]):
-        # start, end = dt_last(minutes=look_back)
-        # mids = self.detector.get_unique_machine_id(start, end, kpis)
         mids = self.detector.get_unique_machine_id(GlobalVariable.start_time, GlobalVariable.end_time, kpis)
         return GlobalVariable.start_time, GlobalVariable.end_time, mids
 
@@ -113,13 +106,16 @@ def _build_detection_report(
     end_ts_ms: int,
     detection_start: int,
     detection_end: int,
-    container_keyword_list: List[str],
 ) -> Dict[str, Any]:
     metric_list = sorted({k.metric for k in kpis}) if kpis else []
     details = []
 
     for anomaly in perception.anomaly_info:
-        cid = _extract_container_id(anomaly.labels)
+        try:
+            cid = _extract_container_id(anomaly.labels)
+        except Exception:
+            logger.exception(f"Error extracting container id")
+            continue
 
         # 峰值提取
         peak = None
@@ -130,6 +126,7 @@ def _build_detection_report(
                         peak = int(float(anomaly.details[key]))
                         break
                     except Exception:
+                        logger.exception(f"Error parsing peak value")
                         pass
         if peak is None:
             peak = int(anomaly.score * 100)
@@ -240,7 +237,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     try:
         analysis_interval = int(payload["analysis_interval"])
-        logger.info("analysis_interval:%d",analysis_interval)
+        logger.info("analysis_interval: %d", analysis_interval)
     except Exception:
         return {"task_id": task_id, "code": 400, "msg": "analysis_interval must be int"}
 
@@ -313,8 +310,8 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
         facade = ContainerDisruptionFacade(
             loader,
             ModelConfig(
-                name="container_disruption_detection",
-                model_path= os.path.join(anteater.__path__[0], "model/detector/disruption_detector.py"),
+                name ="container_disruption_detection",
+                model_path = os.path.join(anteater.__path__[0], "model/detector/disruption_detector.py"),
                 params={"extra_metrics": extra_cfg.extra_metrics},
             ),
         )
@@ -502,11 +499,12 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
             continue  # 跳过不合法项，不中断
 
         # 获取该 metric 在窗口内的所有 ts
+        GlobalVariable.is_test_model = True
+        all_ts = []
         try:
-            GlobalVariable.is_test_model = True
-            all_ts = []
             for container_id in container_keywords:
-                _ts = loader.get_metric(GlobalVariable.start_time, GlobalVariable.end_time, metric_id, container_id=container_id)
+                _ts = loader.get_metric(GlobalVariable.start_time, GlobalVariable.end_time, 
+                                        metric_id, container_id=container_id)
                 all_ts.extend(_ts)
         except Exception:
             logger.exception("[Analysis] fetch ts failed")
@@ -567,6 +565,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
         },
     }
 
+
 def fix_json(json_str):
     json_str = re.sub(r'}\s*{', '},{', json_str)
     json_str = re.sub(r']\s*\[', '],[', json_str)
@@ -581,6 +580,7 @@ def fix_json(json_str):
     json_str = json_str.replace('\\"', '"')
 
     return json_str
+
 
 @mcp.prompt(
     description="""
@@ -643,13 +643,6 @@ async def container_interference_recovery_suggestion_tool(request: str) -> Dict[
 
     suggestions = []
     response_msg = "success"
-    # try:
-    #     output = await naive_recovery_suggestion_llm(task_id, detection_report, analysis_report)
-    #     if output.code == 200:
-    #         return output.model_dump(exclude_none=True) # 成功用LLM访问大模型获取建议
-    #     response_msg = output.msg
-    # except:
-    #     response_msg = "LLM访问失败，将通过规则生成建议，并不提供具体指令"
 
     # 多容器恢复建议生成
     for d in details:
@@ -694,6 +687,7 @@ async def container_interference_recovery_suggestion_tool(request: str) -> Dict[
         "msg": response_msg,
         "recovery_suggestion": suggestions,
     }
+
 
 def main():
     if os.name == "posix":
