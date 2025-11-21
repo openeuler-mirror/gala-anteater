@@ -92,7 +92,6 @@ class ContainerDisruptionDetector(Detector):
             start_time, end_time = GlobalVariable.start_time, GlobalVariable.end_time
             self.start_time = start_time
             self.end_time = end_time
-
             ts_list = self.data_loader.get_metric(
                 start_time, end_time, metric, machine_id=machine_id, container_id=container_id)
             point_count = self.data_loader.expected_point_length(start_time, end_time)
@@ -161,7 +160,7 @@ class ContainerDisruptionDetector(Detector):
             dedup_values = [k for k, g in groupby(test_data)]
             train_dedup_values = [k for k, g in groupby(train_data)]
             if sum(_ts.values) == 0 or \
-                    np.max(_ts.values) < 1e3 or \
+                    np.max(_ts.values) < 1e6 or \
                     len(_ts.values) < point_count * 0.6 or \
                     len(_ts.values) > point_count * 1.5 or \
                     all(x == _ts.values[0] for x in _ts.values):
