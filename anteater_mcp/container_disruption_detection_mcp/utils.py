@@ -45,11 +45,13 @@ def load_kpis_from_job(
         if not metric:
             logger.warning(f"[load_kpis_from_job] KPI[{idx}] 缺少 metric，跳过")
             continue
-
+        entity_name = str(k.get("entity_name", "")
+        params = k.get("params", {}) or {}
+        params.update({"look_back": look_back_minutes})
         kp = KPIParam(
             metric=metric,
-            entity_name=str(k.get("entity_name", "")),
-            params=k.get("params", {}) or {},
+            entity_name=entity_name,
+            params=params,
         )
         kpis.append(kp)
 

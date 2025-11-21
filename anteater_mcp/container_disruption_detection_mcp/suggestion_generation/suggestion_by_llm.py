@@ -43,7 +43,7 @@ class LLMConfig(BaseModel):
 class LLMTool:
     def __init__(self, llm_config: LLMConfig):
         default_config_path = self.get_default_config_path()
-        default_config: dict = yaml.load(open("run/test.yaml"), Loader=yaml.SafeLoader)
+        default_config: dict = yaml.load(default_config_path, Loader=yaml.SafeLoader)
         default_config: LLMConfig = LLMConfig(**default_config["llm_config"])
         self._llm_config = default_config.model_copy(
             update=llm_config.model_dump(exclude_unset=True, exclude_none=True), deep=True)
