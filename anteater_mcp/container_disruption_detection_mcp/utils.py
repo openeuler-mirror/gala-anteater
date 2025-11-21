@@ -51,7 +51,7 @@ def load_kpis_from_job(
         kp = KPIParam(
             metric=metric,
             entity_name=entity_name,
-            params=k.get("params", {}) or {},
+            params=params,
         )
         kpis.append(kp)
 
