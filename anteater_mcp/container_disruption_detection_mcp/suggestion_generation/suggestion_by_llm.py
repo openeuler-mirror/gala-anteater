@@ -50,7 +50,7 @@ class LLMTool:
 
     @classmethod
     def get_default_config_path(cls):
-        return os.path.join("anteater_mcp", "config", "gala-anteater.yaml")
+        return os.path.join("/etc", "anteater-mcp", "config", "gala-anteater.yaml")
 
     def get_client(self, base_url=None, api_key=None):
         if base_url is None:
