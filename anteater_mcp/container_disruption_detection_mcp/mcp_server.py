@@ -34,6 +34,7 @@ from anteater_mcp.container_disruption_detection_mcp.api.disruption_source_api i
     DisruptionSourceAPI,
 )
 
+from anteater.utils.common import GlobalVariable
 
 # 日志配置
 logging.basicConfig(
@@ -236,6 +237,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     try:
         analysis_interval = int(payload["analysis_interval"])
+        print(f"analysis_interval:{analysis_interval}")
     except Exception:
         return {"task_id": task_id, "code": 400, "msg": "analysis_interval must be int"}
 
@@ -257,6 +259,10 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     start_ts_ms = analysis_timestamp - analysis_interval
     end_ts_ms = analysis_timestamp
     print(f"start_ts_ms:{start_ts_ms}, end_ts_ms: {end_ts_ms}")
+    GlobalVariable.is_test_model = True
+    GlobalVariable.start_time = datetime.fromtimestamp(start_ts_ms / 1000.0)
+    GlobalVariable.end_time = datetime.fromtimestamp(end_ts_ms / 1000.0)
+    
     look_back_minutes = max(1, int(analysis_interval / 60000))
 
     container_keywords = [str(x) for x in payload.get("container_keyword_list", [])]
