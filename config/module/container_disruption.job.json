@@ -17,7 +17,7 @@
       "params": {
         "method": "max",
         "look_back": 20,
-        "obs_size": 10,
+        "obs_size": 5,
         "outlier_ratio_th": 0.5,
         "smooth_params": {
           "method": "conv_smooth",
