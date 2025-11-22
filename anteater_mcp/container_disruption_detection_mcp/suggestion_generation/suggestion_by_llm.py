@@ -7,12 +7,13 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
+import logging
 import yaml
 from json_repair import repair_json
 from openai import OpenAI
 
 
-
+logger = logging.getLogger("anteater_mcp.suggestion_by_llm")
 
 class ToolMeta(BaseModel):
     name: str
@@ -43,14 +44,14 @@ class LLMConfig(BaseModel):
 class LLMTool:
     def __init__(self, llm_config: LLMConfig):
         default_config_path = self.get_default_config_path()
-        default_config: dict = yaml.load(default_config_path, Loader=yaml.SafeLoader)
+        default_config: dict = yaml.load(open(default_config_path, encoding="utf8"), Loader=yaml.SafeLoader)
         default_config: LLMConfig = LLMConfig(**default_config["llm_config"])
         self._llm_config = default_config.model_copy(
             update=llm_config.model_dump(exclude_unset=True, exclude_none=True), deep=True)
 
     @classmethod
     def get_default_config_path(cls):
-        return os.path.join("/etc", "anteater-mcp", "config", "gala-anteater.yaml")
+        return os.path.join("/etc", "gala-anteater-mcp", "config", "gala-anteater.yaml")
 
     def get_client(self, base_url=None, api_key=None):
         if base_url is None:
@@ -99,7 +100,7 @@ class LLMTool:
                     ans = json.loads(ans)
                     return ans
             except Exception as e:
-                print(f"Query LLM failed [{i + 1}/{max_retry}]: {e}")
+                logger.exception(f"Query LLM failed [{i + 1}/{max_retry}]: {e}")
                 continue
         raise Exception(f"Query LLM failed: [User Prompt]{user_prompt} [System Prompt]{system_prompt}]")
 
@@ -144,8 +145,8 @@ class Output(BaseModel):
     recovery_suggestion: Optional[list[RecoverySuggestion]] = None
 
 
-async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict | DetectionReport,
-                                        analysis_report: dict | RCAReport) -> Output:
+async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict,
+                                        analysis_report: dict) -> Output:
     """
     (极简版本)获取干扰恢复建议
     :param task_id: 任务id，供未来提效和提高准确性（顺序访问下，detection_report和analysis_report可以读取而不需要传回）
@@ -153,22 +154,11 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict | D
     :param analysis_report: 干扰分析工具的输出
     :return: 输出一个Output
     """
-    # 格式处理
-    try:
-        if isinstance(detection_report, dict):
-            detection_report: DetectionReport = DetectionReport.model_validate(detection_report)
-        if isinstance(analysis_report, dict):
-            analysis_report: RCAReport = RCAReport.model_validate(analysis_report)
-    except:
-        print("输入数据结构不正确，请检查detection_report和analysis_report是否符合约定")  # TODO: 可以有其他记录方式
-        return Output(task_id=task_id, code=400,
-                      msg=f"[{TOOL_RECOVERY.name}] 输入数据结构不正确："
-                          f"请检查detection_report和analysis_report是否符合约定")
     prompt_path = os.path.join(os.path.dirname(__file__), "prompts.json")
     try:
         prompts = json.load(open(prompt_path, encoding="utf8"))
-        user_prompt = prompts["user_prompt"].format(detection_report=detection_report.model_dump_json(),
-                                                    analysis_report=analysis_report.model_dump_json())
+        user_prompt = prompts["user_prompt"].format(detection_report=detection_report,
+                                                    analysis_report=analysis_report)
         format_examples = prompts["format_examples"]
     except Exception as e:
         return Output(task_id=task_id, code=400,
@@ -178,16 +168,21 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict | D
     try:
         config = LLMConfig()
         tool = LLMTool(config)
+        logger.info("check llm models")
         tool.get_available_models()
     except Exception as e:
         return Output(task_id=task_id, code=400,
                       msg=f"访问LLM初始化失败 {e}\n"
                           f"请检查配置文件 {LLMTool.get_default_config_path()}",
                       recovery_suggestion=[])
+    else:
+        logger.info("LLM initalized")
     try:
         result = await tool.query_json(user_prompt, json.dumps(format_examples))
     except Exception as e:
         return Output(task_id=task_id, code=400, msg=f"[{TOOL_RECOVERY.name}] 调用大模型出错：{e}")
+    else:
+        logger.info(f"[{TOOL_RECOVERY.name}] called LLM")
 
     results: list[RecoverySuggestion] = []
     for item in result:
@@ -196,8 +191,11 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict | D
             results.append(item_suggestion)
         except Exception as e:
             continue
+        else:
+            logger.info(f"[{TOOL_RECOVERY.name}] valid suggestion: count={len(results)}")
+
     return Output(task_id=task_id, code=200, msg="success", recovery_suggestion=results)
 
 __all__ = [
-    naive_recovery_suggestion_llm
+    naive_recovery_suggestion_llm, DetectionReport, RCAReport
 ]
