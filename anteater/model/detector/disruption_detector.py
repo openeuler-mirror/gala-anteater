@@ -108,7 +108,7 @@ class ContainerDisruptionDetector(Detector):
         return point_count, ts_list
 
     def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
-        
+        outlier_ratio_th = kpi.params['outlier_ratio_th']
         ts_scores = self.cal_spot_score(
             kpi.metric, machine_id, container_ids, **kpi.params)
         if not ts_scores:
