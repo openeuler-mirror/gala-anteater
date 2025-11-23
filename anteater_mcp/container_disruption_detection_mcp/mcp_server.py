@@ -16,7 +16,7 @@ from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
 from anteater.model.detector.disruption_detector import ContainerDisruptionDetector
 
-from anteater_mcp.container_disruption_detection_mcp.suggestion_generation.suggestion_by_llm import  naive_recovery_suggestion_llm
+from anteater_mcp.container_disruption_detection_mcp.suggestion_generation.suggestion_by_llm import naive_recovery_suggestion_llm, RCAReport, DetectionReport
 
 from anteater_mcp.container_disruption_detection_mcp.mcp_data import (
     PerceptionResult,
@@ -72,9 +72,10 @@ class ContainerDisruptionFacade:
             )
 
     def get_unique_machine_id(self, look_back: int, kpis: List[KPI]):
-        start, end = dt_last(minutes=look_back)
-        mids = self.detector.get_unique_machine_id(start, end, kpis)
-        return start, end, mids
+        # start, end = dt_last(minutes=look_back)
+        # mids = self.detector.get_unique_machine_id(start, end, kpis)
+        mids = self.detector.get_unique_machine_id(GlobalVariable.start_time, GlobalVariable.end_time, kpis)
+        return GlobalVariable.start_time, GlobalVariable.end_time, mids
 
     def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
         return self.detector.detect_by_spot(kpi, machine_id, container_ids)
@@ -205,7 +206,7 @@ def _build_detection_report(
 
 @mcp.prompt(
     description="调用逻辑:1. 当用户询问特定容器ID或容器关键词的容器性能是否被干扰时调用。2. 检测结果将决定后续流程走向。\
-            3. 调用完成后如果出现容器干扰现象，则把当前工具得到的结果作为入参，调用container_interference_analysis_tool方法进行干扰源分析 ，如果没有出现劣化现象，则直接生成最终报告给用户。"
+            3. 调用完成后，把当前工具得到的结果作为入参，调用container_interference_analysis_tool方法进行结果分析。"
 )
 @mcp.tool(name="container_disruption_detection_tool")
 def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
@@ -221,6 +222,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
       }
     - 输出 JSON（字典）
     """
+    logger.info("container_disruption_detection_tool: start analysis")
     # 参数解析
     try:
         payload = json.loads(request)
@@ -237,7 +239,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     try:
         analysis_interval = int(payload["analysis_interval"])
-        print(f"analysis_interval:{analysis_interval}")
+        logger.info("analysis_interval:%d",analysis_interval)
     except Exception:
         return {"task_id": task_id, "code": 400, "msg": "analysis_interval must be int"}
 
@@ -258,7 +260,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
     start_ts_ms = analysis_timestamp - analysis_interval
     end_ts_ms = analysis_timestamp
-    print(f"start_ts_ms:{start_ts_ms}, end_ts_ms: {end_ts_ms}")
+    logger.info("start_ts_ms:%d, end_ts_ms: %d", start_ts_ms, end_ts_ms)
     GlobalVariable.is_test_model = True
     GlobalVariable.start_time = datetime.fromtimestamp(start_ts_ms / 1000.0)
     GlobalVariable.end_time = datetime.fromtimestamp(end_ts_ms / 1000.0)
@@ -410,16 +412,38 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
 
 
 @mcp.prompt(
-    description="调用逻辑:1. 仅在已检测到容器干扰现象时调用。 \
-    2. 检测结果将决定后续流程走向。 \
-    3. 接收容器干扰检测工具输出的检测报告作为输入，得到各个异常SLI指标的关联指标，给出Top3干扰源概率，由用户决定是否继续（进行干扰恢复建议生成）。 \
-    4. 若不继续，基于前述报告，调用报告工具生成最终报告；若继续，则调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 "
+    description="调用逻辑:\
+    1. 仅在container_disruption_detection_tool后调用。 \
+    2. 接收容器干扰检测工具输出的检测报告作为输入，对检测报告的结果进行分析。 \
+    3. 调用container_interference_recovery_suggestion_tool干扰恢复建议生成工具。 \
+     当前工具的入参为 JSON 字符串 request，必须包含如下两个字段:\
+      {\
+        'task_id': '...', //与此前检测工具container_disruption_detection_tool任务保持一致\
+        'detection_report': {},   // 来自此前的检测工具container_disruption_detection_tool的输出的一部分\
+      }\
+    - 输出 JSON（字典）   \
+    "
 )
-@mcp.tool(name="container_interference_analysis_tool")
+@mcp.tool(name="container_interference_analysis_tool", description="""
+对 detection_report 中的每一个异常容器进行干扰源分析
+- 入参为 JSON 字符串 request:
+    {
+    "task_id": "...", //与此前检测工具任务保持一致
+    "detection_report": {...},   // 来自此前检测工具的输出
+    }
+- 输出 JSON（字典）
+""")
 def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     """
     对 detection_report 中的每一个异常容器进行干扰源分析
+    - 入参为 JSON 字符串 request:
+      {
+        "task_id": "...", //与此前检测工具任务保持一致
+        "detection_report": {...},   // 来自此前检测工具的输出
+      }
+    - 输出 JSON（字典）
     """
+    logger.info("container_interference_analysis_tool: start analysis")
     # 解析
     try:
         payload = json.loads(request)
@@ -570,22 +594,41 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
 1. 仅在container_interference_analysis_tool执行完成后调用；
 2. 接收容器干扰检测工具输出的检测报告和容器干扰源分析工具输出的分析报告作为输入，生成针对性的干扰恢复建议；
 3. 基于前述所有报告，调用报告工具生成最终报告给用户。
+4. 该工具执行完成后，容器干扰检测分析任务完成。
 """
 )
-@mcp.tool(name="container_interference_recovery_suggestion_tool")
+@mcp.tool(name="container_interference_recovery_suggestion_tool", description="""
+多容器恢复建议：对 detection_report 和 analysis_report 中的干扰生成恢复建议
+- 入参为 JSON 字符串 request:
+    {
+    "task_id": "...", //与此前检测工具任务保持一致
+    "detection_report": {...},   // 此前检测工具container_disruption_detection_tool的输出的一部分
+    "analysis_report": {...},   // 此前干扰源分析工具container_interference_analysis_tool的输出的一部分
+    }
+- 输出 JSON（字典）
+
+""")
 async def container_interference_recovery_suggestion_tool(request: str) -> Dict[str, Any]:
     """
-    多容器恢复建议：对 analysis_report 中的干扰生成恢复建议
+    多容器恢复建议：对 detection_report 和 analysis_report 中的干扰生成恢复建议
+    
+    - 入参为 JSON 字符串 request:
+      {
+        "task_id": "...", //与此前检测工具任务保持一致
+        "detection_report": {...},   // 此前检测工具container_disruption_detection_tool的输出的一部分
+        "analysis_report": {...},   // 此前干扰源分析工具container_interference_analysis_tool的输出的一部分
+      }
+    - 输出 JSON（字典）
     """
     try:
         payload = json.loads(request)
     except Exception as e:
-        logger.exception("[Recovery] invalid json")
+        logger.exception("[Recovery] invalid json:\n{request}")
         return {"task_id": "", "code": 400, "msg": f"invalid json: {e}"}
 
     task_id = payload.get("task_id", "")
-    detection_report = payload.get("detection_report")
-    analysis_report = payload.get("analysis_report")
+    detection_report = payload.get("detection_report",{})
+    analysis_report = payload.get("analysis_report",{})
 
     if not task_id:
         return {"task_id": "", "code": 400, "msg": "task_id is required"}
@@ -598,7 +641,7 @@ async def container_interference_recovery_suggestion_tool(request: str) -> Dict[
         return {
             "task_id": task_id,
             "code": 200,
-            "msg": "no interference found",
+            "msg": "no interference detail found",
             "recovery_suggestion": [],
         }
 

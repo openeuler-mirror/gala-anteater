@@ -108,7 +108,7 @@ class ContainerDisruptionDetector(Detector):
         return point_count, ts_list
 
     def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
-        outlier_ratio_th = kpi.params['outlier_ratio_th']
+        
         ts_scores = self.cal_spot_score(
             kpi.metric, machine_id, container_ids, **kpi.params)
         if not ts_scores:
@@ -131,24 +131,35 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def cal_spot_score(self, metric, machine_id: str, container_ids: List[str], **kwargs) \
-            -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
-        """Calculates metrics' ab score based on n-sigma method"""
-        look_back = kwargs.get('look_back')
-        obs_size = kwargs.get('obs_size')
-        ts_dbscan_detector = TSDBSCAN(kwargs)
-
+    def get_ts_list(self, metric, machine_id, container_ids, look_back):
         ts_list = []
         point_count = 0
         for container_id in container_ids:
             point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
             ts_list.extend(_ts)
+        return point_count, 
+    
+
+    def cal_spot_score(self, metric, machine_id: str, container_ids: List[str], **kwargs) \
+            -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
+        """Calculates metrics' ab score based on n-sigma method"""
+        look_back = kwargs.get('look_back')
+        obs_size = kwargs.get('obs_size')
+        # ts_list = []
+        # point_count = 0
+        # for container_id in container_ids:
+        #     point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+        #     ts_list.extend(_ts)
+
+        point_count, ts_list = self.get_ts_list(self, metric, machine_id, container_ids, look_back)
 
         ts_scores = []
         root_causes = []
         extra_info = {}
         logger.info('machine %s, total detected %d containers.',
                     machine_id, len(ts_list))
+
+        ts_dbscan_detector = TSDBSCAN(kwargs)
         self.container_num += len(ts_list)
         for _ts in ts_list:
             # import pdb;pdb.set_trace()
@@ -208,13 +219,10 @@ class ContainerDisruptionDetector(Detector):
                     result += bound_result
                 output = np.sum(result)
                 if output >= 3:
-                    print('data: ', _ts.values)
-                    print('spot result: ', result)
+                    logger.debug('data: %s', _ts.values)
+                    logger.info('spot result: %s', result)
                     container_hostname = _ts.labels.get('container_name', '')
                     machine_id = _ts.labels.get('machine_id', '')
-                    logger.info('spot detected: %d , total: %d , metric: %s, host_name: %s',
-                                output, obs_size, _ts.metric, container_hostname)
-                    # ---------- 记录异常时间段 ----------
                     detect_mask = result > 0
                     test_timestamps = _ts.time_stamps[-obs_size:]
 
@@ -257,11 +265,10 @@ class ContainerDisruptionDetector(Detector):
 
                     extra_info.update(container_extra)
 
-                    print('extra_info', extra_info)
+                    print('extra_info: %s', extra_info)
                     root_causes = self.find_disruption_source(_ts, ts_list)
 
                 score = divide(output, obs_size)
-                
             ts_scores.append((_ts, score, extra_info, root_causes))
 
         return ts_scores

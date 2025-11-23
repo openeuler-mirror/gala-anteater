@@ -132,7 +132,7 @@ async def main() -> None:
     }
 
     # 1. 容器干扰检测
-    print("\n>>> 调用 container_disruption_detection_tool ...")
+    logger.info("\n>>> 调用 container_disruption_detection_tool ...")
 
     detect_result = await client.call_tool(
         "container_disruption_detection_tool",
@@ -140,18 +140,18 @@ async def main() -> None:
     )
     detect_json = extract_json_from_mcp(detect_result)
 
-    print("\n=== 1) 检测结果 ===")
-    print(json.dumps(detect_json, indent=2, ensure_ascii=False))
+    logger.info("\n=== 1) 检测结果 ===")
+    logger.info(json.dumps(detect_json, indent=2, ensure_ascii=False))
 
     if detect_json.get("code") != 200:
-        print("检测失败，停止流程。")
+        logger.info("检测失败，停止流程。")
         await client.stop()
         return
 
     detection_report = detect_json.get("detection_report", {})
 
     # 2. 容器干扰源分析
-    print("\n>>> 调用 container_interference_analysis_tool ...")
+    logger.info("\n>>> 调用 container_interference_analysis_tool ...")
 
     analysis_payload = {
         "task_id": task_id,
@@ -166,18 +166,18 @@ async def main() -> None:
     )
     analysis_json = extract_json_from_mcp(analysis_result)
 
-    print("\n=== 2) 干扰分析结果 ===")
-    print(json.dumps(analysis_json, indent=2, ensure_ascii=False))
+    logger.info("\n=== 2) 干扰分析结果 ===")
+    logger.info(json.dumps(analysis_json, indent=2, ensure_ascii=False))
 
     if analysis_json.get("code") != 200:
-        print("干扰分析失败，停止流程。")
+        logger.info("干扰分析失败，停止流程。")
         await client.stop()
         return
 
     analysis_report = analysis_json.get("analysis_report", {})
 
     # 3. 干扰恢复建议
-    print("\n>>> 调用 container_interference_recovery_suggestion_tool ...")
+    logger.info("\n>>> 调用 container_interference_recovery_suggestion_tool ...")
 
     recovery_payload = {
         "task_id": task_id,
@@ -191,8 +191,8 @@ async def main() -> None:
     )
     recovery_json = extract_json_from_mcp(recovery_result)
 
-    print("\n=== 3) 恢复建议 ===")
-    print(json.dumps(recovery_json, indent=2, ensure_ascii=False))
+    logger.info("\n=== 3) 恢复建议 ===")
+    logger.info(json.dumps(recovery_json, indent=2, ensure_ascii=False))
 
     await asyncio.sleep(0.2)
     await client.stop()

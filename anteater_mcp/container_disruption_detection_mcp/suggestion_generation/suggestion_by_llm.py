@@ -154,7 +154,7 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict,
     :param analysis_report: 干扰分析工具的输出
     :return: 输出一个Output
     """
-    prompt_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+    prompt_path = os.path.join("/etc", "gala-anteater-mcp", "config", "prompts.json")
     try:
         prompts = json.load(open(prompt_path, encoding="utf8"))
         user_prompt = prompts["user_prompt"].format(detection_report=detection_report,
