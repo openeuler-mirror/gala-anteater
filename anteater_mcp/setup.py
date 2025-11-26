@@ -23,6 +23,7 @@ setup(
     data_files=[
         ("/etc/gala-anteater-mcp/config/", glob("config/container_disruption.job.json")),
         ("/etc/gala-anteater-mcp/config/", glob("config/gala-anteater.yaml")),
+        ("/etc/gala-anteater-mcp/config/", glob("config/suggestion_generation_prompts.json")),
         ("/usr/lib/systemd/system/", glob("service/*")),
     ],
     install_requires=[
