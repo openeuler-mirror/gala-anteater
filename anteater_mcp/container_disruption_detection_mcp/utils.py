@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 import json
 import logging
-
-from __future__ import annotations
 
 from typing import List, Tuple
 from datetime import datetime, timedelta, timezone
