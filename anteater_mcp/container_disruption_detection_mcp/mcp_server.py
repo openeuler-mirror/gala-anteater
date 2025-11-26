@@ -105,7 +105,7 @@ def _build_detection_report(
     start_ts_ms: int,
     end_ts_ms: int,
     detection_start: int,
-    detection_end: int,
+    detection_end: int
 ) -> Dict[str, Any]:
     metric_list = sorted({k.metric for k in kpis}) if kpis else []
     details = []
@@ -300,7 +300,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
             end_time=end_ts_ms,
         )
         return _build_detection_report(
-            task_id, empty, [], start_ts_ms, end_ts_ms, start_ts_ms, end_ts_ms, container_keywords
+            task_id, empty, [], start_ts_ms, end_ts_ms, start_ts_ms, end_ts_ms
         )
 
     # 构造检测器
@@ -397,8 +397,7 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
         perception.start_time * 1000,
         perception.end_time * 1000,
         detection_start,
-        detection_end,
-        container_keywords,
+        detection_end
     )
 
     logger.info(
