@@ -48,7 +48,12 @@ class ContainerDisruptionDetector(Detector):
         self.container_num = 0
         self.start_time = None
         self.end_time = None
- 
+
+
+    def get_detection_time(self):
+        """获取检测时间范围"""
+        return self.start_time, self.end_time
+    
     @timer
     def _execute(self, kpis: List[KPI], features: List[Feature], **kwargs) \
             -> List[Anomaly]:
@@ -71,26 +76,25 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def detect_signal_kpi(self, kpi, machine_id: str) -> List[Anomaly]:
+    def detect_signal_kpi(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
         """Detects kpi based on signal time series anomaly detection model"""
 
         anomalies = []
-        anomalies_spot = self.detect_by_spot(kpi, machine_id)
+        anomalies_spot = self.detect_by_spot(kpi, machine_id, container_ids)
         if anomalies_spot:
             anomalies.extend(anomalies_spot)
 
         return anomalies
 
-    def get_kpi_ts_list(self, metric, machine_id: str, look_back):
+    def get_kpi_ts_list(self, metric, machine_id: str, container_id: str, look_back):
 
         if GlobalVariable.is_test_model:
             start_time, end_time = GlobalVariable.start_time, GlobalVariable.end_time
             self.start_time = start_time
             self.end_time = end_time
-
             ts_list = self.data_loader.get_metric(
-                start_time, end_time, metric, machine_id=machine_id)
-            point_count = self.data_loader.expected_point_length(strat_time, end_time)
+                start_time, end_time, metric, machine_id=machine_id, container_id=container_id)
+            point_count = self.data_loader.expected_point_length(start_time, end_time)
 
         else:
             start, end = dt.last(minutes=look_back)
@@ -99,14 +103,14 @@ class ContainerDisruptionDetector(Detector):
 
             point_count = self.data_loader.expected_point_length(start, end)
             ts_list = self.data_loader.get_metric(
-                start, end, metric, machine_id=machine_id)
+                start, end, metric, machine_id=machine_id, container_id=container_id)
 
         return point_count, ts_list
 
-    def detect_by_spot(self, kpi, machine_id: str) -> List[Anomaly]:
+    def detect_by_spot(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
         outlier_ratio_th = kpi.params['outlier_ratio_th']
         ts_scores = self.cal_spot_score(
-            kpi.metric, machine_id, **kpi.params)
+            kpi.metric, machine_id, container_ids, **kpi.params)
         if not ts_scores:
             logger.warning('Key metric %s is null on the target machine %s!',
                            kpi.metric, machine_id)
@@ -127,19 +131,35 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def cal_spot_score(self, metric, machine_id: str, **kwargs) \
+    def get_ts_list(self, metric, machine_id, container_ids, look_back):
+        ts_list = []
+        point_count = 0
+        for container_id in container_ids:
+            point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+            ts_list.extend(_ts)
+        return point_count, ts_list
+    
+
+    def cal_spot_score(self, metric, machine_id: str, container_ids: List[str], **kwargs) \
             -> List[Tuple[TimeSeries, int, Dict, List[RootCause]]]:
         """Calculates metrics' ab score based on n-sigma method"""
         look_back = kwargs.get('look_back')
         obs_size = kwargs.get('obs_size')
-        ts_dbscan_detector = TSDBSCAN(kwargs)
+        # ts_list = []
+        # point_count = 0
+        # for container_id in container_ids:
+        #     point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+        #     ts_list.extend(_ts)
 
-        point_count, ts_list = self.get_kpi_ts_list(metric, machine_id, look_back)
+        point_count, ts_list = self.get_ts_list(metric, machine_id, container_ids, look_back)
+
         ts_scores = []
         root_causes = []
         extra_info = {}
         logger.info('machine %s, total detected %d containers.',
                     machine_id, len(ts_list))
+
+        ts_dbscan_detector = TSDBSCAN(kwargs)
         self.container_num += len(ts_list)
         for _ts in ts_list:
             # import pdb;pdb.set_trace()
@@ -151,12 +171,12 @@ class ContainerDisruptionDetector(Detector):
             dedup_values = [k for k, g in groupby(test_data)]
             train_dedup_values = [k for k, g in groupby(train_data)]
             if sum(_ts.values) == 0 or \
-                    np.max(_ts.values) < 1e3 or \
+                    np.max(_ts.values) < 1e6 or \
                     len(_ts.values) < point_count * 0.6 or \
                     len(_ts.values) > point_count * 1.5 or \
-                    all(x == _ts.values[0] for x in _ts.values) or\
-                    len(dedup_values) < obs_size * 0.8 or \
-                    len(train_dedup_values) < len(train_data) * 0.8:
+                    all(x == _ts.values[0] for x in _ts.values):
+                    # len(dedup_values) < obs_size * 0.8 or \
+                    # len(train_dedup_values) < len(train_data) * 0.8:
                 score = 0
             else:
                 ts_series = pd.Series(_ts.values)
@@ -199,28 +219,61 @@ class ContainerDisruptionDetector(Detector):
                     result += bound_result
                 output = np.sum(result)
                 if output >= 3:
-                    print('data: ', _ts.values)
-                    print('spot result: ', result)
+                    logger.debug('data: %s', _ts.values)
+                    logger.info('spot result: %s', result)
                     container_hostname = _ts.labels.get('container_name', '')
                     machine_id = _ts.labels.get('machine_id', '')
-                    logger.info('spot detected: %d , total: %d , metric: %s, host_name: %s',
-                                output, obs_size, _ts.metric, container_hostname)
-                    
-                    extra_info = self.get_container_extra_info(machine_id, 
-                                                               container_hostname, 
-                                                               self.start_time, 
-                                                               self.end_time, 
-                                                               obs_size)
-                    print('extra_info', extra_info)
-                    root_causes = self.find_discruption_source(_ts, ts_list)
+                    detect_mask = result > 0
+                    test_timestamps = _ts.time_stamps[-obs_size:]
+
+                    abnormal_points = []
+                    for i in range(obs_size):
+                        if detect_mask[i]:
+                            ts = test_timestamps[i]
+                            # 强制转 datetime
+                            if isinstance(ts, str):
+                                try:
+                                    ts = datetime.fromisoformat(
+                                        ts.replace("Z", "+00:00")
+                                    )
+                                except:
+                                    ts = None
+                            abnormal_points.append(ts)
+
+                    # 初始化结构
+                    extra_info = {}
+
+                    if abnormal_points:
+                        extra_info["abnormal_start"] = min(
+                            [t for t in abnormal_points if t]
+                        )
+                        extra_info["abnormal_end"] = max(
+                            [t for t in abnormal_points if t]
+                        )
+                    else:
+                        extra_info["abnormal_start"] = None
+                        extra_info["abnormal_end"] = None
+
+                    # 合并 container_extra_data
+                    container_extra = self.get_container_extra_info(
+                        machine_id,
+                        container_hostname,
+                        self.start_time,
+                        self.end_time,
+                        obs_size,
+                    )
+
+                    extra_info.update(container_extra)
+
+                    print('extra_info: %s', extra_info)
+                    root_causes = self.find_disruption_source(_ts, ts_list)
 
                 score = divide(output, obs_size)
-                
             ts_scores.append((_ts, score, extra_info, root_causes))
 
         return ts_scores
 
-    def find_discruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]) \
+    def find_disruption_source(self, victim_ts: TimeSeries, all_ts: List[TimeSeries]) \
             -> List[RootCause]:
         root_causes = []
         tmp_causes = []

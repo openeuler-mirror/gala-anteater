@@ -16,6 +16,7 @@ from glob import glob
 from setuptools import setup, find_packages
 import os 
 
+'''
 # 安装前清理旧版本配置文件
 cfg_path = "/etc/gala-anteater"
 for root, dirs, files in os.walk(cfg_path):
@@ -25,7 +26,7 @@ for root, dirs, files in os.walk(cfg_path):
 ser = "/usr/lib/systemd/system/gala-anteater.service"
 if os.path.isfile(ser):
     os.remove(ser)
-
+'''
 setup(
     name="gala_anteater",
     version="2.0.1",

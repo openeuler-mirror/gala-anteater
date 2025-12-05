@@ -1,6 +1,6 @@
 {
   "name": "ContainerDisruptionDetector",
-  "enable": true,
+  "enable": false,
   "job_type": "anomaly_detection",
   "keywords": [
     "app"
@@ -34,7 +34,7 @@
       "min_train_hours": 24,
       "min_predict_minutes": 5,
       "top_n": 20,
-      "extra_metrics": "gala_gopher_sli_container_cpu_busy",
+      "extra_metrics": "gala_gopher_sli_container_cpu_busy, gala_gopher_sli_container_cpu_cores",
       "preprocessor": {
         "smooth_type": "rolling",
         "smooth_window": 18,
@@ -77,47 +77,47 @@
     }
   },
   "features": [
-  {
-    "metric": "gala_gopher_container_cpu_usage_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_cpu_system_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_cpu_user_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_memory_mapped_file"
-  },
-  {
-    "metric": "gala_gopher_container_memory_cache"
-  },
-  {
-    "metric": "gala_gopher_container_memory_rss"
-  },
-  {
-    "metric": "gala_gopher_container_memory_working_set_bytes"
-  },
-  {
-    "metric": "gala_gopher_container_memory_usage_bytes"
-  },
-  {
-    "metric": "gala_gopher_container_fs_reads_bytes_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_writes_bytes_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_read_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_write_seconds_total"
-  },
-  {
-    "metric": "gala_gopher_container_fs_inodes_free"
-  },
-  {
-    "metric": "gala_gopher_container_fs_inodes_total"
-  }
-]
+    {
+      "metric": "gala_gopher_container_cpu_usage_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_system_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_cpu_user_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_memory_mapped_file"
+    },
+    {
+      "metric": "gala_gopher_container_memory_cache"
+    },
+    {
+      "metric": "gala_gopher_container_memory_rss"
+    },
+    {
+      "metric": "gala_gopher_container_memory_working_set_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_memory_usage_bytes"
+    },
+    {
+      "metric": "gala_gopher_container_fs_reads_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_writes_bytes_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_read_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_write_seconds_total"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_free"
+    },
+    {
+      "metric": "gala_gopher_container_fs_inodes_total"
+    }
+  ]
 }

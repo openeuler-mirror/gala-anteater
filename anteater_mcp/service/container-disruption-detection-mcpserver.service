@@ -1,0 +1,17 @@
+[Unit]
+Description=A-Ops container disruption detection mcp service
+After=network.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/container-disruption-detection-mcp
+Environment=PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+Restart=no
+RestartSec=1
+KillMode=control-group
+KillSignal=SIGTERM
+TimeoutStopSec=30
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
