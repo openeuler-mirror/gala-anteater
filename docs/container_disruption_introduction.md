@@ -34,7 +34,7 @@ RUN apt-get update && \
 ```
 docker build -t stress-container .
 ```
-使用构建的Docker镜像创建三个容器，并让三个容器处于同一个资源组限制下（后续需判断三个容器运行是否继承资源组的限制，如不满足可能需要修改Docker Cgroup Driver为systemd）：  
+使用构建的Docker镜像创建四个容器，并让四个容器处于同一个资源组限制下（后续需判断四个容器运行是否继承资源组的限制，如不满足可能需要修改Docker Cgroup Driver为systemd）：  
 ```
 docker run -d --name stress-container1 \
   --cgroup-parent=stress.slice \
@@ -94,8 +94,13 @@ docker exec -it stress-container1 bash
 stress-ng --cpu 2 --cpu-load 100 -t 300
 ```
 
-## 查看gala-anteater检测的异常信息
+## 异常上报
 ```
 # 先跳转到kafka的安装路径
 ./bin/kafka-console-consumer.sh --bootstrap-server [ip]:9092 --topic gala_anteater_hybrid_model --from-beginning
+```
+
+## 异常检测结果示例
+```
+{"Timestamp": 1767864105381, "Attributes": {"entity_id": "fc214d56-657e-2c2d-7b3e-ace4653752d0-192.168.140.132_sli_0_0_0_0", "event_id": "1767864105381_fc214d56-657e-2c2d-7b3e-ace4653752d0-192.168.140.132_sli_0_0_0_0", "event_type": "simple", "event_source": "spot", "keywords": ["app"]}, "Resource": {"metric": "gala_gopher_sli_container_cpu_rundelay", "labels": {"ContainerID": "e9ca900cbc2d", "ContainerName": "stress-container"}, "score": "0.800", "root_causes": [{"metric": "gala_gopher_sli_container_cpu_rundelay", "labels": {"container_id": "aff3bc28a7ee", "container_image": "stress-container", "container_name": "/stress-container4", "instance": "192.168.140.132:8888", "job": "gala-gopher", "machine_id": "fc214d56-657e-2c2d-7b3e-ace4653752d0-192.168.140.132", "cpu_num": 0}, "score": "0.964"}, {"metric": "gala_gopher_sli_container_cpu_rundelay", "labels": {"container_id": "2cc2b8cc678b", "container_image": "stress-container", "container_name": "/stress-container1", "instance": "192.168.140.132:8888", "job": "gala-gopher", "machine_id": "fc214d56-657e-2c2d-7b3e-ace4653752d0-192.168.140.132", "cpu_num": 0}, "score": "0.811"}], "description": "cpu \u8c03\u5ea6\u65f6\u5ef6"}, "SeverityText": "WARN", "SeverityNumber": 13, "Body": "2026-01-08 17:21:45 - app metric anomaly - cpu \u8c03\u5ea6\u65f6\u5ef6 - {'event_source': 'spot', 'info': {'abnormal_start': 1767864090, 'abnormal_end': 1767864105, 'container_name': '/stress-container2', 'machine_id': 'fc214d56-657e-2c2d-7b3e-ace4653752d0-192.168.140.132', 'gala_gopher_sli_container_cpu_busy': 0.0, 'appkey': '', 'cpu_num': 0}}", "is_anomaly": true}
 ```

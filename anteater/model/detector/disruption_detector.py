@@ -102,7 +102,7 @@ class ContainerDisruptionDetector(Detector):
             self.end_time = end
 
             point_count = self.data_loader.expected_point_length(start, end)
-            if container_id == None:
+            if container_id is None:
                 ts_list = self.data_loader.get_metric(
                     start, end, metric, machine_id=machine_id)   
             else:
@@ -138,7 +138,7 @@ class ContainerDisruptionDetector(Detector):
     def get_ts_list(self, metric, machine_id, container_ids, look_back):
         ts_list = []
         point_count = 0
-        if container_ids == None:
+        if container_ids is None:
             point_count, _ts = self.get_kpi_ts_list(metric, machine_id, None, look_back)
             ts_list.extend(_ts)
         else:
