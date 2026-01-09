@@ -16,17 +16,17 @@ from glob import glob
 from setuptools import setup, find_packages
 import os 
 
-'''
+
 # 安装前清理旧版本配置文件
-cfg_path = "/etc/gala-anteater"
-for root, dirs, files in os.walk(cfg_path):
+CFG_PATH = "/etc/gala-anteater"
+for root, dirs, files in os.walk(CFG_PATH):
     for file in files:
         os.remove(os.path.join(root, file))
 
-ser = "/usr/lib/systemd/system/gala-anteater.service"
-if os.path.isfile(ser):
-    os.remove(ser)
-'''
+SERVICE_PATH = "/usr/lib/systemd/system/gala-anteater.service"
+if os.path.isfile(SERVICE_PATH):
+    os.remove(SERVICE_PATH)
+
 setup(
     name="gala_anteater",
     version="2.0.1",
