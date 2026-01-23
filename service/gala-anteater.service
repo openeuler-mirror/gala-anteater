@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=exec
-ExecStart=/bin/bash -c "source /opt/miniconda3/etc/profile.d/conda.sh && conda activate anteater && gala-anteater"
+ExecStart=/usr/bin/gala-anteater
 Restart=on-failure
 RestartSec=1
 

@@ -76,7 +76,7 @@ class ContainerDisruptionDetector(Detector):
 
         return anomalies
 
-    def detect_signal_kpi(self, kpi, machine_id: str, container_ids: List[str]) -> List[Anomaly]:
+    def detect_signal_kpi(self, kpi, machine_id: str, container_ids: List[str] = None) -> List[Anomaly]:
         """Detects kpi based on signal time series anomaly detection model"""
 
         anomalies = []
@@ -102,8 +102,12 @@ class ContainerDisruptionDetector(Detector):
             self.end_time = end
 
             point_count = self.data_loader.expected_point_length(start, end)
-            ts_list = self.data_loader.get_metric(
-                start, end, metric, machine_id=machine_id, container_id=container_id)
+            if container_id is None:
+                ts_list = self.data_loader.get_metric(
+                    start, end, metric, machine_id=machine_id)   
+            else:
+                ts_list = self.data_loader.get_metric(
+                    start, end, metric, machine_id=machine_id, container_id=container_id)
 
         return point_count, ts_list
 
@@ -134,9 +138,13 @@ class ContainerDisruptionDetector(Detector):
     def get_ts_list(self, metric, machine_id, container_ids, look_back):
         ts_list = []
         point_count = 0
-        for container_id in container_ids:
-            point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+        if container_ids is None:
+            point_count, _ts = self.get_kpi_ts_list(metric, machine_id, None, look_back)
             ts_list.extend(_ts)
+        else:
+            for container_id in container_ids:
+                point_count, _ts = self.get_kpi_ts_list(metric, machine_id, container_id, look_back)
+                ts_list.extend(_ts)
         return point_count, ts_list
     
 

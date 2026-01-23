@@ -32,9 +32,9 @@
       "th": 0.35,
       "max_error_rate": 0.7,
       "min_train_hours": 24,
-      "min_predict_minutes": 5,
+      "min_predict_minutes": 5,     
       "top_n": 20,
-      "extra_metrics": "gala_gopher_sli_container_cpu_busy",
+      "extra_metrics": "gala_gopher_sli_container_cpu_busy, gala_gopher_sli_container_cpu_cores",
       "preprocessor": {
         "smooth_type": "rolling",
         "smooth_window": 18,
