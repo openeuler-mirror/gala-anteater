@@ -1,18 +1,129 @@
 import os
+import re
 import logging
 import json
 import yaml
 
 from pydantic import BaseModel
 from typing import Optional
-from json_repair import repair_json
 from openai import OpenAI
 
 __all__ = [
-    naive_recovery_suggestion_llm, DetectionReport, RCAReport
+    "naive_recovery_suggestion_llm", "DetectionReport", "RCAReport"
 ]
 
 logger = logging.getLogger("anteater_mcp.suggestion_by_llm")
+
+
+def _strip_code_fence(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+
+def _normalize_string_newlines(text: str) -> str:
+    chars = []
+    in_string = False
+    escape = False
+    for char in text:
+        if escape:
+            chars.append(char)
+            escape = False
+            continue
+        if char == "\\":
+            chars.append(char)
+            escape = True
+            continue
+        if char == '"':
+            chars.append(char)
+            in_string = not in_string
+            continue
+        if in_string and char == "\n":
+            chars.append("\\n")
+            continue
+        if in_string and char == "\r":
+            chars.append("\\r")
+            continue
+        chars.append(char)
+    return "".join(chars)
+
+
+def _extract_json_fragment(text: str) -> str:
+    starts = [idx for idx, char in enumerate(text) if char in "[{\""]
+    for start in starts:
+        candidate = text[start:].strip()
+        if candidate.startswith('"'):
+            try:
+                decoded = json.loads(candidate)
+            except json.JSONDecodeError:
+                pass
+            else:
+                if isinstance(decoded, str):
+                    return decoded
+
+        opening = candidate[0]
+        if opening not in "[{":
+            continue
+        closing = "}" if opening == "{" else "]"
+        depth = 0
+        in_string = False
+        escape = False
+        for idx, char in enumerate(candidate):
+            if escape:
+                escape = False
+                continue
+            if char == "\\":
+                escape = True
+                continue
+            if char == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if char == opening:
+                depth += 1
+            elif char == closing:
+                depth -= 1
+                if depth == 0:
+                    fragment = candidate[:idx + 1]
+                    fragment = _normalize_string_newlines(fragment)
+                    try:
+                        json.loads(fragment)
+                    except json.JSONDecodeError:
+                        break
+                    return fragment
+    raise ValueError("No JSON object or array found in LLM output")
+
+
+def repair_json_output(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError("LLM output must be a string")
+
+    candidates = []
+    stripped = _strip_code_fence(text)
+    if stripped:
+        candidates.append(stripped)
+
+    normalized = _normalize_string_newlines(stripped)
+    if normalized and normalized not in candidates:
+        candidates.append(normalized)
+
+    try:
+        fragment = _extract_json_fragment(stripped)
+    except ValueError:
+        fragment = None
+    if fragment and fragment not in candidates:
+        candidates.append(fragment)
+
+    for candidate in candidates:
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            continue
+
+    raise ValueError("No valid JSON payload found in LLM output")
 
 
 class ToolMeta(BaseModel):
@@ -96,7 +207,7 @@ class LLMTool:
                     system_prompt=system_prompt,
                     user_prompt=user_prompt
                 )
-                ans = repair_json(ans)
+                ans = repair_json_output(ans)
                 if ans:
                     ans = json.loads(ans)
                     return ans
