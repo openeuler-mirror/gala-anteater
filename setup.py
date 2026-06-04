@@ -56,7 +56,6 @@ setup(
         "torch",
         "networkx",
         "pyArango",
-        "pingouin",
         "statsmodels"
     ],
     entry_points={

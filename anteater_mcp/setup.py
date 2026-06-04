@@ -29,8 +29,7 @@ setup(
     install_requires=[
         "numpy",
         "pandas",
-        "mcp"
-        "fastmcp"
+        "mcp",
     ],
     entry_points={
         "console_scripts": [

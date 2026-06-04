@@ -29,7 +29,7 @@ anteater 基于系统历史数据，进行自动化模型预训练、线上模�
 * 支持的python版本：3.7+；
 * anteater 依赖于 gopher 采集的数据，请先完成 gopher 的安装部署；
 * anteater 直接从 Prometheus 中获取时序指标型数据，需要完成 Prometheus 的安装部署；
-* anteater 依赖于 gopher 上报的 meta 数据（上报至 Kafka），因为需要确保 Kafka 安装部署完成。
+* anteater 依赖于 gopher 上报的 meta 数据（上报至 Kafka），因此需要确保 Kafka 安装部署完成。
 
 ### 方法一：Docker镜像安装（适用于普通用户）
 #### Docker镜像制作

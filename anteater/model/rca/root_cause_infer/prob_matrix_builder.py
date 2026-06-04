@@ -17,6 +17,26 @@ class ProbMatrixBuilder():
         self.args = args
         pass
 
+    @staticmethod
+    def _corr(values_x, values_y, corr_type):
+        if corr_type != "pearson":
+            raise ValueError(f"Unsupported correlation type: {corr_type}")
+
+        values_x = np.asarray(values_x, dtype=np.float64)
+        values_y = np.asarray(values_y, dtype=np.float64)
+        if np.std(values_x) == 0 or np.std(values_y) == 0:
+            return 0.
+
+        return float(np.corrcoef(values_x, values_y)[0, 1])
+
+    @staticmethod
+    def _residualize(target, controls):
+        target = np.asarray(target, dtype=np.float64)
+        control_array = controls.to_numpy(dtype=np.float64)
+        design = np.column_stack([np.ones(len(target)), control_array])
+        coeffs, _, _, _ = np.linalg.lstsq(design, target, rcond=None)
+        return target - design.dot(coeffs)
+
     def __call__(self, graph, v_fe, *args, **kwargs):
         transfer_mat = self.build_probablity_matrix(graph, v_fe)
 
@@ -50,22 +70,24 @@ class ProbMatrixBuilder():
         parent_v_j = self.remove_self(graph.pred.get(v_j), v_j)
         parent_v_fe = self.remove_self(graph.pred.get(v_fe), v_fe)
 
-        confounder = list(set(parent_v_j) | set(parent_v_fe))
-        if v_fe in confounder:
-            confounder.remove(v_fe)
-        if v_j in confounder:
-            confounder.remove(v_j)
+        confounder = [item for item in set(parent_v_j) | set(parent_v_fe) if item not in {v_fe, v_j}]
 
         if len(df[v_fe].unique()) == 1:
             return 0.
         if len(df[v_j].unique()) == 1:
             return 0.
-        for item in confounder:
-            if len(df[item].unique()) == 1:
-                confounder.remove(item)
 
-        import pingouin as pg
-        return abs(pg.partial_corr(data=df, x=v_fe, y=v_j, covar=confounder, method=corr_type)['r'].values[0])
+        confounder = [item for item in confounder if len(df[item].unique()) > 1]
+
+        x_values = df[v_fe].to_numpy(dtype=np.float64)
+        y_values = df[v_j].to_numpy(dtype=np.float64)
+        if not confounder:
+            return abs(self._corr(x_values, y_values, corr_type))
+
+        controls = df[confounder]
+        x_residual = self._residualize(df[v_fe], controls)
+        y_residual = self._residualize(df[v_j], controls)
+        return abs(self._corr(x_residual, y_residual, corr_type))
 
     def transfer_prob(self, graph, nodes: tuple, df, corr_type, corr_prop):
         """
