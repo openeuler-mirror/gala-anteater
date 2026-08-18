@@ -1,7 +1,7 @@
 # 配置文件介绍
 gala-anteater启动必须的参数，主要通过`gala-anteater.yaml`配置文件，主要包括：全局参数配置、依赖中间件配置、以及相关启动选项。除此之外，还可以配置`Logger`相关参数，以及配置`gala-anteater`异常检测各个子模块相关的参数。
 
-全部配置文件归档在[config](https://gitee.com/openeuler/gala-anteater/tree/master/config)目录。
+全部配置文件归档在[config](https://atomgit.com/openeuler/gala-anteater/tree/master/config)目录。
 
 ## 配置文件目录结构
 启动配置文件目录结构如下，主要分为两类：`启动参数配置`和`日志参数配置`。

@@ -41,7 +41,7 @@ docker build -f Dockerfile -t gala-anteater:1.1.0 .
 
 #### Docker镜像运行
 执行下面的命令，运行Docker镜像。首次运行会将配置文件`gala-anteater.yaml`文件映射到宿主机`/etc/gala-anteater/config`文件中，
-请配置`gala-anteater.yaml`里面的参数，配置方式，请参考[配置文件介绍](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
+请配置`gala-anteater.yaml`里面的参数，配置方式，请参考[配置文件介绍](https://atomgit.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 ```
 docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.1.0
 ```
@@ -49,7 +49,7 @@ docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.1.0
 ### 方法二：从本仓库源码安装运行（适用于开发者）
 #### 下载源码
 ```
- git clone https://gitee.com/openeuler/gala-anteater.git
+ git clone https://atomgit.com/openeuler/gala-anteater.git
 ```
 
 #### 安装
@@ -59,7 +59,7 @@ python3 setup.py install
 ```
 
 #### 参数配置
-配置参数会被映射到`/etc/gala-anteater/config`文件中，需要首先设置相应的参数，配置方式，请参考[配置文件介绍](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
+配置参数会被映射到`/etc/gala-anteater/config`文件中，需要首先设置相应的参数，配置方式，请参考[配置文件介绍](https://atomgit.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 
 
 注：在配置文件中，最重要的是完成配置文件中中间件的配置，如其中`Kafka server/port`、`Prometheus server/port`。
