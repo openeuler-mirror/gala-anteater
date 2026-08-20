@@ -22,9 +22,9 @@ _表-1. JVM OOM 9种常见类型 & 当前诊断能力范围_
 
 ## gala-gopehr JVM 探针数据采集
 
-gala-gopher 采用 Java Agent 技术，实现实时监控和采集 JVM 内存数据，主要技术细节请参考：[jvmprobe](https://gitee.com/openeuler/gala-gopher/blob/master/src/probes/extends/java.probe/jvm.probe/readme.md)。
+gala-gopher 采用 Java Agent 技术，实现实时监控和采集 JVM 内存数据，主要技术细节请参考：[jvmprobe](https://atomgit.com/openeuler/gala-gopher/blob/master/src/probes/extends/java.probe/jvm.probe/readme.md)。
 
-当前采集的数据，基本覆盖了 JVM 中各个不同内存区域的信息，能够实时反映当前 JVM 内存使用情况。表-2给出了不同内存区域主要采集的指标数据。全部采集的指标数据参考：[jvm监控](https://gitee.com/openeuler/gala-docs/blob/master/gopher_tech.md#jvm%E7%9B%91%E6%8E%A7)。
+当前采集的数据，基本覆盖了 JVM 中各个不同内存区域的信息，能够实时反映当前 JVM 内存使用情况。表-2给出了不同内存区域主要采集的指标数据。全部采集的指标数据参考：[jvm监控](https://atomgit.com/openeuler/gala-docs/blob/master/gopher_tech.md#jvm%E7%9B%91%E6%8E%A7)。
 
 _表-2：JVM 各个内存区域采集的主要指标及其含义_
 | 类型       | 范围                 | 主要指标                                  |

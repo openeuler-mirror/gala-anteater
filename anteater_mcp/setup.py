@@ -12,7 +12,7 @@ setup(
     author="zimeng li, lihao dong",
     author_email="lizimeng9@huawei.com, donglihao1@huawei.com",
     description="MCP Server for Container Disruption Detection",
-    url="https://gitee.com/openeuler/gala-anteater",
+    url="https://atomgit.com/openeuler/gala-anteater",
     keywords=[
         "Container Disruption Detection",
         "Group Compare",

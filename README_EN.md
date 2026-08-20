@@ -50,7 +50,7 @@ Note: You may need to change the `pip` source address in the `Dockfile` file bas
 #### Running the Docker Image
 
 Run the following command to run the Docker image: When the Docker image is run for the first time, the configuration file `gala-anteater.yaml` is mapped to the `/etc/gala-anteater/config` file on the host machine.
-Configure the parameters in the `gala-anteater.yaml` file. For details about the configuration method, see [Configuration File Introduction](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md).
+Configure the parameters in the `gala-anteater.yaml` file. For details about the configuration method, see [Configuration File Introduction](https://atomgit.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md).
 
 ```bash
 docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.1.0
@@ -61,7 +61,7 @@ docker run -v /etc/gala-anteater:/etc/gala-anteater -it gala-anteater:1.1.0
 #### Downloading the Source Code
 
 ```bash
- git clone https://gitee.com/openeuler/gala-anteater.git
+ git clone https://atomgit.com/openeuler/gala-anteater.git
 ```
 
 #### Installation
@@ -74,7 +74,7 @@ python3 setup.py install
 
 #### Parameter Configuration
 
-The configuration parameters will be mapped to the `/etc/gala-anteater/config` file. You need to set the corresponding parameters first. For details about the configuration method, see [Configuration File Introduction](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md).
+The configuration parameters will be mapped to the `/etc/gala-anteater/config` file. You need to set the corresponding parameters first. For details about the configuration method, see [Configuration File Introduction](https://atomgit.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md).
 
 Note: In the configuration file, the most important thing is to configure the middleware in the configuration file, such as `Kafka server/port` and `Prometheus server/port`.
 

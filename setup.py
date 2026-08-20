@@ -33,7 +33,7 @@ setup(
     author="Zhenxing Li",
     author_email="lizhenxing11@huawei.com",
     description="Times Series Anomaly Detection Platform on Operating System",
-    url="https://gitee.com/openeuler/gala-anteater",
+    url="https://atomgit.com/openeuler/gala-anteater",
     keywords=["Anomaly Detection", "Time Series Analysis", "Operating System"],
     packages=find_packages(where=".", exclude=("tests", "tests.*")),
     data_files=[

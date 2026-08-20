@@ -50,7 +50,7 @@ gala-anteater对于一个异常检测任务，能够很好地支持如下两类�
 * 多指标异常检测：将多个指标，统一作为异常检测任务的输入，最终得到异常检测结果。
 
 ### 示例
-下面以`disk read/write await time`异常检测任务（对应的[PR](https://gitee.com/openeuler/gala-anteater/pulls/30)）为例，进行介绍。
+下面以`disk read/write await time`异常检测任务（对应的[PR](https://atomgit.com/openeuler/gala-anteater/pull/30 ）为例，进行介绍。
 
 #### 1. 确定KPI和Feature
 对于特定的任务，可以通过专家经验，或者特征选择技术，选择合适的KPI和Feature。对于`Disk`场景，可以选择如下KPI和Feature:
@@ -97,7 +97,7 @@ gala-anteater               # gala-anteater 主目录
       └─ sys_tcp_transmission_throughput.json       # sys-tcp-transmission-throughput 参数配置
 ```
 
-对于`启动参数配置`、`日志参数配置`，请参考[这里](https://gitee.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
+对于`启动参数配置`、`日志参数配置`，请参考[这里](https://atomgit.com/openeuler/gala-anteater/blob/master/docs/conf_introduction.md)。
 
 在文件夹`module/`中，包含异常检测各个子模块的参数配置。异常检测包括很多应用级和系统级的异常检测任务，每个任务被认为是异常检测的一个子模块，它包含异常检测的主指标（KPI）、特征量（Features）、以及模型相关的特征量。
 
