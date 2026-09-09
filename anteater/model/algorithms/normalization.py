@@ -59,6 +59,10 @@ class Normalization:
                 mean: [n, 1] for test
                 std: [n, 1] for test
         '''
+        # Make a writable copy — Series.values may return a read-only array
+        # in newer pandas/numpy, and the in-place assignments below would
+        # raise "ValueError: assignment destination is read-only".
+        value = np.array(value, copy=True)
         if mean is None:
             mean = np.mean(value, axis=-1)
         if std is None:
