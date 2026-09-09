@@ -198,14 +198,16 @@ class ContainerDisruptionDetector(Detector):
                     # smooth_win = self._check_smooth(_ts_series_train)
                     # _ts_series_train = _ts_series_train.rolling(window=smooth_win).mean().bfill().ffill().values
                     _ts_series_train = _ts_series_train.values
+                    # _ts_series_train is now a read-only numpy array from Series.values;
+                    # use non-in-place addition to avoid "ValueError: output array is read-only"
 
                     noise_data = np.random.normal(0, scale=1e-6, size=_ts_series_train.shape)
-                    _ts_series_train += noise_data
+                    _ts_series_train = _ts_series_train + noise_data
                     if self._is_peak_empty(_ts_series_train):
                         if np.max(_ts_series_train) != 0:
                             noise_ratio = np.random.randint(-1e5, 1e5, size=_ts_series_train.shape) / 1e6
                             noise_data = noise_ratio * _ts_series_train
-                        _ts_series_train += noise_data
+                        _ts_series_train = _ts_series_train + noise_data
                         # logger.warning("peak data are same.")
 
                     _ts_series_train, mean, std = Normalization.clip_transform(
@@ -218,7 +220,8 @@ class ContainerDisruptionDetector(Detector):
                     # predict
                     # smooth_win = self._check_smooth(_ts_series_test)
                     # _ts_series_test = _ts_series_test.rolling(window=smooth_win).mean().bfill().ffill().values
-                    _ts_series_test = _ts_series_test.values
+                    # Make a writable copy — .values returns a read-only array
+                    _ts_series_test = np.array(_ts_series_test.values, copy=True)
                     _ts_series_test, _, _ = Normalization.clip_transform(
                         _ts_series_test[np.newaxis, :], mean=mean, std=std, is_clip=False)
                     _ts_series_test = _ts_series_test[0]
