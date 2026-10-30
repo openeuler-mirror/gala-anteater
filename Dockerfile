@@ -26,12 +26,12 @@ FROM python:3.9-slim-buster
 # ARM -base image
 # FROM python:3.7
 
-ENV PYTHONPATH "${PYTHONPATH}:/home/gala-anteather/anteater"
+ENV PYTHONPATH "${PYTHONPATH}:/home/gala-anteater/anteater"
 
-WORKDIR /home/gala-anteather
+WORKDIR /home/gala-anteater
 
 COPY requirements.txt requirements.txt
-COPY . /home/gala-anteather
+COPY . /home/gala-anteater
 
 COPY config/gala-anteater.yaml ./config/
 COPY config/module/ ./config/module/
