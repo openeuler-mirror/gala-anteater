@@ -127,7 +127,7 @@ class RCA:
             if anomaly_result['is_anomaly']:
                 root_cause_infer = RootCauseInfer(self.job_config, anomaly_result, anomaly_data_dict, machine_ids,
                                                   all_machines_df, self.arangodb_config)
-                res = root_cause_infer.excute(seed=100)
+                res = root_cause_infer.execute(seed=100)
                 self.provider.send_rca_message(res)
 
                 logger.info(f"[Info] RCA End, final output message: {res}.")
@@ -166,7 +166,7 @@ class RCA:
                 try:
                     root_cause_infer = RootCauseInfer(self.job_config, anomaly_data[i], anomaly_results, machine_ids,
                                                       all_machines_metric_df, self.entity_topo_dict)
-                    res = root_cause_infer.excute(seed=100)
+                    res = root_cause_infer.execute(seed=100)
                     logger.info(f"[Info] RCA End, final output message: {res}.")
                     self.provider.send_rca_message(res)
                 except Exception:

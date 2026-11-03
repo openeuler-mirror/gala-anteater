@@ -24,7 +24,7 @@ import numpy as np
 def series_filter(values, kernel_size: int):
     """Filtering the time series values"""
     if kernel_size <= 0:
-        raise ValueError("The kernal size less than or equal to zero.")
+        raise ValueError("The kernel size less than or equal to zero.")
 
     result = np.cumsum(values, dtype=np.float32)
     result[kernel_size:] = result[kernel_size:] - result[:-kernel_size]

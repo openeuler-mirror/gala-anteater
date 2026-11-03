@@ -51,7 +51,7 @@ class AnomalySuppression:
     def suppress(self, anomaly: Anomaly) -> bool:
         """Suppresses reported anomalies if there is a same one recently"""
         if self._check_same_type(anomaly):
-            logger.info('An anomaly was be supressed by AnomalySuppression!')
+            logger.info('An anomaly was be suppressed by Anomaly Suppression!')
             return True
 
         self._append(anomaly)
