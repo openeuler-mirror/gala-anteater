@@ -1,4 +1,3 @@
-import os
 import re
 import logging
 import json
@@ -7,6 +6,10 @@ import yaml
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
+from anteater_mcp.container_disruption_detection_mcp.common.paths import (
+    main_config_path,
+    prompt_config_path,
+)
 
 __all__ = [
     "naive_recovery_suggestion_llm", "DetectionReport", "RCAReport"
@@ -181,7 +184,7 @@ class LLMTool:
         return ''.join(ans)
     @classmethod
     def get_default_config_path(cls):
-        return os.path.join("/etc", "gala-anteater-mcp", "config", "gala-anteater.yaml")
+        return main_config_path()
 
     def get_client(self, base_url=None, api_key=None):
         if base_url is None:
@@ -266,7 +269,7 @@ async def naive_recovery_suggestion_llm(task_id: str, detection_report: dict,
     :param analysis_report: 干扰分析工具的输出
     :return: 输出一个Output
     """
-    prompt_path = os.path.join("/etc", "gala-anteater-mcp", "config", "prompts.json")
+    prompt_path = prompt_config_path()
     try:
         with open(prompt_path, encoding="utf8") as f:
             prompts = json.load(f)

@@ -10,6 +10,8 @@ The MCP Server depends on the following configuration files, which must be insta
 
 These files are located in the `config/` directory of this project. They can be copied automatically by the "Install as a service" method below, or copied manually to that path before starting.
 
+The configuration directory defaults to `/etc/gala-anteater-mcp/config/`, and can be pointed somewhere else (for example a configuration directory mounted inside a container) with the `ANTEATER_MCP_CONFIG_DIR` environment variable. The directory and the file names are defined once in `container_disruption_detection_mcp/common/paths.py` and are kept in sync with what `setup.py` installs (checked by `tests/unit_tests/test_mcp_config_paths.py`).
+
 ## Startup Method
 
 ### Method 1: Run from source (for developers)

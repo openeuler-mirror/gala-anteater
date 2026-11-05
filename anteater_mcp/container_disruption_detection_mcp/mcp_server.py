@@ -11,6 +11,10 @@ from typing import List, Dict, Any
 from mcp.server import FastMCP
 
 from anteater_mcp.container_disruption_detection_mcp.common.loader import build_metric_loader
+from anteater_mcp.container_disruption_detection_mcp.common.paths import (
+    job_config_path,
+    main_config_path,
+)
 from anteater.core.anomaly import Anomaly, RootCause
 from anteater.core.ts import TimeSeries
 from anteater.core.kpi import KPI, ModelConfig
@@ -277,8 +281,8 @@ def container_disruption_detection_tool(request: str) -> Dict[str, Any]:
     )
 
     # 加载 job 配置
-    job_path = "/etc/gala-anteater-mcp/config/container_disruption.job.json"
-    anteater_conf = "/etc/gala-anteater-mcp/config/gala-anteater.yaml"
+    job_path = job_config_path()
+    anteater_conf = main_config_path()
 
     try:
         kpis, window_cfg, extra_cfg = load_kpis_from_job(job_path, look_back_minutes)
@@ -476,9 +480,7 @@ def container_interference_analysis_tool(request: str) -> Dict[str, Any]:
     logger.info("[Analysis] start multi-container | task_id=%s", task_id)
 
     # metric loader 全局只初始化一次
-    anteater_conf = os.path.join(
-        "/etc/gala-anteater-mcp/config/gala-anteater.yaml"
-    )
+    anteater_conf = main_config_path()
 
     try:
         loader = build_metric_loader(config_path=anteater_conf, metricinfo_json={})

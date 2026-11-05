@@ -10,6 +10,8 @@ MCP Server 运行依赖以下配置文件，需先安装到 `/etc/gala-anteater-
 
 上述文件位于本工程 `config/` 目录，可通过下方"安装为服务"方式自动拷贝，也可手工复制到该路径后再启动。
 
+配置文件目录默认为 `/etc/gala-anteater-mcp/config/`，也可以通过环境变量 `ANTEATER_MCP_CONFIG_DIR` 指向其它位置（例如容器内挂载的配置目录）。目录与文件名常量统一在 `container_disruption_detection_mcp/common/paths.py` 中定义，与 `setup.py` 的安装产物保持一致，修改时两处须同步（由 `tests/unit_tests/test_mcp_config_paths.py` 校验）。
+
 ## 启动方式
 
 ### 方法一：源码手工启动（适用于开发者）
