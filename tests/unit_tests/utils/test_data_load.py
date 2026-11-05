@@ -14,6 +14,7 @@
 
 import json
 import logging
+import os
 import sys
 import tempfile
 import unittest
@@ -31,12 +32,26 @@ if 'anteater.utils.log' not in sys.modules:
 from anteater.utils.data_load import load_job_config, validate_dup
 
 
-def write_json(obj):
-    """Writes obj to a temporary JSON file and returns its path"""
-    fd, filepath = tempfile.mkstemp(suffix='.json')
-    with open(fd, 'w', encoding='utf-8') as f_out:
-        json.dump(obj, f_out)
-    return filepath
+class TempJsonFileMixin:
+    """Hands out temporary JSON files that outlive only the current test."""
+
+    def write_json(self, obj):
+        """Writes obj to a temporary JSON file and returns its path"""
+        return self.write_text(json.dumps(obj))
+
+    def write_text(self, text):
+        """Writes text to a temporary file and returns its path
+
+        The file is created inside a TemporaryDirectory whose cleanup is
+        registered with addCleanup, so the file is removed when the test
+        finishes even if an assertion fails before the caller can delete it.
+        """
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        filepath = os.path.join(temp_dir.name, 'job.json')
+        with open(filepath, 'w', encoding='utf-8') as f_out:
+            f_out.write(text)
+        return filepath
 
 
 class TestValidateDup(unittest.TestCase):
@@ -54,11 +69,11 @@ class TestValidateDup(unittest.TestCase):
         self.assertFalse(validate_dup([]))
 
 
-class TestLoadJobConfig(unittest.TestCase):
+class TestLoadJobConfig(TempJsonFileMixin, unittest.TestCase):
 
     def test_load_job_config_should_load_basic_job(self):
         """A minimal job config is parsed into a JobConfig"""
-        filepath = write_json({
+        filepath = self.write_json({
             'name': 'anomaly_detection_test',
             'enable': True,
             'job_type': 'anomaly_detection',
@@ -89,7 +104,7 @@ class TestLoadJobConfig(unittest.TestCase):
 
     def test_load_job_config_should_filter_disabled_kpis(self):
         """KPIs with enable=False are filtered out"""
-        filepath = write_json({
+        filepath = self.write_json({
             'name': 'anomaly_detection_test',
             'kpis': [
                 {'metric': 'enabled_metric', 'entity_name': 'machine'},
@@ -104,7 +119,7 @@ class TestLoadJobConfig(unittest.TestCase):
 
     def test_load_job_config_should_raise_on_duplicated_kpi_metric(self):
         """Duplicated kpi metric names raise a ValueError"""
-        filepath = write_json({
+        filepath = self.write_json({
             'name': 'anomaly_detection_test',
             'kpis': [
                 {'metric': 'same_metric', 'entity_name': 'machine'},
@@ -117,7 +132,7 @@ class TestLoadJobConfig(unittest.TestCase):
 
     def test_load_job_config_should_raise_on_duplicated_feature_metric(self):
         """Duplicated feature metric names raise a ValueError"""
-        filepath = write_json({
+        filepath = self.write_json({
             'name': 'anomaly_detection_test',
             'features': [
                 {'metric': 'same_metric'},
@@ -130,19 +145,15 @@ class TestLoadJobConfig(unittest.TestCase):
 
     def test_load_job_config_should_raise_on_invalid_json(self):
         """A malformed JSON file raises a JSONDecodeError"""
-        fd, filepath = tempfile.mkstemp(suffix='.json')
-        with open(fd, 'w', encoding='utf-8') as f_out:
-            f_out.write('{invalid json')
+        filepath = self.write_text('{invalid json')
 
-        from json import JSONDecodeError
-
-        with self.assertRaises(JSONDecodeError):
+        with self.assertRaises(json.JSONDecodeError):
             load_job_config(filepath)
 
     def test_load_job_config_should_keep_model_config_dict_for_rca(self):
         """A RootCauseAnalysis job keeps model_config as a plain dict"""
         model_config = {'name': 'rca_model', 'params': {'key': 'value'}}
-        filepath = write_json({
+        filepath = self.write_json({
             'name': 'RootCauseAnalysis',
             'model_config': model_config,
         })
