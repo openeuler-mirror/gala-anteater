@@ -25,8 +25,10 @@ class TestDateTime(unittest.TestCase):
 
     def setUp(self):
         # DateTime is a Singleton: drop the shared instance before every
-        # test so each case starts from a clean state
-        DateTime._instance = None
+        # test so each case starts from a clean state. The attribute is
+        # managed by the metaclass; access it by name to avoid touching a
+        # protected member (G.CLS.11).
+        setattr(DateTime, "_instance", None)
 
     def test_datetime_should_now_correct_from_string(self):
         """A str timestamp is parsed with the documented format"""
@@ -89,7 +91,7 @@ class TestDateTimeManager(unittest.TestCase):
     """Tests for the DateTimeManager freeze/unfreeze helpers."""
 
     def setUp(self):
-        DateTime._instance = None
+        setattr(DateTime, "_instance", None)
         DateTimeManager.unfreeze()
 
     def test_utc_now_should_return_current_time_when_unfrozen(self):
