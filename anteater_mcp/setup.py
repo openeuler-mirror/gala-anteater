@@ -20,6 +20,10 @@ setup(
         "MCP Server",
     ],
     packages=find_packages(where=".", exclude=("tests", "tests.*")),
+    # The server reads these files back through the constants of
+    # container_disruption_detection_mcp/common/paths.py, so this destination
+    # and these file names have to stay in sync with it, which
+    # tests/unit_tests/test_mcp_config_paths.py checks
     data_files=[
         ("/etc/gala-anteater-mcp/config/", glob("config/container_disruption.job.json")),
         ("/etc/gala-anteater-mcp/config/", glob("config/gala-anteater.yaml")),
